@@ -1,45 +1,34 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { globalStyles } from '../../styles/global'
 import { colors } from '../../utils/colors'
 import FloatBtn from '../../components/FloatBtn';
+import { useTranslation } from 'react-i18next';
+import { useSelector,RootStateOrAny } from 'react-redux';
+import { removeEmptyObjects } from '../../utils/utilts';
+import { getEmployees } from './EmployeeSlice';
+import { useAppDispatch } from '../../app/store';
 
 const Employees = ({ navigation }: any) => {
 
 
-    const data = [
-        {
-            id: 1,
-            name: "James Aurthor",
-            phone:"784567833",
-            service:{
-                id:1,
-                name:"Kubandika kucha"
-            },
-            desc:"Works well under pressure"
+    const { t } = useTranslation();
 
-        },
-        {
-            id: 2,
-            name: "John cheo",
-            phone:"756123455",
-            service:{
-                id:2,
-                name:"Kuweka wigi"
-            },
-            desc:"Works well under pressure"
-        },
-        {
-            id: "1",
-            name: "Frank juma",
-            phone:"756897467",
-            service:{
-                id:3,
-                name:"Kubandika paka rangi kucha"
-            },
-            desc:"Works well under pressure"
-        }
-    ]
+
+    const {user } = useSelector(
+        (state: RootStateOrAny) => state.user,
+    );
+
+    const {loading,employees } = useSelector(
+        (state: RootStateOrAny) => state.employees,
+    );
+    const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        dispatch(getEmployees({ providerId:user.provider.id }));
+        
+      }, [])
+  
     const renderItem = ({ item }: any) => (
 
         <View style={styles.employeesContainer}>
@@ -60,8 +49,7 @@ const Employees = ({ navigation }: any) => {
                 />
                 <View style={styles.textContainer}>
                     <Text style={styles.employeeName}>{item.name}</Text>
-                    <Text style={styles.subservice}>{item.service.name}</Text>
-                    <Text style={styles.desc}>{item.desc}</Text>
+                    <Text style={styles.subservice}>{t('screens:requests')}: {item?.request_transfers?.length || 0}</Text>
                 </View>
 
             </TouchableOpacity>
@@ -71,13 +59,14 @@ const Employees = ({ navigation }: any) => {
 
     return (
         <View style={globalStyles.scrollBg}>
-            <View style={globalStyles.appView}>
+            <View style={[globalStyles.appView,{flex:1}]}>
+                <View>
                 <FlatList
-                    data={data}
-                    keyExtractor={(item) => item.id.toString()}
+                    data={removeEmptyObjects(employees)}
+                    keyExtractor={(item) => item?.id}
                     renderItem={renderItem}
                 />
-
+                </View>
                 <FloatBtn
                     onPress={() => { navigation.navigate('Add Employees') }
                     }

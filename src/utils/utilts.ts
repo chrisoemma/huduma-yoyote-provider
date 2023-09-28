@@ -16,6 +16,10 @@ export const truncate = (input: any, length: number) => {
   return input;
 };
 
+export function removeEmptyObjects(array) {
+  return array.filter(obj => Object.keys(obj).length > 0);
+}
+
 export const getAverageRating = (ratings: any) => {
   const average =
     ratings.reduce((total: any, next: any) => total + next.rating, 0) /

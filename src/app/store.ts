@@ -21,6 +21,7 @@ import BusinessSlice from '../features/business/BusinessSlice';
 import CategorySlice from '../features/category/CategorySlice';
 import ServiceSlice from '../features/Service/ServiceSlice';
 import SubservicesSlice from '../features/subservices/SubservicesSlice';
+import EmployeeSlice from '../features/employees/EmployeeSlice';
 
 
 const reducers = combineReducers({
@@ -32,7 +33,8 @@ const reducers = combineReducers({
   businesses:BusinessSlice,
   categories:CategorySlice,
   services:ServiceSlice,
-  subservices:SubservicesSlice
+  subservices:SubservicesSlice,
+  employees:EmployeeSlice
 });
 
 const persistConfig = {

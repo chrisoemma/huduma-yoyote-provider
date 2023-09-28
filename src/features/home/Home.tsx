@@ -13,6 +13,9 @@ import {
 import { globalStyles } from '../../styles/global'
 import { useAppDispatch } from '../../app/store'
 import { useTranslation } from 'react-i18next';
+import { getPastRequests } from '../requests/RequestSlice'
+import { useSelector, RootStateOrAny } from 'react-redux'
+import { getBusinesses } from '../business/BusinessSlice'
 
 
 const Home = ({ navigation }: any) => {
@@ -22,26 +25,23 @@ const Home = ({ navigation }: any) => {
     const dispatch = useAppDispatch();
     const [refreshing, setRefreshing] = useState(false);
 
-    // const { loading: productLoading, products } = useSelector(
-    //     (state: RootStateOrAny) => state.products,
-    // );
+    const { user } = useSelector(
+        (state: RootStateOrAny) => state.user,
+    );
+
+    const { loading, activeRequests } = useSelector(
+        (state: RootStateOrAny) => state.requests,
+    );
+
+    const { businesses } = useSelector(
+        (state: RootStateOrAny) => state.businesses,
+    );
 
 
-    // const { loading: ordersLoading, orders } = useSelector(
-    //     (state: RootStateOrAny) => state.orders,
-    // );
-
-
-    // const { user, loading: loadingUser } = useSelector((state: RootStateOrAny) => state.user);
-
-    // useEffect(() => {
-    //     dispatch(getOrders({ businessId: user.business.id, userType: 'business', orderType: 'active', userId: null }));
-    // }, [])
-
-
-    // useEffect(() => {
-    //     dispatch(getProducts({ businessId: user?.business.id }));
-    // }, [])
+    useEffect(() => {
+        dispatch(getPastRequests(user?.provider?.id));
+        dispatch(getBusinesses({ providerId: user?.provider?.id }))
+    }, [dispatch])
 
 
     // const callGetDashboard = React.useCallback(() => {
@@ -63,6 +63,7 @@ const Home = ({ navigation }: any) => {
     // callbacks
     const handlePresentModalPress = (title: any) => useCallback(() => {
         setSheetTitle(title)
+        console.log('shittitle', title);
         bottomSheetModalRef.current?.present();
     }, []);
     const handleSheetChanges = useCallback((index: number) => {
@@ -77,9 +78,9 @@ const Home = ({ navigation }: any) => {
                     contentInsetAdjustmentBehavior="automatic"
                     keyboardShouldPersistTaps={'handled'}
                     style={globalStyles.scrollBg}
-                    // refreshControl={
-                    //     <RefreshControl refreshing={refreshing} onRefresh={callGetDashboard} />
-                    // }
+                // refreshControl={
+                //     <RefreshControl refreshing={refreshing} onRefresh={callGetDashboard} />
+                // }
 
                 >
                     <PageContainer>
@@ -87,19 +88,19 @@ const Home = ({ navigation }: any) => {
                             <View style={{
                                 flexDirection: 'row',
                                 flexWrap: 'wrap',
-                                alignItems:'center',
-                                justifyContent:'center',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                                 marginTop: 50
                             }}>
                                 <Databoard
                                     mainTitle={t('screens:totalRequests')}
-                                    number="9"
+                                    number={activeRequests?.length || 0}
                                     onPress={handlePresentModalPress(`${t('screens:totalRequests')}`)}
                                     color={colors.primary}
                                 />
                                 <Databoard
                                     mainTitle={t('screens:business')}
-                                    number="5"
+                                    number={businesses?.length || 0}
                                     onPress={handlePresentModalPress(`${t('screens:business')}`)}
                                     color={colors.primary}
                                 />
@@ -122,16 +123,32 @@ const Home = ({ navigation }: any) => {
                         >
                             <Text style={styles.title}>{sheetTitle}</Text>
 
-                            {sheetTitle == '' ? (
-                                <View />
-                            ) : sheetTitle == 'Total requests' ? (
-                               <View />
-                            ) : (
-                         
-                              <View />
+                            {sheetTitle === 'Total requests' || sheetTitle === 'Maombi yote' ? (
+                                activeRequests.map(item => (
+                                    <TouchableOpacity style={styles.bottomView}
+                                    onPress={()=>{navigation.navigate('Requested services',{
+                                        request:item
+                                       })}}
+                                    
+                                    >
+                                        <Text style={{ color: colors.primary }}>{item.service.name}</Text>
+                                        <Text style={{ paddingVertical: 10, color: colors.black }}>{item.client.name}</Text>
+                                        <View style={{ marginRight: '35%' }}><Text >{item.request_time}</Text></View>
+                                    </TouchableOpacity>
+                                ))
 
-                            )
-                            }
+                            ) : (
+                                businesses.map(item => (
+                                    <TouchableOpacity style={styles.textContainer}
+                                        onPress={() => navigation.navigate('Business Details', {
+                                            service: item
+                                        })}
+                                    >
+                                        <Text style={styles.categoryService}>{item?.service?.name}</Text>
+                                        <Text style={styles.subservice}>{item?.service?.category?.name}</Text>
+                                    </TouchableOpacity>
+                                ))
+                            )}
                         </BottomSheetScrollView>
                     </BottomSheetModal>
                 </View>
@@ -180,7 +197,32 @@ const styles = StyleSheet.create({
     },
     badgeText: {
         color: colors.white
-    }
+    },
+    textContainer: {
+        paddingVertical: 5,
+        margin: 5,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.alsoGrey
+    },
+    categoryService: {
+        textTransform: 'uppercase',
+        color: colors.secondary
+    },
+    service: {
+        paddingTop: 5
+    },
+    subservice: {
+        paddingTop: 5,
+        fontWeight: 'bold',
+        color: colors.black
+    },
+
+    bottomView: {
+        paddingVertical: 5,
+        margin: 5,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.alsoGrey
+    },
 })
 
 export default Home

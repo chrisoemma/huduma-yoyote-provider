@@ -29,4 +29,7 @@
     deleteBusiness:'Delete business?',
     edit:'Edit',
     action:'Action',
+    requests:'Requests',
+    enterPhone:'Enter phone number',
+    updatedSuccessfully:'Updated Successfully'
   };

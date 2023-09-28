@@ -29,5 +29,7 @@ areYouWantToDelete:'Unauwakika unataka kufuta',
 deleteBusiness:'Futa Biashara?',
 edit: 'Hariri',
 action: 'Hatua',
-
+requests:'Maombi',
+enterPhone:'Ingiza namba ya simu',
+updatedSuccessfully:'Umesahihisha kwa usahihi'
 };

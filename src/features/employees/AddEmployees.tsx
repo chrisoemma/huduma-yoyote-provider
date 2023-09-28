@@ -1,4 +1,4 @@
-import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet, ToastAndroid } from 'react-native'
 import React, { useState,useRef, useEffect } from 'react'
 import { BasicView } from '../../components/BasicView'
 import { globalStyles } from '../../styles/global'
@@ -9,6 +9,9 @@ import { useTranslation } from "react-i18next";
 import PhoneInput from 'react-native-phone-number-input'
 import Button from '../../components/Button'
 import { ButtonText } from '../../components/ButtonText'
+import { useAppDispatch } from '../../app/store'
+import { useSelector,RootStateOrAny } from 'react-redux'
+import { createEmployee, updateEmployee } from './EmployeeSlice'
 
 const AddEmployees = ({route,navigation}:any) => {
 
@@ -19,18 +22,47 @@ const AddEmployees = ({route,navigation}:any) => {
 
     const [employee,setEmployee]=useState(null);
 
+    
+  const dispatch = useAppDispatch();
+
+  const {user } = useSelector(
+    (state: RootStateOrAny) => state.user,
+  );
+    const {loading } = useSelector(
+      (state: RootStateOrAny) => state.employees,
+  );
+
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors },trigger 
   } = useForm({
     defaultValues: {
       name: '',
       phone:'',
-      email: '',
-      desc:''
+      
     },
   });
+
+
+  useEffect(() => {
+    // Watch for changes in the 'employee' object and trigger revalidation
+    if (employee) {
+      Object.keys(employee).forEach((key) => {
+        trigger(key); // 'trigger' is from react-hook-form
+      });
+    }
+  }, [employee]);
+
+
+  const[message,setMessage]=useState("")
+  const setDisappearMessage = (message: any) => {
+    setMessage(message);
+
+    setTimeout(() => {
+      setMessage('');
+    }, 5000);
+  };
 
   useEffect(() => {
     const existingEmployee = route.params?.employee;
@@ -48,16 +80,53 @@ const AddEmployees = ({route,navigation}:any) => {
   }, [route.params]);
 
 
-
   const onSubmit = (data) => {
+    console.log('dataaa',data);
     if (isEditMode) {
-      // Handle update logic
-      // You can use data to update the existing employee
-      // For example: updateEmployee(existingEmployee.id, data);
+        dispatch(updateEmployee({data:data,employeeId:employee?.id}))
+      .unwrap()
+      .then(result => {
+        if (result.status) {
+    
+          ToastAndroid.show(`${t('screens:updatedSuccessfully')}`, ToastAndroid.SHORT);
+          navigation.navigate('Employees', {
+            screen: 'Employees',
+          });
+        } else {
+          setDisappearMessage(
+            `${t('screens:requestFail')}`,
+          );
+          console.log('dont navigate');
+        }
+      })
+      .catch(rejectedValueOrSerializedError => {
+        // handle error here
+        console.log('error');
+        console.log(rejectedValueOrSerializedError);
+      });
     } else {
-      // Handle add logic
-      // You can use data to add a new employee
-      // For example: addEmployee(data);
+      console.log('dataaa',data);
+      dispatch(createEmployee({data:data,providerId:user.provider.id}))
+          .unwrap()
+          .then(result => {
+            if (result.status) {
+        
+              ToastAndroid.show(`${t('screens:addedSuccessfully')}`, ToastAndroid.SHORT);
+              navigation.navigate('Employees', {
+                screen: 'Employees',
+              });
+            } else {
+              setDisappearMessage(
+                `${t('screens:requestFail')}`,
+              );
+              console.log('dont navigate');
+            }
+          })
+          .catch(rejectedValueOrSerializedError => {
+            // handle error here
+            console.log('error');
+            console.log(rejectedValueOrSerializedError);
+          });
     }
   };
 
@@ -66,6 +135,10 @@ const AddEmployees = ({route,navigation}:any) => {
     style={globalStyles.scrollBg}
   >
     <View style={styles.container}>
+    <BasicView style={globalStyles.centerView}>
+              <Text style={globalStyles.errorMessage}>{message}</Text>
+      </BasicView>
+
     <BasicView>
       <Text
         style={[
@@ -103,37 +176,24 @@ const AddEmployees = ({route,navigation}:any) => {
               <Text
                 style={[
                   globalStyles.inputFieldTitle,
-                  globalStyles.marginTop10,
+                  globalStyles.marginTop20,
                 ]}>
-                 {t('auth:phone')}
+                  {t('auth:phone')}
               </Text>
+
               <Controller
                 control={control}
                 rules={{
+                  maxLength: 12,
                   required: true,
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
-                  <PhoneInput
-                    ref={phoneInput}
-                    placeholder="672137313"
-                    value={value}
-                    defaultCode="TZ"
-                    countryPickerProps={{
-                      countryCodes: ['TZ', 'KE', 'UG', 'RW', 'BI'],
-                    }}
-                    layout="first"
-                    // onChangeText={}
-                    onChangeFormattedText={text => {
-                      onChange(text);
-                    }}
-                    withDarkTheme
-                    withShadow
-                    containerStyle={globalStyles.phoneInputContainer}
-                    textContainerStyle={globalStyles.phoneInputTextContainer}
-                    textInputStyle={globalStyles.phoneInputField}
-                    textInputProps={{
-                      maxLength: 9,
-                    }}
+                  <TextInputField
+                     placeholder= {t('screens:enterPhone')}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value || employee?.phone}
+                    keyboardType='numeric'
                   />
                 )}
                 name="phone"
@@ -145,64 +205,8 @@ const AddEmployees = ({route,navigation}:any) => {
               )}
             </BasicView>
 
-            <BasicView>
-      <Text
-        style={[
-          globalStyles.inputFieldTitle,
-          globalStyles.marginTop20,
-        ]}>
-       {t('screens:email')}
-      </Text>
-
-      <Controller
-        control={control}
-        rules={{
-          maxLength: 12,
-          required: true,
-        }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInputField
-            placeholder={t('screens:enterEmail')}
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value || employee?.email}
-           
-          />
-        )}
-        name="email"
-      />
-
-    </BasicView>
-
-    <BasicView>
-                <Text
-                  style={[
-                    globalStyles.inputFieldTitle,
-                    globalStyles.marginTop20,
-                  ]}>
-                  {t('screens:description')}
-                </Text>
-
-                <Controller
-                  control={control}
-                  rules={{
-                    maxLength: 12,
-                    required: true,
-                  }}
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <TextInputField
-                      placeholder={t('screens:enterDescription')}
-                      onBlur={onBlur}
-                      onChangeText={onChange}
-                      value={value || employee?.desc}
-                    />
-                  )}
-                  name="desc"
-                />
-              </BasicView>
-
         <BasicView>
-          <Button onPress={() => { }}>
+          <Button loading={loading} onPress={handleSubmit(onSubmit)}>
             <ButtonText>{isEditMode ?`${t('navigate:editEmployee')}`:`${t('navigate:addEmployee')}`}</ButtonText>
           </Button>
         </BasicView>

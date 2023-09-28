@@ -1,5 +1,5 @@
-import { View, Text, SafeAreaView, Image,Alert, TouchableOpacity, StyleSheet } from 'react-native'
-import React, { useCallback, useMemo, useRef } from 'react'
+import { View, Text, SafeAreaView, Image,Alert,ToastAndroid, TouchableOpacity, StyleSheet } from 'react-native'
+import React, { useCallback,useState, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next';
 import { globalStyles } from '../../styles/global';
 import { colors } from '../../utils/colors';
@@ -8,15 +8,20 @@ import Divider from '../../components/Divider';
 import Icon from 'react-native-vector-icons/AntDesign';
 import { BottomSheetModal, BottomSheetModalProvider, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { deleteEmployee } from './EmployeeSlice';
+import { useAppDispatch } from '../../app/store';
+import { BasicView } from '../../components/BasicView';
 
 
 const EmployeeAccount = ({route,navigation}:any) => {
-  const { t } = useTranslation();
+    const { t } = useTranslation();
+    const dispatch = useAppDispatch();
 
   const employee = route.params?.employee;
 
-  const phoneNumber = '0672137313';
+  const phoneNumber =`${employee.phone}`;
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const [message,setMessage]=useState("")
 
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
@@ -47,6 +52,14 @@ const subservices = [
 ];
 
 
+const setDisappearMessage = (message: any) => {
+    setMessage(message);
+
+    setTimeout(() => {
+      setMessage('');
+    }, 5000);
+  };
+
 const ServicesOffered =({service}:any)=>{
 
   return(
@@ -63,19 +76,42 @@ const ServicesOffered =({service}:any)=>{
   )
 }
 
-const deleteFunc = ()=>{
- 
-  Alert.alert(`${t('screens:delete')}!`, `${t('screens:areYouSureDelete')}`, [
-      {
-        text:`${t('screens:cancel')}`,
-        onPress: () => {},
-      },
-      {
-        text: `${t('screens:ok')}`,
-        onPress: () => {},
-      },
-    ]);
-}
+const deleteFunc = (id) =>
+Alert.alert(`${t('screens:deleteBusiness')}`, `${t('screens:areYouWantToDelete')} ${id}`, [
+  {
+    text: `${t('screens:cancel')}`,
+    onPress: () => console.log('Cancel task delete'),
+    style: 'cancel',
+  },
+  {
+    text: `${t('screens:ok')}`,
+    onPress: () => {
+        console.log('idddd',id);
+      dispatch(deleteEmployee({employeeId:id}))
+      .unwrap()
+      .then(result => {
+        if (result.status) {
+          ToastAndroid.show(`${t('screens:deletedSuccessfully')}`, ToastAndroid.SHORT);
+          navigation.navigate('Employees', {
+            screen: 'Employees',
+          });
+        } else {
+          setDisappearMessage(
+            `${t('screens:requestFail')}`,
+          );
+          console.log('dont navigate');
+        }
+
+        console.log('resultsss',result)
+      })
+      .catch(rejectedValueOrSerializedError => {
+        // handle error here
+        console.log('error');
+        console.log(rejectedValueOrSerializedError);
+      });
+    },
+  },
+]);
 
 
   return (
@@ -84,9 +120,13 @@ const deleteFunc = ()=>{
         >
             <View style={globalStyles.appView}>
 
+            <BasicView style={globalStyles.centerView}>
+              <Text style={globalStyles.errorMessage}>{message}</Text>
+           </BasicView>
+
               <View style={styles.btnView}>
               <TouchableOpacity style={{marginRight:10,alignSelf:'flex-end'}}
-                 onPress={() => {deleteFunc()}}
+                 onPress={() => {deleteFunc(employee.id)}}
                 >
                 <Icon    
                   name="delete"
@@ -119,7 +159,7 @@ const deleteFunc = ()=>{
                         }}
                     />
                 </View>
-                <Text style={{color:colors.secondary,fontWeight:'bold',alignSelf:'center'}}>Frank John</Text>
+                <Text style={{color:colors.secondary,fontWeight:'bold',alignSelf:'center'}}>{employee.name}</Text>
                <View>
                 <TouchableOpacity style={{flexDirection:'row',margin:10}}
                  onPress={() => makePhoneCall(phoneNumber)}
@@ -129,33 +169,33 @@ const deleteFunc = ()=>{
                   color={colors.black}
                   size={25}
                   />
-                    <Text style={{paddingHorizontal:10}}>+255 672137313</Text>
+                    <Text style={{paddingHorizontal:10}}>{employee.phone}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={{flexDirection:'row',marginHorizontal:10}}>
+                {/* <TouchableOpacity style={{flexDirection:'row',marginHorizontal:10}}>
                 <Icon    
                   name="mail"
                   color={colors.black}
                   size={25}
                   />
                     <Text style={{paddingLeft:10}}>Frank@gmail.com</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={{flexDirection:'row',marginHorizontal:10,marginTop:5}}>
+                </TouchableOpacity> */}
+                {/* <TouchableOpacity style={{flexDirection:'row',marginHorizontal:10,marginTop:5}}>
                 <Icon    
                   name="enviroment"
                   color={colors.black}
                   size={25}
                   />
                     <Text style={{paddingLeft:10}}>Mwenge,kijitonyama</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
                </View>
               <View style={{marginVertical:20}}>
               <Divider />
-              <Text>
+              {/* <Text>
                     Description of the services which I do in all my services provided today in a different angle
-                </Text>
+                </Text> */}
               </View>
               <TouchableOpacity style={styles.status} onPress={handlePresentModalPress}>
-                    <Text style={{ color: colors.white }}>Sub-Services</Text>
+                    <Text style={{ color: colors.white }}>{t('screens:requests')}</Text>
                 </TouchableOpacity>
             </View>
             
