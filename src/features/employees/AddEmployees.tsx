@@ -12,6 +12,7 @@ import { ButtonText } from '../../components/ButtonText'
 import { useAppDispatch } from '../../app/store'
 import { useSelector,RootStateOrAny } from 'react-redux'
 import { createEmployee, updateEmployee } from './EmployeeSlice'
+import { validateTanzanianPhoneNumber } from '../../utils/utilts'
 
 const AddEmployees = ({route,navigation}:any) => {
 
@@ -22,6 +23,7 @@ const AddEmployees = ({route,navigation}:any) => {
 
     const [employee,setEmployee]=useState(null);
 
+    const stylesGlobal = globalStyles();
     
   const dispatch = useAppDispatch();
 
@@ -32,27 +34,19 @@ const AddEmployees = ({route,navigation}:any) => {
       (state: RootStateOrAny) => state.employees,
   );
 
+
   const {
     control,
+    setValue,
     handleSubmit,
     formState: { errors },trigger 
   } = useForm({
     defaultValues: {
       name: '',
-      phone:'',
-      
-    },
+      phone: '',
+    }
   });
 
-
-  useEffect(() => {
-    // Watch for changes in the 'employee' object and trigger revalidation
-    if (employee) {
-      Object.keys(employee).forEach((key) => {
-        trigger(key); // 'trigger' is from react-hook-form
-      });
-    }
-  }, [employee]);
 
 
   const[message,setMessage]=useState("")
@@ -69,6 +63,9 @@ const AddEmployees = ({route,navigation}:any) => {
     if (existingEmployee) {
       setIsEditMode(true);
       setEmployee(existingEmployee)
+      setValue('name', existingEmployee?.name);
+      setValue('phone', existingEmployee?.phone);
+     
       navigation.setOptions({
         title:t('navigate:editEmployee'),
       });
@@ -81,7 +78,8 @@ const AddEmployees = ({route,navigation}:any) => {
 
 
   const onSubmit = (data) => {
-    console.log('dataaa',data);
+    data.phone=validateTanzanianPhoneNumber(data.phone);
+ 
     if (isEditMode) {
         dispatch(updateEmployee({data:data,employeeId:employee?.id}))
       .unwrap()
@@ -132,18 +130,18 @@ const AddEmployees = ({route,navigation}:any) => {
 
   return (
     <SafeAreaView
-    style={globalStyles.scrollBg}
+    style={stylesGlobal.scrollBg}
   >
     <View style={styles.container}>
-    <BasicView style={globalStyles.centerView}>
-              <Text style={globalStyles.errorMessage}>{message}</Text>
+    <BasicView style={stylesGlobal.centerView}>
+              <Text style={stylesGlobal.errorMessage}>{message}</Text>
       </BasicView>
 
     <BasicView>
       <Text
         style={[
-          globalStyles.inputFieldTitle,
-          globalStyles.marginTop20,
+          stylesGlobal.inputFieldTitle,
+          stylesGlobal.marginTop20,
         ]}>
        {t('screens:name')}
       </Text>
@@ -151,7 +149,7 @@ const AddEmployees = ({route,navigation}:any) => {
       <Controller
         control={control}
         rules={{
-          maxLength: 12,
+    
           required: true,
         }}
         render={({ field: { onChange, onBlur, value } }) => (
@@ -159,14 +157,14 @@ const AddEmployees = ({route,navigation}:any) => {
             placeholder={t('screens:enterName')}
             onBlur={onBlur}
             onChangeText={onChange}
-            value={value || employee?.name}
+            value={value}
           />
         )}
         name="name"
       />
 
       {errors.name && (
-        <Text style={globalStyles.errorMessage}>
+        <Text style={stylesGlobal.errorMessage}>
           {t('screens:nameRequired')}
         </Text>
       )}
@@ -175,8 +173,8 @@ const AddEmployees = ({route,navigation}:any) => {
     <BasicView>
               <Text
                 style={[
-                  globalStyles.inputFieldTitle,
-                  globalStyles.marginTop20,
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop20,
                 ]}>
                   {t('auth:phone')}
               </Text>
@@ -184,22 +182,38 @@ const AddEmployees = ({route,navigation}:any) => {
               <Controller
                 control={control}
                 rules={{
-                  maxLength: 12,
+                  minLength:10,
                   required: true,
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInputField
                      placeholder= {t('screens:enterPhone')}
                     onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value || employee?.phone}
+                    onChangeText={(text) => {
+                      // Remove any non-numeric characters
+                      const cleanedText = text.replace(/\D/g, '');
+                
+                      // Check if it starts with '0' or '+255'/'255'
+                      if (cleanedText.startsWith('0') && cleanedText.length <= 10) {
+                        onChange(cleanedText);
+                      } else if (
+                        (cleanedText.startsWith('255') ||
+                          cleanedText.startsWith('+255')) &&
+                        cleanedText.length <= 12
+                      ) {
+                        onChange(cleanedText);
+                      }
+                    }}
+                    value={value}
                     keyboardType='numeric'
+                    maxLength={12} 
+            
                   />
                 )}
                 name="phone"
               />
               {errors.phone && (
-                <Text style={globalStyles.errorMessage}>
+                <Text style={stylesGlobal.errorMessage}>
                   {t('auth:phoneRequired')}
                 </Text>
               )}

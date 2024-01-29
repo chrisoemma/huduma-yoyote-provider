@@ -4,9 +4,10 @@ import { globalStyles } from '../styles/global'
 
 
 const Divider = () => {
+    const stylesGlobal=globalStyles();
     return (
       <>
-      <View  style={globalStyles.separator}/>
+      <View  style={stylesGlobal.separator}/>
       </>
     )
 }

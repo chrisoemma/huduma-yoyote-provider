@@ -148,7 +148,6 @@ const EmployeeSlice = createSlice({
             updateStatus(state, '');
         });
 
-
         builder.addCase(deleteEmployee.pending, (state) => {
             console.log('Delete Employee Pending');
             state.loading = true;
@@ -182,7 +181,6 @@ const EmployeeSlice = createSlice({
 
         builder.addCase(updateEmployee.fulfilled, (state, action) => {
             console.log('Update Task Fulfilled');
-
           
             const updatedEmployee = action.payload.data.employee;
 

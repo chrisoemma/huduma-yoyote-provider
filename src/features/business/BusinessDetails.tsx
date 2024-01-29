@@ -1,14 +1,15 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ToastAndroid, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ToastAndroid,ScrollView, SafeAreaView } from 'react-native';
 import React, { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { BottomSheetModal, BottomSheetModalProvider, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView,  } from 'react-native-gesture-handler';
 import { colors } from '../../utils/colors';
 import { globalStyles } from '../../styles/global';
 import FloatBtn from '../../components/FloatBtn';
 import { useSelector, RootStateOrAny } from 'react-redux';
 import { useAppDispatch } from '../../app/store';
 import { useTranslation } from 'react-i18next';
-import { deleteBusiness, getBusiness } from './BusinessSlice';
+import { deleteBusiness } from './BusinessSlice';
+import Video, { VideoRef } from 'react-native-video';
 import {
   Menu,
   MenuOptions,
@@ -16,14 +17,20 @@ import {
   MenuTrigger,
 } from 'react-native-popup-menu';
 import { BasicView } from '../../components/BasicView';
-import { deleteSubService } from '../subservices/SubservicesSlice';
+import { deleteSubService, getBusinessSubservices } from '../subservices/SubservicesSlice';
+import VideoPlayer from '../../components/VideoPlayer';
+import Orientation from 'react-native-orientation-locker';
 
 const BusinessDetails = ({ route, navigation }: any) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const videoRef = useRef<VideoRef>(null);
 
   const snapPoints = useMemo(() => ['25%', '95%'], []);
 
+  const [isPaused, setPaused] = useState(true)
+
   const { service } = route.params;
+
 
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -32,14 +39,31 @@ const BusinessDetails = ({ route, navigation }: any) => {
     (state: RootStateOrAny) => state.user,
   );
 
-  const { loading, business } = useSelector(
-    (state: RootStateOrAny) => state.businesses,
+  const stylesGlobal = globalStyles();
+
+  const { loading, subservices } = useSelector(
+    (state: RootStateOrAny) => state.subservices,
   );
+
+  const { isDarkMode } = useSelector(
+    (state: RootStateOrAny) => state.theme,
+  );
+
+
+  // useEffect(() => {
+  
+  //   Orientation.lockToLandscape();
+
+  //   // Don't forget to unlock when the screen unmounts
+  //   return () => {
+  //     Orientation.unlockAllOrientations();
+  //   };
+  // }, []);
 
   const [message, setMessage] = useState(null)
 
   useEffect(() => {
-    dispatch(getBusiness({ providerId: user?.provider?.id, serviceId: service.id }));
+    dispatch(getBusinessSubservices({ providerId: user?.provider?.id, serviceId: service.service_id }));
   }, [dispatch])
 
   const handlePresentModalPress = useCallback(() => {
@@ -140,12 +164,12 @@ const BusinessDetails = ({ route, navigation }: any) => {
 
 
     return (
-      <View style={styles.serviceContainer}
+      <View
         key={sub_service?.id}
       >
         <Text style={styles.category}>{sub_service?.name}</Text>
         <View style={styles.descBtnsContainer}>
-          <View><Text>{sub_service?.description}</Text></View>
+          <View><Text style={{ color: colors.alsoGrey }}>{sub_service?.description}</Text></View>
           <View style={styles.btnContainer}>
             <TouchableOpacity style={[styles.status, { backgroundColor: colors.dullYellow, marginRight: 10 }]} onPress={handlePresentModalPress}>
               <Text style={{ color: colors.white }}>{t('screens:edit')}</Text>
@@ -160,55 +184,44 @@ const BusinessDetails = ({ route, navigation }: any) => {
   }
 
   return (
-    <View style={[globalStyles.scrollBg, { flex: 1 }]}>
-
-      <BasicView style={globalStyles.centerView}>
-        <Text style={globalStyles.errorMessage}>{message}</Text>
-      </BasicView>
-
-      <TouchableOpacity style={{ marginRight: '10%', justifyContent: 'flex-end', alignSelf: 'flex-end' }}>
-        <Menu>
-          <MenuTrigger style={{ backgroundColor: colors.alsoLightGrey }}>
-            <Text style={{ padding: 5, fontWeight: 'bold' }} >{t('screens:action')}</Text>
-          </MenuTrigger>
-          <MenuOptions>
-            <MenuOption onSelect={() => navigation.navigate('Add Business', {
-              business: service,
-              sub_services: business
-            })} >
-              <Text style={{ color: colors.warningYellow }}>{t('screens:edit')}</Text>
-            </MenuOption>
-            <MenuOption onSelect={() => removeBusiness(service.id)} >
-              <Text style={{ color: colors.dangerRed }}>{t('screens:delete')}</Text>
-            </MenuOption>
-          </MenuOptions>
-        </Menu>
-      </TouchableOpacity>
-
-      <View style={styles.mainContentContainer}>
+    <ScrollView style={[stylesGlobal.scrollBg,{flex:1,height:'100%'}]}>
         <View>
-          <Image
-            source={{ uri: service?.service?.images[0].img_url }}
-            style={{
-              resizeMode: 'cover',
-              width: '100%',
-              height: '55%',
-              borderRadius: 10,
-            }}
-          />
-          <Text style={styles.category}>{service.service.name}</Text>
-          <Text style={styles.service}>{service.service.category.name}</Text>
-          <Text>
-            {service.description == null ? service.service.description : service.description}
-          </Text>
-          <TouchableOpacity style={styles.status} onPress={handlePresentModalPress}>
-            <Text style={{ color: colors.white }}>{t('screens:subServices')}</Text>
-          </TouchableOpacity>
+        <GestureHandlerRootView>
+        <BasicView style={stylesGlobal.centerView}>
+          <Text style={stylesGlobal.errorMessage}>{message}</Text>
+        </BasicView>
+
+        <View style={styles.mainContentContainer}>
+          <View>
+            <Image
+              source={{ uri: service.img_url || (service?.service?.images[0]?.img_url) }}
+              style={{
+                resizeMode: 'cover',
+                width: '100%',
+                height:320,
+                borderRadius: 10,
+              }}
+            />
+            <Text style={styles.category}>{service.service.name}</Text>
+            <Text style={styles.service}>{service.service.category.name}</Text>
+            <Text style={{ color: colors.alsoGrey }}>
+              {service.description == null ? service.service.description : service.description}
+            </Text>
+            <View>
+           
+              {service?.video_url ?  <View>
+              <VideoPlayer
+              video_url={`${service.video_url}`} 
+              />
+            </View>:<></>}
+           
+            </View>
+            <TouchableOpacity style={styles.status} onPress={handlePresentModalPress}>
+              <Text style={{ color: colors.white }}>{t('screens:subServices')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-
-      </View>
-
-      <GestureHandlerRootView style={{ flex: 1 }}>
+        
         <BottomSheetModalProvider>
           <View style={styles.bottomSheetContainer}>
             <BottomSheetModal
@@ -219,7 +232,7 @@ const BusinessDetails = ({ route, navigation }: any) => {
             >
               <BottomSheetScrollView style={styles.bottomSheetContentContainer}>
                 {
-                  business.map(sub_service => (
+                  subservices?.map(sub_service => (
 
                     <ServicesOffered sub_service={sub_service} />
 
@@ -228,27 +241,60 @@ const BusinessDetails = ({ route, navigation }: any) => {
 
               </BottomSheetScrollView>
 
+              <FloatBtn
+                onPress={() => {
+                  navigation.navigate('Add Sub Service', {
+                    business: service,
+                    sub_services: subservices
+                    //there is a confusin here the business(Service) variable get  list of
+                    // one business and  it subservice sub_services 
+                    //While Logical for the system a Business is a service
+
+                  })
+                }
+                }
+                iconType='add'
+              />
             </BottomSheetModal>
           </View>
-
-          <FloatBtn
-            onPress={() => {
-              navigation.navigate('Add Sub Service', {
-                business: service,
-                sub_services: business
-                //there is a confusin here the business(Service) variable get  list of
-                // one business and  it subservice sub_services 
-                //While Logical for the system a Business is a service
-
-              })
-            }
-            }
-            iconType='add'
-          />
         </BottomSheetModalProvider>
-      </GestureHandlerRootView>
 
-    </View>
+        
+        </GestureHandlerRootView>
+        <View style={{
+        backgroundColor: isDarkMode ? colors.black : colors.white, height: 100,
+        flexDirection: 'row',
+      //  flex:1,
+        justifyContent: 'space-between',
+        padding: 20,
+      }}>
+        <>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Add Business', {
+              business: service,
+              sub_services: subservices
+            })}
+            style={{
+              backgroundColor: colors.warningYellow, borderRadius: 20,
+              justifyContent: 'center',
+              padding: 20
+            }}>
+            <Text style={{ color: colors.white }}>{t('screens:edit')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => removeBusiness(service.id)}
+            style={{
+              backgroundColor: colors.dangerRed, borderRadius: 20,
+              justifyContent: 'center',
+              padding: 20
+            }}>
+            <Text style={{ color: colors.white }}>{t('screens:delete')}</Text>
+          </TouchableOpacity>
+        </>
+      </View>
+        </View>
+    </ScrollView>
 
   );
 };
@@ -258,16 +304,17 @@ const styles = StyleSheet.create({
 
     margin: 15,
     backgroundColor: 'white',
-    height: '48%',
+   // height: '75%',
     padding: 10,
     borderRadius: 10,
   },
   bottomSheetContainer: {
-    // flex: 1,
+   // flex: 1,
     margin: 10,
     zIndex: 1000
   },
   bottomSheetContentContainer: {
+   // flex:1,
     padding: 10,
     backgroundColor: 'white',
     borderRadius: 10,
@@ -285,6 +332,7 @@ const styles = StyleSheet.create({
   status: {
     alignSelf: 'flex-end',
     backgroundColor: colors.secondary,
+    margin:10,
     padding: 10,
     borderRadius: 10,
   },
@@ -293,7 +341,16 @@ const styles = StyleSheet.create({
   btnContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end'
-  }
+  },
+  backgroundVideo: {
+    height: 200,
+    width: 100,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+  },
 });
 
 export default BusinessDetails;

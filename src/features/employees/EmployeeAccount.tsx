@@ -11,6 +11,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { deleteEmployee } from './EmployeeSlice';
 import { useAppDispatch } from '../../app/store';
 import { BasicView } from '../../components/BasicView';
+import { useSelector } from 'react-redux';
 
 
 const EmployeeAccount = ({route,navigation}:any) => {
@@ -18,6 +19,12 @@ const EmployeeAccount = ({route,navigation}:any) => {
     const dispatch = useAppDispatch();
 
   const employee = route.params?.employee;
+
+  const stylesGlobal = globalStyles();
+
+  const { isDarkMode } = useSelector(
+    (state: RootStateOrAny) => state.theme,
+  );
 
   const phoneNumber =`${employee.phone}`;
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -68,7 +75,7 @@ const ServicesOffered =({service}:any)=>{
   >
       <Text style={styles.category}>{service.name}</Text>
       <View style={styles.descContainer}>
-          <View><Text>{service.desc}</Text></View>
+          <View><Text style={{color:colors.alsoGrey}}>{service.desc}</Text></View>
       </View>
       <Divider />
   </View>
@@ -116,12 +123,12 @@ Alert.alert(`${t('screens:deleteBusiness')}`, `${t('screens:areYouWantToDelete')
 
   return (
           <SafeAreaView
-            style={globalStyles.scrollBg}
+            style={stylesGlobal.scrollBg}
         >
-            <View style={globalStyles.appView}>
+            <View style={stylesGlobal.appView}>
 
-            <BasicView style={globalStyles.centerView}>
-              <Text style={globalStyles.errorMessage}>{message}</Text>
+            <BasicView style={stylesGlobal.centerView}>
+              <Text style={stylesGlobal.errorMessage}>{message}</Text>
            </BasicView>
 
               <View style={styles.btnView}>
@@ -141,13 +148,13 @@ Alert.alert(`${t('screens:deleteBusiness')}`, `${t('screens:areYouWantToDelete')
                 >
                 <Icon    
                   name="edit"
-                  color={colors.black}
+                  color={isDarkMode?colors.white:colors.black}
                   size={25}
                   />
               </TouchableOpacity>
               </View>
               
-                <View style={[globalStyles.circle, { backgroundColor: colors.white, marginTop: 15, alignContent: 'center', justifyContent: 'center' }]}>
+                <View style={[stylesGlobal.circle, { backgroundColor: colors.white, marginTop: 15, alignContent: 'center', justifyContent: 'center' }]}>
                     <Image
                         source={require('../../../assets/images/profile.png')}
                         style={{
@@ -159,17 +166,17 @@ Alert.alert(`${t('screens:deleteBusiness')}`, `${t('screens:areYouWantToDelete')
                         }}
                     />
                 </View>
-                <Text style={{color:colors.secondary,fontWeight:'bold',alignSelf:'center'}}>{employee.name}</Text>
+                <Text style={{color:isDarkMode?colors.white:colors.black,fontWeight:'bold',alignSelf:'center'}}>{employee.name}</Text>
                <View>
                 <TouchableOpacity style={{flexDirection:'row',margin:10}}
                  onPress={() => makePhoneCall(phoneNumber)}
                 >
                 <Icon    
                   name="phone"
-                  color={colors.black}
+                  color={isDarkMode?colors.white:colors.black}
                   size={25}
                   />
-                    <Text style={{paddingHorizontal:10}}>{employee.phone}</Text>
+                    <Text style={{paddingHorizontal:10,color:isDarkMode?colors.white:colors.black}}>{employee.phone}</Text>
                 </TouchableOpacity>
                 {/* <TouchableOpacity style={{flexDirection:'row',marginHorizontal:10}}>
                 <Icon    

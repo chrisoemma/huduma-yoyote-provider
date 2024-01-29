@@ -12,15 +12,7 @@ const width = Dimensions.get('window').width;
 const RequestStatusView = ({request}: any) => {
   let backgroundColor = colors.dullYellow;
 
-  //TODO set up the colors based on what's available from API
-  //   switch (request.status) {
-  //       case 'value':
-
-  //           break;
-
-  //       default:
-  //           break;
-  //   }
+  const stylesGlobal=globalStyles();
 
   const Container = styled.View`
     background-color: ${backgroundColor};
@@ -68,7 +60,7 @@ const RequestStatusView = ({request}: any) => {
         </View>
       </RowView>
 
-      <RowView style={globalStyles.marginTop20}>
+      <RowView style={stylesGlobal.marginTop20}>
         <View>
           <TextView
             type="semiBold"

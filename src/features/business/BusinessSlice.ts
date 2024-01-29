@@ -18,6 +18,34 @@ export const getBusinesses = createAsyncThunk(
   );
 
 
+  export const getDocuments = createAsyncThunk(
+    'businesses/getDocuments',
+    async ({providerId}:any) => {
+       
+       console.log('documemnyddId',providerId);
+      let header: any = await authHeader();
+      const response = await fetch(`${API_URL}/providers/documents/${providerId}`, {
+        method: 'GET',
+        headers: header,
+      });
+      return (await response.json()) as any;
+    },
+  );
+
+  export const getRegDocs = createAsyncThunk(
+    'businesses/getRegDocs',
+    async () => {
+       
+      let header: any = await authHeader();
+      const response = await fetch(`${API_URL}/admin/working_documents`, {
+        method: 'GET',
+        headers: header,
+      });
+      return (await response.json()) as any;
+    },
+  );
+
+
   export const createBusiness = createAsyncThunk(
     'businesses/createBusiness',
     async (data) => {
@@ -32,17 +60,38 @@ export const getBusinesses = createAsyncThunk(
       return (await response.json()) 
     },
   );
+  export const updateBusiness = createAsyncThunk(
+    'businesses/updateBusiness',
+    async ({ data, businessId }: any) => {
+        console.log('businessId', businessId);
+        const response = await fetch(`${API_URL}/businesses/${businessId}`, {
+            method: 'PUT',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+        return (await response.json());
+    }
+);
 
 
-  export const getBusiness = createAsyncThunk(
-    'businesses/getBusiness',
-    async ({providerId,serviceId}:any) => {
-      let header: any = await authHeader();
-      const response = await fetch(`${API_URL}/businesses/provider_businesses/${providerId}/${serviceId}`, {
-        method: 'GET',
-        headers: header,
+  export const createDocument = createAsyncThunk(
+    'businesses/createDocument',
+    async ({data,providerId}:any) => {
+        console.log('dataaa12345',data)
+        console.log('providerr',providerId)
+        
+      const response = await fetch(`${API_URL}/providers/documents/${providerId}`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       });
-      return (await response.json()) as any;
+      return (await response.json()) 
     },
   );
 
@@ -87,6 +136,9 @@ export const getBusinesses = createAsyncThunk(
     name: 'businesses',
     initialState: {
         businesses:[],
+        documents:[],
+        regDocs:[],
+        document:{},
         business:[],
       loading: false,
     },
@@ -116,29 +168,46 @@ export const getBusinesses = createAsyncThunk(
       });
 
 
-       //single business
+      //Documents
 
-       builder.addCase(getBusiness.pending, state => {
+      builder.addCase(getDocuments.pending, state => {
         // console.log('Pending');
          state.loading = true;
        });
-       builder.addCase(getBusiness.fulfilled, (state, action) => {
-         
+       builder.addCase(getDocuments.fulfilled, (state, action) => {
+   
          if (action.payload.status) {
-           state.business = action.payload.data.sub_services;
+           state.documents = action.payload.data.documents;
          }
          state.loading = false;
        });
-       builder.addCase(getBusiness.rejected, (state, action) => {
+       builder.addCase(getDocuments.rejected, (state, action) => {
          console.log('Rejected');
          console.log(action.error);
          state.loading = false;
        });
 
 
+             //get reg docs
+       builder.addCase(getRegDocs.pending, state => {
+        // console.log('Pending');
+         state.loading = true;
+       });
+       builder.addCase(getRegDocs.fulfilled, (state, action) => {
+   
+         if (action.payload.status) {
+           state.regDocs = action.payload.data.docs;
+         }
+         state.loading = false;
+       });
+       builder.addCase(getRegDocs.rejected, (state, action) => {
+         console.log('Rejected');
+         console.log(action.error);
+         state.loading = false;
+       });
+
        //create Business
 
-       
     builder.addCase(createBusiness.pending, state => {
       console.log('Pending');
       state.loading = true;
@@ -147,23 +216,57 @@ export const getBusinesses = createAsyncThunk(
     builder.addCase(createBusiness.fulfilled, (state, action) => {
          console.log('sucesss')
          console.log('dayaa',action.payload)
+
       state.loading = false;
       updateStatus(state, '');
 
-      // if (action.payload.status) {
-      //   state.business = { ...action.payload.data};
-      //   updateStatus(state, '');
-      // } else {
-      //   updateStatus(state, action.payload.status);
-      // }
+      if (action.payload.status) {
+          state.business = { ...action.payload.data.business };
+          updateStatus(state, '');
+      } else {
+          updateStatus(state, action.payload.status);
+      }
 
-      // state.business.push(state.business);
+      state.businesses.push(state.business);
+
     });
     builder.addCase(createBusiness.rejected, (state, action) => {
       console.log('Rejected');
       state.loading = false;
       updateStatus(state, '');
     });
+
+    //create document
+
+    builder.addCase(createDocument.pending, state => {
+      console.log('Pending');
+      state.loading = true;
+      updateStatus(state, '');
+    });
+    builder.addCase(createDocument.fulfilled, (state, action) => {
+         console.log('sucesss')
+         console.log('dayaa',action.payload)
+
+      state.loading = false;
+      updateStatus(state, '');
+
+      if (action.payload.status) {
+          state.document = { ...action.payload.data.document };
+          updateStatus(state, '');
+      } else {
+          updateStatus(state, action.payload.status);
+      }
+
+      state.documents.push(state.document);
+
+    });
+    builder.addCase(createDocument.rejected, (state, action) => {
+      console.log('Rejected');
+      state.loading = false;
+      updateStatus(state, '');
+    });
+
+
 
        //delete business
 
@@ -174,12 +277,10 @@ export const getBusinesses = createAsyncThunk(
       });
   
       builder.addCase(deleteBusiness.fulfilled, (state, action) => {
-        console.log('Delete Business Fulfilled',action.payload);
-        const deletedBusinessId =action.meta.arg;
-  
-        // Filter out the deleted Business from the Businesss array
-        state.business = state.businesses.filter((business) => business.id !== deletedBusinessId);
-  
+        const deletedBusinessId = action.payload.data.business.id;
+            
+        state.businesses = state.businesses.filter((business) => business.id !== deletedBusinessId);
+
         state.loading = false;
         updateStatus(state, '');
       });
@@ -189,6 +290,38 @@ export const getBusinesses = createAsyncThunk(
         state.loading = false;
         updateStatus(state, '');
       });
+
+      //Bussiness update 
+      builder.addCase(updateBusiness.pending, (state) => {
+        state.loading = true;
+        updateStatus(state, '');
+    });
+
+    builder.addCase(updateBusiness.fulfilled, (state, action) => {
+        console.log('Update Task Fulfilled');
+      
+        const updatedBusiness = action.payload.data.busisness;
+
+        const businessIndex = state.businesses.findIndex((business) => business.id === updatedBusiness.id);
+        console.log('businessindex', businessIndex);
+        if (businessIndex !== -1) {
+            // Update the task in the array immutably
+           
+            state.businesses = [
+                ...state.businesses.slice(0, businessIndex),
+                updatedBusiness,
+                ...state.businesses.slice(businessIndex + 1),
+            ];
+        }
+        state.loading = false;
+        updateStatus(state, '');
+    });
+
+    builder.addCase(updateBusiness.rejected, (state, action) => {
+      console.log('Update Business Rejected');
+      state.loading = false;
+      updateStatus(state, '');
+    });
     },
   });
   

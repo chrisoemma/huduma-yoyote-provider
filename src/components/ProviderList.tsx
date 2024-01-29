@@ -7,12 +7,14 @@ import { globalStyles } from '../styles/global';
 
 const ProviderList = ({ navigation,onPress, iconType, service }: any) => {
 
+    const stylesGlobal=globalStyles();
+
     return (
         <TouchableOpacity
             onPress={()=>navigation.navigate("Service request")}
             style={styles.touchableOpacityStyles}
         >
-         <View style={globalStyles.circle}>
+         <View style={stylesGlobal.circle}>
          <Image
                 source={require('./../../assets/images/profile.png')}
                 style={{

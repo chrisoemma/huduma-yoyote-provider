@@ -13,7 +13,7 @@ const MyBusiness = ({navigation }: any) => {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
 
- 
+    const stylesGlobal = globalStyles();
 
     const {user } = useSelector(
         (state: RootStateOrAny) => state.user,
@@ -24,7 +24,7 @@ const MyBusiness = ({navigation }: any) => {
     );
     
     useEffect(() => {
-       dispatch(getBusinesses({providerId:user?.provider?.id,}));
+       dispatch(getBusinesses({providerId:user?.provider?.id}));
     }, [dispatch])
     
     const renderItem = ({ item }: any) => (
@@ -37,7 +37,7 @@ const MyBusiness = ({navigation }: any) => {
                 })}
             >
                 <Image
-                    source={{ uri: item?.service?.images[0].img_url }}
+                    source={{ uri: item.img_url || (item?.service?.images[0]?.img_url) }}
                     style={{
                         resizeMode: 'cover',
                         width: 90,
@@ -57,8 +57,8 @@ const MyBusiness = ({navigation }: any) => {
     )
 
     return (
-        <View style={[globalStyles.scrollBg,{flex:1}]}>
-             <View style={globalStyles.appView}>
+        <View style={[stylesGlobal.scrollBg,{flex:1}]}>
+             <View style={stylesGlobal.appView}>
              <View>
                 <FlatList
                     data={businesses}
@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
     },
     desc: {
         paddingRight: '15%',
+        color:colors.alsoGrey
     }
 
 })

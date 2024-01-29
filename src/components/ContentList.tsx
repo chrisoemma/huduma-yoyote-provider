@@ -6,7 +6,7 @@ const ContentList = ({ data,navigation,onPress }: any) => {
   const screenWidth = Dimensions.get('window').width;
 
   const handleServicePress = (service)=>{
-    console.log('service',service);
+   
         navigation.navigate('Service providers',{
           service:service,
         })

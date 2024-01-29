@@ -1,5 +1,9 @@
-import { View, Text, SafeAreaView, StyleSheet, TouchableOpacity, ToastAndroid, Alert, ScrollView, Image } from 'react-native';
-import React, { useEffect, useMemo, useState } from 'react';
+import { View, Text, SafeAreaView, StyleSheet, 
+  TouchableOpacity, ToastAndroid, Alert, ScrollView, Image,
+  PermissionsAndroid, 
+  Platform 
+ } from 'react-native';
+import React, { useEffect, useMemo, useState,useRef } from 'react';
 import { globalStyles } from '../../styles/global';
 import DropDownPicker from "react-native-dropdown-picker";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
@@ -16,18 +20,99 @@ import { getCategories } from '../category/CategorySlice';
 import { transformDataToDropdownOptions } from '../../utils/utilts';
 import { getServicesByCategory } from '../Service/ServiceSlice';
 import { getSubserviceByService, clearSubServiceByService } from '../subservices/SubservicesSlice';
-import { createBusiness } from './BusinessSlice';
+import { createBusiness, updateBusiness } from './BusinessSlice';
 import { useForm, Controller } from 'react-hook-form';
 import { TextInputField } from '../../components/TextInputField';
+import { firebase } from '@react-native-firebase/storage';
+import RNFS from 'react-native-fs';
+import VideoPlayer from '../../components/VideoPlayer';
+
 
 const AddBusiness = ({route, navigation }: any) => {
 
-  const [isEditmode,setIsEditMode]=useState(false);
- // const {business:editedBusiness,sub_services}=route?.params
+  const [isEditMode,setIsEditMode]=useState(false);
+  
+  const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+  const [value, setCategoryValue] = useState(null);
+  const [ServiceValue, setServiceValue] = useState(null);
+  
+  const [checkedSubServices, setCheckedSubServices] = useState([]);
 
+  const [open, setOpen] = useState(false);
+
+  const [ServiceOpen, setServiceOpen] = useState(false);
+  const { user } = useSelector((state: RootStateOrAny) => state.user);
+  const { categories } = useSelector((state: RootStateOrAny) => state.categories);
+  const { servicesByCategory } = useSelector((state: RootStateOrAny) => state.services);
+  const { subServiceByService } = useSelector((state: RootStateOrAny) => state.subservices);
+  const { loading, business } = useSelector((state: RootStateOrAny) => state.businesses);
+
+ const existingBusiness= route?.params?.business;
+
+ const sub_services =route?.params?.sub_services
+ 
+ useEffect(() => {
+  dispatch(clearSubServiceByService());
+  setSubs([]);
+  dispatch(getCategories());
+}, []);
+
+useEffect(() => {
+  const existingBusiness= route?.params?.business;
+ // console.log('existingBusiness', existingBusiness.service.category_id);
+  if (existingBusiness) {
+    setIsEditMode(true);
+    setCategoryValue(String(existingBusiness?.service?.category_id))
+    setServiceValue(String(existingBusiness?.service_id))
+    setValue('description',existingBusiness.description)
+   
+    navigation.setOptions({
+      title:t('screens:editBusiness'),
+    });
+  }else{
+      navigation.setOptions({
+          title: t('screens:addBusiness') ,
+        }); 
+  }
+
+}, [route.params]);
+
+
+// useEffect(() => {
+//   if (categories) {
+//     setItems(transformDataToDropdownOptions(categories));
+//   }
+// }, [categories]);
+
+
+useEffect(() => {
+  // This effect is only for dispatching the action, it won't trigger unnecessary re-renders
+  if (value !== null) {
+    dispatch(getServicesByCategory({ categoryId: value }));
+  }
+}, [value]);
+
+// useEffect(() => {
+//   if (servicesByCategory) {
+//     setServiceItems(transformDataToDropdownOptions(servicesByCategory));
+//   }
+// }, [servicesByCategory]);
+
+
+useEffect(() => {
+  
+  if (subServiceByService) {
+    setSubs(subServiceByService);
+  }
+}, [subServiceByService]);
+
+
+const commonSubServices = subServiceByService.filter(itemB => sub_services?.some(itemA => itemA?.id === itemB?.id));
 
   const {
     control,
+    setValue,
     handleSubmit,
     formState: { errors },
   } = useForm({
@@ -36,53 +121,31 @@ const AddBusiness = ({route, navigation }: any) => {
     },
   });
 
-  const { t } = useTranslation();
-  const dispatch = useAppDispatch();
 
-  
 
-  useEffect(() => {
-    const existingBusiness= route?.params?.business;
-    if (existingBusiness) {
-      setIsEditMode(true);
-      setValue(existingBusiness?.service?.category?.id)
-      setServiceValue(existingBusiness?.service_id)
-     
-      navigation.setOptions({
-        title:t('screens:editBusiness'),
-      });
-    }else{
-        navigation.setOptions({
-            title: t('screens:addBusiness') ,
-          }); 
+
+  const makeid = (length: any) => {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      counter += 1;
     }
-  }, [route.params]);
+    return result;
+  }
 
-  const [checkedSubServices, setCheckedSubServices] = useState([]);
 
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(null);
+  const getPathForFirebaseStorage = async (uri: any) => {
+    const destPath = `${RNFS.TemporaryDirectoryPath}/text`;
+    await RNFS.copyFile(uri, destPath);
 
-  const [ServiceOpen, setServiceOpen] = useState(false);
-  const [ServiceValue, setServiceValue] = useState(null);
+    return (await RNFS.stat(destPath)).path;
+  };
 
-  const { user } = useSelector((state: RootStateOrAny) => state.user);
-  const { categories } = useSelector((state: RootStateOrAny) => state.categories);
-  const { servicesByCategory } = useSelector((state: RootStateOrAny) => state.services);
-  const { subServiceByService } = useSelector((state: RootStateOrAny) => state.subservices);
-  const { loading, business } = useSelector((state: RootStateOrAny) => state.businesses);
-  useEffect(() => {
-    dispatch(clearSubServiceByService());  //clear sub service on first render not working
-    setSubs([]);
-    dispatch(getCategories());
-  }, [dispatch]);
 
-  useEffect(() => {
-    // This effect is only for dispatching the action, it won't trigger unnecessary re-renders
-    if (value !== null) {
-      dispatch(getServicesByCategory({ categoryId: value }));
-    }
-  }, [value, dispatch]);
+
 
 
   // useEffect(() => {
@@ -94,36 +157,26 @@ const AddBusiness = ({route, navigation }: any) => {
 
 
 
-  useEffect(() => {
-    if (categories) {
-      setItems(transformDataToDropdownOptions(categories));
-      
-    }
-  }, [categories]);
-
-  useEffect(() => {
-    if (servicesByCategory) {
-      setServiceItems(transformDataToDropdownOptions(servicesByCategory));
-    }
-  }, [servicesByCategory]);
+ 
 
 
-  useEffect(() => {
-    if (subServiceByService) {
-      setSubs(subServiceByService);
-    }
-  }, [subServiceByService]);
-  const [imageFile, setImageFile] = useState<string | null>(null);
-  const [videoFile, setVideoFile] = useState<string | null>(null);
+  const [uploadingDoc,setUploadingDoc]=useState(false)
   const [items, setItems] = useState(transformDataToDropdownOptions(categories));
   const [ServiceItems, setServiceItems] = useState(transformDataToDropdownOptions(servicesByCategory));
   const [subs, setSubs] = useState(subServiceByService)
+
+  const { isDarkMode } = useSelector(
+    (state: RootStateOrAny) => state.theme,
+  );
+
+
+
   const removeImage = () => {
-    setImageFile(null)
+    setImage(null)
   }
 
   const removeVideo = () => {
-    setVideoFile(null)
+    setVideo(null)
   }
 
   const onChangeCategory = async () => {
@@ -149,26 +202,6 @@ const AddBusiness = ({route, navigation }: any) => {
 
   // console.log('subservicesss', subServiceByService);
 
-  // const uploadFile = async () => {
-  //   try {
-  //     const result = await DocumentPicker.pick({
-  //       type: [DocumentPicker.types.images, DocumentPicker.types.video],
-  //     });
-
-  //     if (result.type === 'image' || result.type === 'video') {
-  //       // Here, you can send the selected file (image or video) to your server or perform any desired action.
-  //       // You can use the file's URI, name, and other details from the 'result' object.
-  //     }
-  //   } catch (error) {
-  //     if (DocumentPicker.isCancel(error)) {
-  //       // User cancelled the picker
-  //     } else {
-  //       throw error;
-  //     }
-  //   }
-  // };
-
-
   //console.log('cheked subservice', checkedSubServices);
   //console.log('subs',subs);
   const [video, setVideo] = useState(null);
@@ -187,96 +220,199 @@ const AddBusiness = ({route, navigation }: any) => {
     setImage(null);
     setVideo(null);
   };
-
-  const selectFile = async () => {
+  const selectImage = async () => {
     try {
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.images],
       });
-
-      if (res.type === 'image') {
         setImage(res);
-      } else if (res.type === 'video') {
-        setVideo(res);
-      }
-
+  
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
-        setImage(null);
-        setVideo(null);
+        // User canceled the file picker
       } else {
         // For Unknown Error
         alert("Unknown Error: " + JSON.stringify(error));
-        throw err;
+        throw error;
+      }
+    }
+  };
+  
+  const selectVideo = async () => {
+    try {
+      const res = await DocumentPicker.pick({
+        type: [DocumentPicker.types.video],
+      });
+        setVideo(res);
+  
+    } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+        // User canceled the file picker
+      } else {
+        // For Unknown Error
+        alert("Unknown Error: " + JSON.stringify(error));
+        throw error;
       }
     }
   };
 
 
-  //console.log('editing business',existingBusiness);
 
-  // console.log('providersss',user.provider.id);
-  const onSubmit = (data) => {
-    data.provider_id = user.provider.id;
-    data.category_id = value;
-    data.service_id = ServiceValue;
-    // data.img_url="https/img_real.com";
-    //data.video_url="https://www.youtube.com/watch?v=rKMEkQ-e9I8";
-    data.sub_services = checkedSubServices;
-
-    if (value == null || ServiceValue == null) {
-
-    } else {
-
-      dispatch(createBusiness(data))
-        .unwrap()
-        .then(result => {
-          if (result.status) {
-
-            ToastAndroid.show(`${t('screens:businessAddedSuccessfully')}`, ToastAndroid.SHORT);
-            navigation.navigate('My Businesses', {
-              screen: 'My Businesses',
-            });
-          } else {
-            setDisappearMessage(
-              `${t('screens:requestFail')}`,
-            );
-            console.log('dont navigate');
-          }
-        })
-        .catch(rejectedValueOrSerializedError => {
-          // handle error here
-          console.log('error');
-          console.log(rejectedValueOrSerializedError);
-        });
-    }
-    console.log(data);
+  // Function to upload an image to Firebase Storage
+const uploadFileToFirebase = async (uri, storagePath) => {
+  try {
+    const storageRef = firebase.storage().ref(storagePath);
+    await storageRef.putFile(uri);
+    const downloadUrl = await storageRef.getDownloadURL();
+    return downloadUrl;
+  } catch (error) {
+    console.error('Error uploading File to Firebase:', error);
+    return null;
   }
+};
+
+const onSubmit = async (data) => {
+  data.provider_id = user.provider.id;
+  data.category_id = value;
+  data.service_id = ServiceValue;
+  data.sub_services = checkedSubServices;
+
+  let uploadCounter = 0;
+
+
+  console.log('businessId',business.id);
+
+  return 
+
+  const handleUploadFinish = () => {
+    uploadCounter++;
+    //if (uploadCounter ===2) {
+      if (value == null || ServiceValue == null || checkedSubServices==null) {
+
+        setDisappearMessage(`${t('screens:chooseCategoryServiceSubService')}`);
+      } else {
+        dispatch( isEditMode? updateBusiness({data,businessId:business.id}): createBusiness(data))
+          .unwrap()
+          .then(result => {
+            if (result.status) {
+              ToastAndroid.show(`${t('screens:businessAddedSuccessfully')}`, ToastAndroid.SHORT);
+              navigation.navigate('My Businesses', {
+                screen: 'My Businesses',
+              });
+            } else {
+              setDisappearMessage(`${t('screens:requestFail')}`);
+              console.log('dont navigate');
+            }
+          })
+          .catch(rejectedValueOrSerializedError => {
+            console.log('error');
+            console.log(rejectedValueOrSerializedError);
+          });
+      }
+    //}
+  };
+
+  const uploadFileAndHandleFinish = async (file, storagePath) => {
+    const fileExtension = file[0].type.split("/").pop();
+    const uuid = makeid(10);
+    const fileName = `${uuid}.${fileExtension}`;
+    const storageRef = firebase.storage().ref(storagePath);
+
+    const fileUri = await getPathForFirebaseStorage(file[0].uri);
+
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        {
+          title: "Read Permission",
+          message: "Your app needs permission.",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK",
+        }
+      );
+
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        setUploadingDoc(true);
+
+        storageRef.putFile(fileUri).on(
+          firebase.storage.TaskEvent.STATE_CHANGED,
+          (snapshot: any) => {
+            console.log("snapshot state: " + snapshot.state);
+            if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
+              storageRef.getDownloadURL().then((downloadUrl: any) => {
+                if (file === image) {
+                  data.img_url = downloadUrl;
+                } else if (file === video) {
+                  data.video_url = downloadUrl;
+                }
+                setUploadingDoc(false);
+
+                // Check if both image and video uploads are complete
+                handleUploadFinish();
+              });
+            }
+          },
+          (error) => {
+            unsubscribe();
+          }
+        );
+      }
+    } catch (error) {
+      console.warn(error);
+    }
+  };
+
+  // Reset the upload counter
+  uploadCounter = 0;
+
+  if (image !== null) {
+    await uploadFileAndHandleFinish(image, 'businesses/images/');
+  }
+
+  if (video !== null) {
+    await uploadFileAndHandleFinish(video, 'businesses/videos/');
+  }
+
+  // Check if both image and video uploads are skipped
+  if (image === null && video === null) {
+    handleUploadFinish();
+  }
+};
+
+
+const stylesGlobal = globalStyles();
+
+
   return (
-    <SafeAreaView style={globalStyles.scrollBg}>
-      <ScrollView style={globalStyles.appView} showsVerticalScrollIndicator={false}>
-        <BasicView style={globalStyles.centerView}>
-          <Text style={globalStyles.errorMessage}>{message}</Text>
+    <SafeAreaView style={stylesGlobal.scrollBg}>
+      <ScrollView style={stylesGlobal.appView} showsVerticalScrollIndicator={false}>
+        <BasicView style={stylesGlobal.centerView}>
+          <Text style={stylesGlobal.errorMessage}>{message}</Text>
         </BasicView>
         <View style={styles.marginDropdown}>
+          <Text style={{color:isDarkMode?colors.white:colors.black}}>{t('screens:category')}</Text>
           <DropDownPicker
             searchable={true}
             zIndex={6000}
-            placeholder="Select Category"
+            placeholder={t('screens:selectCategory')}
             listMode="SCROLLVIEW"
             open={open}
             value={value}
             items={items}
             onChangeValue={onChangeCategory}
             setOpen={setOpen}
-            setValue={setValue}
+            setValue={setCategoryValue}
             setItems={setItems}
+         
           />
         </View>
         <View style={styles.marginDropdown}>
+        <Text style={{color:isDarkMode?colors.white:colors.black}}>{t('screens:service')}</Text>
           <DropDownPicker
             searchable={true}
-            placeholder="Select Service"
+            placeholder={t('screens:selectService')}
             listMode="SCROLLVIEW"
             open={ServiceOpen}
             value={ServiceValue}
@@ -286,13 +422,14 @@ const AddBusiness = ({route, navigation }: any) => {
             setValue={setServiceValue}
             setItems={setServiceItems}
           />
+
         </View>
         <View style={styles.checkBoxContainer}>
-          <Text style={styles.textStyle}>Please choose the sub services you offer</Text>
+          <Text style={[styles.textStyle,{color:isDarkMode?'white':'black'}]}>{t('screens:pleaseChooseSubServiceYouOffer')}</Text>
           {
             subs.map(subservice => (
               <BouncyCheckbox
-                key={subservice.id} // Add a key to each checkbox element
+                key={subservice.id} 
                 size={25}
                 fillColor={colors.secondary}
                 style={{ marginTop: 5 }}
@@ -301,8 +438,9 @@ const AddBusiness = ({route, navigation }: any) => {
                 iconStyle={{ borderColor: "red" }}
                 innerIconStyle={{ borderWidth: 2 }}
                 textStyle={{ fontFamily: "JosefinSans-Regular" }}
+                isChecked={commonSubServices.some(commonSub => commonSub.id === subservice.id)} 
                 onPress={(isChecked: boolean) => {
-                  // Update the checked sub-services state
+                 
                   if (isChecked) {
                     setCheckedSubServices(prevChecked => [...prevChecked, subservice.id]);
                   } else {
@@ -318,8 +456,8 @@ const AddBusiness = ({route, navigation }: any) => {
         <BasicView>
           <Text
             style={[
-              globalStyles.inputFieldTitle,
-              globalStyles.marginTop20,
+              
+              stylesGlobal.marginTop20,{color:isDarkMode?'white':'black'}
             ]}>
             {t('screens:description')}
           </Text>
@@ -327,7 +465,6 @@ const AddBusiness = ({route, navigation }: any) => {
           <Controller
             control={control}
             rules={{
-              maxLength: 12,
               required: true,
             }}
             render={({ field: { onChange, onBlur, value } }) => (
@@ -336,46 +473,58 @@ const AddBusiness = ({route, navigation }: any) => {
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
+                style={{color:colors.black}}
               />
             )}
             name="description"
           />
 
           {errors.description && (
-            <Text style={globalStyles.errorMessage}>
+            <Text style={stylesGlobal.errorMessage}>
               {t('screens:descriptionRequired')}
             </Text>
           )}
         </BasicView>
         <View style={{ marginVertical: 10 }}>
-          <Text style={styles.textStyle}>Upload Video or image of the service you offer</Text>
+          <Text style={[styles.textStyle,{color:isDarkMode?colors.white:colors.black}]}>{t('screens:UploadImagesVideosOfService')}</Text>
           <View style={styles.imageContainer}>
-            <TouchableOpacity
-              onPress={selectFile}
-            >
-              <Text>Upload image</Text>
-              {image == null ? (
-                <Ionicons name="image"
-                  color={colors.black}
-                  size={100}
-                  style={{ alignSelf: 'center' }}
-                />
-              ) : (<Image source={{ uri: image[0].uri }} style={styles.docView} />)}
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={selectFile}
-            >
-              <Text>Upload Video</Text>
-              <Ionicons name="videocam-outline"
-                color={colors.black}
-                size={100}
-                style={{ alignSelf: 'center' }}
+          <TouchableOpacity onPress={selectImage}>
+            <Text style={{color:isDarkMode?colors.white:colors.black}}>{t('screens:uploadImage')}</Text>
+          </TouchableOpacity>
+
+          {/* {console.log('editedBusinesss',editedBusiness?.service?.images[0]?.img_url)} */}
+          {image == null ? (
+            <Ionicons name="image" color={isDarkMode?colors.white:colors.black} size={100} style={{ alignSelf: 'center' }} />
+          ) : (
+            <>
+              <Image source={{ uri: image[0].uri }} style={styles.docView} />
+              <TouchableOpacity onPress={removeImage}>
+                <Text style={{color:isDarkMode?colors.white:colors.black}}>{t('screens:removeImage')}</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+        <View style={styles.imageContainer}>
+          <TouchableOpacity onPress={selectVideo}>
+            <Text style={{color:isDarkMode?colors.white:colors.black}}>{t('screens:uploadVideo')}</Text>
+          </TouchableOpacity>
+          {video == null ? (
+            <Ionicons name="videocam-outline" color={isDarkMode?colors.white:colors.black} size={100} style={{ alignSelf: 'center' }} />
+          ) : (
+            <>
+            <VideoPlayer
+              video_url={`${video[0]?.uri}`} 
               />
-            </TouchableOpacity>
+
+              <TouchableOpacity onPress={removeVideo}>
+                <Text style={{color:isDarkMode?colors.white:colors.black}}>{t('screens:removeVideo')}</Text>
+              </TouchableOpacity>
+            </>
+          )}
           </View>
           <BasicView>
-            <Button loading={loading} onPress={handleSubmit(onSubmit)}>
-              <ButtonText>Add Business</ButtonText>
+            <Button loading={loading|| uploadingDoc} onPress={handleSubmit(onSubmit)}>
+              <ButtonText>{isEditMode ?`${t('screens:editBusiness')}`:`${t('screens:addBusiness')}`}</ButtonText>
             </Button>
           </BasicView>
         </View>
@@ -390,14 +539,18 @@ const styles = StyleSheet.create({
     marginVertical: 10
   },
   textStyle: {
-    color: colors.black,
     marginBottom: 10,
     fontSize: 17,
   },
   docView: {
     flex: 1,
     width: 200,
-    height: 150
+    height: 150,
+    alignSelf: 'center'
+  },
+  backgroundVideo: {
+    width: 500,
+    height: 300
   },
 });
 

@@ -1,23 +1,24 @@
+// languageSlice.js
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface LanguageState {
-  selectedLanguageCode: string;
+  selectedLanguage: string;
 }
 
 const initialState: LanguageState = {
-  selectedLanguageCode: 'en',
+  selectedLanguage: 'en', // Default language code (English)
 };
 
 const languageSlice = createSlice({
-  name: 'language', // The name of the slice
-  initialState,     // The initial state of the slice
+  name: 'language',
+  initialState,
   reducers: {
-    setLanguageCode: (state, action: PayloadAction<string>) => {
-      state.selectedLanguageCode = action.payload;
+    setLanguage: (state, action: PayloadAction<string>) => {
+      state.selectedLanguage = action.payload;
     },
   },
 });
 
-export const { setLanguageCode } = languageSlice.actions;
-
+export const { setLanguage } = languageSlice.actions;
+export const selectLanguage = (state) => state.language.selectedLanguage;
 export default languageSlice.reducer;

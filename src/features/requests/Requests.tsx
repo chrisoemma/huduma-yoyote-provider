@@ -6,7 +6,7 @@ import RequestList from '../../components/RequestList';
 import { useTranslation } from 'react-i18next';
 import { useSelector,RootStateOrAny } from 'react-redux';
 import { useAppDispatch } from '../../app/store';
-import { getActiveRequests, getPastRequests } from './RequestSlice';
+import { getActiveRequests, getEmployeeActiveRequests, getEmployeePastRequests, getPastRequests } from './RequestSlice';
 
 const Requests = ({navigation}:any) => {
 
@@ -20,10 +20,20 @@ const { loading, activeRequests,pastRequests } = useSelector(
 
 const dispatch = useAppDispatch();
 
+  if(user.provider){
+    console.log('this code provider is excuted')
 useEffect(() => {
    dispatch(getActiveRequests(user?.provider?.id));
    dispatch(getPastRequests(user?.provider?.id));
 }, [dispatch])
+
+  }else if(user.employee){
+    console.log('this code empoyeee is excuted')
+    useEffect(() => {
+      dispatch(getEmployeeActiveRequests(user?.employee?.id));
+      dispatch(getEmployeePastRequests(user?.employee?.id));
+   }, [dispatch])
+  }
 
   const { t } = useTranslation();
 
@@ -33,6 +43,9 @@ useEffect(() => {
       setActiveTab(activeTab === 'current' ? 'previous' : 'current');
     };
 
+
+    const stylesGlobal = globalStyles(); 
+
     const renderRequestItem = ({ item }:any) => (
       <View style={styles.itemlistContainer}>
       <RequestList navigation={navigation}  item={item}/>
@@ -41,7 +54,7 @@ useEffect(() => {
 
   return (
     <SafeAreaView
-    style={globalStyles.scrollBg}
+    style={stylesGlobal.scrollBg}
     >
     <View style={{}}>
     <View style={styles.container}>

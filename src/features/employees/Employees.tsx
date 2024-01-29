@@ -57,9 +57,11 @@ const Employees = ({ navigation }: any) => {
 
     )
 
+    const stylesGlobal = globalStyles();
+
     return (
-        <View style={globalStyles.scrollBg}>
-            <View style={[globalStyles.appView,{flex:1}]}>
+        <View style={stylesGlobal.scrollBg}>
+            <View style={[stylesGlobal.appView,{flex:1}]}>
                 <View>
                 <FlatList
                     data={removeEmptyObjects(employees)}

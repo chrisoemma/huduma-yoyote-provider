@@ -12,6 +12,7 @@ import AddEmployees from "../features/employees/AddEmployees";
 import EmployeeAccount from "../features/employees/EmployeeAccount";
 import EditAccount from "../features/account/EditAccount";
 import Documents from "../features/account/Documents";
+import ChangePassword from "../features/auth/ChangePassword";
 
 
 const AppStack = () => {
@@ -74,16 +75,20 @@ const AppStack = () => {
       <Stack.Screen name="Edit Account"
          component={EditAccount}
          options={{ title: t('navigate:editAccount') }}
-          />
+        />
 
-<Stack.Screen name="My Documents"
+        <Stack.Screen name="Change Password"
+         component={ChangePassword}
+         options={{ title: t('navigate:changePassword') }}
+          />
+       <Stack.Screen name="My Documents"
          component={Documents}
          options={{ title: t('screens:myDocuments') }}
           />
-
     </Stack.Navigator>
 
   );
 };
 
 export default AppStack
+

@@ -27,7 +27,7 @@ const Checkbox = ({
     const [checkboxOptions, setCheckboxOptions] = useState([]);
 
     const pickOption = (selectedOption: any) => {
-        console.log('hello');
+     
         //   const index = checkboxOptions.findIndex(option => option == selectedOption)
         if (checkboxOptions.includes(selectedOption)) {
             setCheckboxOptions(checkboxOptions.filter(option => option !== selectedOption))

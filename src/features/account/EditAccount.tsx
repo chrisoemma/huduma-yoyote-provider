@@ -23,10 +23,20 @@ import { useAppDispatch } from '../../app/store';
 import Button from '../../components/Button';
 import { ButtonText } from '../../components/ButtonText';
 import { useTranslation } from 'react-i18next';
-import { userRegiter } from '../auth/userSlice';
+import { updateProviderInfo } from '../auth/userSlice';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { PLACES_API_KEY } from '../../utils/config';
+import { formatErrorMessages, showErrorWithLineBreaks, validateNIDANumber, validateTanzanianPhoneNumber } from '../../utils/utilts';
+import Location from '../../components/Location';
+import Modal from 'react-native-modal';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import GooglePlacesInput from '../../components/GooglePlacesInput';
 
-const EditAccount = ({ route, navigation }: any) => {
+const EditAccount = ({
+  route,
+  navigation,
+  accountData
+}: any) => {
 
 
   const dispatch = useAppDispatch();
@@ -42,6 +52,112 @@ const EditAccount = ({ route, navigation }: any) => {
 
   const { t } = useTranslation();
 
+  const { isDarkMode } = useSelector(
+    (state: RootStateOrAny) => state.theme,
+  );
+
+  const { provider } = route.params
+
+  const [birthdate, setBirthdate] = useState(new Date());
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(birthdate.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(birthdate.getMonth() + 1);
+  const [selectedDay, setSelectedDay] = useState(birthdate.getDate());
+  const [nidaError, setNidaError] = useState('');
+
+  const [regionValue, setRegionValue] = useState(null);
+  const [districtValue, setDistrictValue] = useState(null);
+  const [wardValue, setWardValue] = useState(null);
+  const [streetValue, setStreetValue] = useState(null);
+  const [nidaLoading,setNidaLoading]=useState(false)
+  // const [streetInputValue,setStreetInputValue]=useState(null);
+
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const stylesGlobal=globalStyles();
+
+  const handleConfirm = (date) => {
+    setBirthdate(date);
+    setSelectedYear(date.getFullYear());
+    setSelectedMonth(date.getMonth() + 1);
+    setSelectedDay(date.getDate());
+    hideDatePicker();
+  };
+
+
+  const selectLocation = (locationSelected: any) => {
+    console.log('Location selected ::');
+    console.log(locationSelected);
+    setLocation(locationSelected);
+  };
+
+  useEffect(() => {
+    const cleanedPhone = user?.phone?.replace(/\+/g, '');
+
+
+    if (user.provider) {
+      setValue('name', provider?.name);
+      setValue('first_name', provider?.first_name);
+      setValue('last_name', provider?.last_name);
+      setValue('phone', cleanedPhone);
+      setValue('email', user?.email);
+      setValue('nida', user?.provider?.nida);
+    } else {
+      setValue('name', provider?.name);
+      setValue('phone', cleanedPhone);
+      setValue('email', user?.email);
+      setValue('nida', provider?.nida);
+    }
+
+  }, [route.params]);
+
+
+
+  const finalRegionValue = (value) => {
+    setRegionValue(value)
+  }
+
+  const finalDistrictValue = (value) => {
+    setDistrictValue(value)
+  }
+
+  const finalWardValue = (value) => {
+    setWardValue(value)
+  }
+
+  const finalStreetValue = (value) => {
+    setStreetValue(value)
+  }
+
+  // const finalInputStreetValue = (value)=>{
+  //  setStreetInputValue(value)
+  // }
+
+  const getRegionValue = (regionValue) => {
+    if (regionValue !== null) {
+      finalRegionValue(regionValue)
+    }
+  }
+
+  const getDistrictValue = (districtValue) => {
+    finalDistrictValue(districtValue)
+  }
+
+  const getWardValue = (wardValue) => {
+    finalWardValue(wardValue)
+  }
+  const getStreetValue = (streetValue) => {
+    finalStreetValue(streetValue || '')
+  }
+  // const getStreetInput = ({ inputStreetValue }: any) => {
+  //   finalInputStreetValue(inputStreetValue || '' )
+  // }
 
   const makeid = (length: any) => {
 
@@ -64,6 +180,7 @@ const EditAccount = ({ route, navigation }: any) => {
 
   const {
     control,
+    setValue,
     handleSubmit,
     formState: { errors },
   } = useForm({
@@ -71,16 +188,11 @@ const EditAccount = ({ route, navigation }: any) => {
       phone: '',
       email: '',
       name: '',
+      first_name: '',
+      last_name: '',
+      nida: ''
     },
   });
-
-
-  const selectLocation = (locationSelected: any) => {
-    console.log('Location selected ::');
-    console.log(locationSelected);
-    setLocation(locationSelected);
-  };
-
 
   const setDisappearMessage = (message: any) => {
     setMessage(message);
@@ -91,64 +203,113 @@ const EditAccount = ({ route, navigation }: any) => {
   };
 
   const onSubmit = async (data: any) => {
-      data.user_type='provider';
-     data.email=`${data.phone}@gmail.com`
-    dispatch(userRegiter(data))
-    .unwrap()
-    .then(result => {
-      console.log('resultsss', result);
-      if (result.status) {
-        console.log('excuted this true block')
-        ToastAndroid.show("User created successfuly!", ToastAndroid.SHORT);
-        navigation.navigate('Login', {
-          screen: 'Login',
-          message: message
+    data.latitude = location.lat;
+    data.longitude = location.lng;
+    data.phone = validateTanzanianPhoneNumber(data.phone);
+    data.birth_date = birthdate;
+  
+    // Call the external API for NIDA validation
+    setNidaLoading(true)
+    const nidaValidationResult = await validateNIDANumber(data.nida);
+    setNidaLoading(false)
+
+  
+    if (!nidaValidationResult.obj.error|| nidaValidationResult.obj.error.trim() === '') {
+      data.status='S.Valid';
+      let userType = '';
+      if (user.provider) {
+        userType = 'provider';
+      } else {
+        userType = 'employee';
+      }
+  
+      dispatch(updateProviderInfo({ data: data, userType: userType, userId: user?.id }))
+        .unwrap()
+        .then(result => {
+          console.log('resultsss', result);
+          if (result.status) {
+            console.log('executed this true block');
+            ToastAndroid.show("User Edited successfully!", ToastAndroid.SHORT);
+            navigation.navigate('Account', {
+              screen: 'Account',
+              message: message
+            });
+          }else{
+
+            if (result.data) {
+              const errors = result.data.errors;
+              setDisappearMessage(
+                showErrorWithLineBreaks(formatErrorMessages(errors))
+              );
+          } else {
+              setDisappearMessage(result.message);
+          }
+           
+          }
         });
-      } 
-    })
-
-  }
-
-  console.log('user phone',user.phone);
+    } else {
+         setNidaError(t('auth:nidaDoesNotExist'))
+         setNidaLoading(false)
+     
+    }
+  };
+  
 
   return (
 
-    <SafeAreaView>
+    <SafeAreaView style={stylesGlobal.scrollBg}>
+
+      
       <ScrollView contentInsetAdjustmentBehavior="automatic">
-        <Container>
+
           <View>
-            <BasicView style={globalStyles.centerView}>
-              <Text style={globalStyles.errorMessage}>{message}</Text>
+            <BasicView style={stylesGlobal.centerView}>
+              <Text style={stylesGlobal.errorMessage}>{message}</Text>
             </BasicView>
 
             <BasicView>
               <Text
                 style={[
-                  globalStyles.inputFieldTitle,
-                  globalStyles.marginTop20,
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop20,
                 ]}>
-                  {t('auth:phone')}
+                {t('auth:phone')}
               </Text>
 
               <Controller
                 control={control}
                 rules={{
-                  maxLength: 12,
+                  minLength: 10,
                   required: true,
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInputField
-                   // placeholder= {t('auth:enterName')}
+                    placeholder={t('screens:enterPhone')}
                     onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value || user?.phone}
-                    keyboardType='numeric'
+                    onChangeText={(text) => {
+                      // Remove any non-numeric characters
+                      const cleanedText = text.replace(/\D/g, '');
+
+                    
+                      if (cleanedText.startsWith('0') && cleanedText.length <= 10) {
+                        onChange(cleanedText);
+                      } else if (
+                        (cleanedText.startsWith('255') ||
+                          cleanedText.startsWith('+255')) &&
+                        cleanedText.length <= 12
+                      ) {
+                        onChange(cleanedText);
+                      }
+                    }}
+                    value={value}
+                    keyboardType="phone-pad"
+                    maxLength={12}
                   />
                 )}
                 name="phone"
               />
               {errors.phone && (
-                <Text style={globalStyles.errorMessage}>
+                <Text style={stylesGlobal.errorMessage}>
                   {t('auth:phoneRequired')}
                 </Text>
               )}
@@ -157,82 +318,199 @@ const EditAccount = ({ route, navigation }: any) => {
             <BasicView>
               <Text
                 style={[
-                  globalStyles.inputFieldTitle,
-                  globalStyles.marginTop20,
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop20,
                 ]}>
-               {t('auth:name')}
+                {t('auth:firstName')}
               </Text>
 
               <Controller
                 control={control}
                 rules={{
-                  maxLength: 12,
                   required: true,
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInputField
-                    placeholder= {t('auth:enterName')}
+                    placeholder={t('auth:enterFirstName')}
                     onBlur={onBlur}
                     onChangeText={onChange}
-                    value={value || user?.provider.name}
+                    value={value}
                   />
                 )}
-                name="name"
+                name="first_name"
               />
-              {errors.name && (
-                <Text style={globalStyles.errorMessage}>
-                  {t('auth:nameRequired')}
+
+              {errors.first_name && (
+                <Text style={stylesGlobal.errorMessage}>
+                  {t('auth:firstNameRequired')}
                 </Text>
               )}
             </BasicView>
 
-            
             <BasicView>
               <Text
                 style={[
-                  globalStyles.inputFieldTitle,
-                  globalStyles.marginTop20,
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop20,
                 ]}>
-               {t('auth:email')}
+                {t('auth:lastName')}
               </Text>
 
               <Controller
                 control={control}
                 rules={{
-                  maxLength: 12,
                   required: true,
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInputField
-                    placeholder= {t('auth:enterEmail')}
+                    placeholder={t('auth:enterLastName')}
                     onBlur={onBlur}
                     onChangeText={onChange}
-                    value={value || user?.email}
+                    value={value}
+                  />
+                )}
+                name="last_name"
+              />
+
+              {errors.last_name && (
+                <Text style={stylesGlobal.errorMessage}>
+                  {t('auth:lastNameRequired')}
+                </Text>
+              )}
+            </BasicView>
+
+            <BasicView>
+              <Text
+                style={[
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop20,
+                ]}>
+                {t('auth:email')}
+              </Text>
+
+              <Controller
+                control={control}
+                rules={{
+
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, // Regular expression for email validation
+                    message: 'Invalid email address',
+                  },
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInputField
+                    placeholder={t('auth:enterEmail')}
+                    onBlur={onBlur}
+                    keyboardType='email-address'
+                    onChangeText={onChange}
+                    value={value}
                   />
                 )}
                 name="email"
               />
-              {errors.name && (
-                <Text style={globalStyles.errorMessage}>
+              {errors.email && (
+                <Text style={stylesGlobal.errorMessage}>
                   {t('auth:emailRequired')}
                 </Text>
               )}
             </BasicView>
 
-            <BasicView style={globalStyles.marginTop20}>
-            <GooglePlacesInput
-              setLocation={selectLocation}
-              placeholder="What's your location?"
-            />
-          </BasicView>
+            <BasicView>
+              <Text
+                style={[
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop20,
+                ]}>
+                {t('auth:nida')}
+              </Text>
+
+              <Controller
+                control={control}
+                rules={{
+                  required: true,
+                  validate: (value) => {
+                    if (value.length !== 20) {
+                      setNidaError(t('auth:nida20numbers'));
+                      return false;
+                    }
+                    setNidaError('');
+                    return true;
+                  },
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInputField
+                    placeholder={t('auth:enterNida')}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    keyboardType='numeric'
+                  />
+                )}
+                name="nida"
+              />
+              {nidaError && (
+                <Text style={stylesGlobal.errorMessage}>
+                  {nidaError}
+                </Text>
+              )}
+            </BasicView>
+
+            <BasicView style={stylesGlobal.marginTop20}>
+
+              <Button onPress={showDatePicker}>
+                <ButtonText >{t('screens:selectBirthDate')}</ButtonText>
+              </Button>
+
+
+              <TextInput
+                value={`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`}
+                editable={false}
+                style={{ color:isDarkMode?'white':'black', fontSize: 20 }}
+              />
+
+
+              <Modal isVisible={isDatePickerVisible}>
+                <DateTimePickerModal
+                  isVisible={isDatePickerVisible}
+                  mode="date"
+                  onConfirm={handleConfirm}
+                  onCancel={hideDatePicker}
+                />
+              </Modal>
+            </BasicView>
+
+            <BasicView style={stylesGlobal.marginTop20}>
+              <Text>{t('screens:residentialLocation')}:</Text>
+              <Location
+                getRegionValue={getRegionValue}
+                getDistrictValue={getDistrictValue}
+                getWardValue={getWardValue}
+                getStreetValue={getStreetValue}
+                // getStreetInput={getStreetInput}
+                initialRegion={null}
+                initialDistrict={null}
+                initialWard={null}
+                initialStreet={null}
+
+              />
+
+            </BasicView>
+
+            <BasicView style={stylesGlobal.marginTop20}>
+              <Text>{t('screens:officeLocation')}:</Text>
+              <GooglePlacesInput
+                setLocation={selectLocation}
+                placeholder="What's your location?"
+              />
+            </BasicView>
 
             <BasicView>
-              <Button loading={loading} onPress={handleSubmit(onSubmit)}>
+              <Button loading={nidaLoading || loading} onPress={handleSubmit(onSubmit)}>
                 <ButtonText>{t('navigate:editAccount')}</ButtonText>
               </Button>
             </BasicView>
           </View>
-        </Container>
+   
       </ScrollView>
     </SafeAreaView>
   );

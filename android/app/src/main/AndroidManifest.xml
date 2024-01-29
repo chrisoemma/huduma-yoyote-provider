@@ -15,6 +15,7 @@
         android:label="@string/app_name"
         android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
         android:launchMode="singleTask"
+        android:screenOrientation="portrait"
         android:windowSoftInputMode="adjustResize"
         android:exported="true">
         <intent-filter>
@@ -25,7 +26,7 @@
 
     <meta-data
     android:name="com.google.android.geo.API_KEY"
-    android:value="AIzaSyA-FJYQkK6AZ2NcqsmCfotWh7rGxoDcZ1c"
+    android:value="AIzaSyAjRgiYM3diHIfvwsYgK7L8jUnD87LJviA"
   />
     </application>
 </manifest>

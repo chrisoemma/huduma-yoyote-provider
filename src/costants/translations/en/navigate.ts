@@ -17,5 +17,6 @@ export default {
     editEmployee:'Edit Employee',
     employeeAccount:'Employee Account',
     editAccount:'Edit Account',
+    changePassword:'Change Password'
 
   };

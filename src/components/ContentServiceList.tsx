@@ -8,9 +8,10 @@ const ContentServiceList = ({  data, toggleSubService, selectedSubServices,navig
   const { t } = useTranslation();
 
  
-  
+
+
   const RenderItem = ({ item }: any) => (
-    
+       
     <TouchableOpacity 
     style={styles.contentItem}
     onPress={()=>{}}
@@ -42,7 +43,9 @@ const ContentServiceList = ({  data, toggleSubService, selectedSubServices,navig
               : colors.secondary,
           },
         ]} 
-      onPress={() => toggleSubService(item?.name)}>
+      onPress={() => toggleSubService(item?.name)}
+      key={item.id}
+      >
   <Text style={{ color: colors.white }}>
     {selectedSubServices.includes(item?.name) ? `${t('screens:remove')}` : `${t('screens:add')}`}
   </Text>
@@ -52,6 +55,8 @@ const ContentServiceList = ({  data, toggleSubService, selectedSubServices,navig
   )
 
   return (
+
+   
     <View style={styles.container}>
      {data.map((item)=>(
       <RenderItem  
@@ -96,7 +101,7 @@ const styles = StyleSheet.create({
         color:colors.black
       },
       desc:{
-       
+      color:colors.alsoGrey
       },
       addBtn:{
       alignSelf:'flex-end',

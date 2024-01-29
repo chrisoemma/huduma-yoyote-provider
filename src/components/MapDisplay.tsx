@@ -6,13 +6,15 @@ import MapViewDirections from 'react-native-maps-directions';
 import { colors } from '../utils/colors';
 
 
-const MapDisplay = () => {
-  const [userLocation, setUserLocation] = useState(null);
-  const [provider, setServiceProviders] = useState(
-    { id: 1, name: 'Provider 1', latitude: -6.7980, longitude: 39.2219 }
-    // { id: 2, name: 'Provider 2', latitude: -6.7794, longitude: 39.2277 },
-    // Add more service providers...
-  );
+const MapDisplay = ({ onLocationUpdate,client,requestLocation }: any) => {
+
+   console.log('request location',requestLocation);
+
+  const [clientLocation, setClientLocation] = useState({latitude:parseFloat(requestLocation.client_latitude), longitude: parseFloat(requestLocation.client_longitude) });
+  const [providerLocation, setServiceProvidersLocation] = useState(null);
+
+
+
 
   useEffect(() => {
     const requestLocationPermission = async () => {
@@ -31,12 +33,12 @@ const MapDisplay = () => {
           // Permission granted, start fetching location
           const watchId = Geolocation.watchPosition(
             position => {
-              setUserLocation({
+              setServiceProvidersLocation({
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
               });
-              console.log('latitude',position.coords.latitude);
-              console.log('longitude',position.coords.longitude)
+              console.log('latitude', position.coords.latitude);
+              console.log('longitude', position.coords.longitude)
             },
             error => console.error(error),
             {
@@ -61,11 +63,19 @@ const MapDisplay = () => {
     };
   }, []);
 
+  useEffect(() => {
+    // ... (your existing code)
 
-  const centerLat = (userLocation?.latitude + provider.latitude) / 2;
-  const centerLng = (userLocation?.longitude + provider.longitude) / 2;
+    // After fetching user location and provider data, call the onLocationUpdate function
+    // to pass the data to the parent component
+    onLocationUpdate(providerLocation, clientLocation);
+  }, [clientLocation, providerLocation]);
 
-  const zoomLevel = 0.7;
+
+  const centerLat = (providerLocation?.latitude + clientLocation.latitude) / 2;
+  const centerLng = (providerLocation?.longitude + clientLocation.longitude) / 2;
+
+  const zoomLevel = 0.05;
 
 
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -75,60 +85,60 @@ const MapDisplay = () => {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(lat1 * (Math.PI / 180)) *
-        Math.cos(lat2 * (Math.PI / 180)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c; // Distance in kilometers
     return distance.toFixed(2);
   };
 
-  // Rest of the code remains the same...
-
   return (
     <View style={styles.container}>
-    {userLocation && (
-      <MapView
-        style={styles.map}
-        region={{
-          latitude: centerLat,
+      {providerLocation && (
+        <MapView
+          style={styles.map}
+          region={{
+            latitude: centerLat,
             longitude: centerLng,
             latitudeDelta: zoomLevel,
             longitudeDelta: zoomLevel * (Dimensions.get('window').width / Dimensions.get('window').height),
-        }}
-      >
-        <Marker
-          coordinate={{
-            latitude: provider.latitude,
-            longitude: provider.longitude,
           }}
-          title={provider.name}
-          description={`Distance: ${calculateDistance(
-            userLocation.latitude,
-            userLocation.longitude,
-            provider.latitude,
-            provider.longitude
-          )} km`}
-        />
+        >
+          <Marker
+            coordinate={{
+              latitude: clientLocation?.latitude,
+              longitude: clientLocation?.longitude,
+            }}
+            title={client?.name}
+            description={`Distance: ${calculateDistance(
+              clientLocation?.latitude,
+              clientLocation?.longitude,
+              providerLocation.latitude,
+              providerLocation.longitude
+            )} km`
+          }
+          pinColor="darkblue"
+          />
 
-        {/* Draw Polyline for the route */}
-        <Polyline
-          coordinates={[
-            { latitude: userLocation.latitude, longitude: userLocation.longitude },
-            { latitude: provider.latitude, longitude: provider.longitude },
-          ]}
-          strokeColor={colors.secondary}
-          strokeWidth={4}
-        />
-      </MapView>
-    )}
-    {!userLocation && <Text>Loading...</Text>}
-  </View>
+          {/* Draw Polyline for the route */}
+          <Polyline
+            coordinates={[
+              { latitude: clientLocation.latitude, longitude: clientLocation.longitude },
+              { latitude: providerLocation.latitude, longitude: providerLocation.longitude },
+            ]}
+            strokeColor={colors.secondary}
+            strokeWidth={3}
+          />
+        </MapView>
+      )}
+      {!providerLocation && <Text>Loading...</Text>}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-   // flex: 1,
+    // flex: 1,
   },
   map: {
     width: Dimensions.get('window').width,

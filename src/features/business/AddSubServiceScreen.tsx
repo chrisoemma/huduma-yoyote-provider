@@ -20,6 +20,7 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
   const {business,sub_services} = route.params;
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
+  const stylesGlobal = globalStyles();
 
   useEffect(() => {
       dispatch(getSubserviceByService({ serviceId: business?.service_id }));
@@ -29,13 +30,9 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
   const { loading, subServiceByService } = useSelector((state: RootStateOrAny) => state.subservices);
 
 
-  //console.log('subServices',subServiceByService);
-
- // const filteredSubService = subServiceByService.filter(item => !sub_services.includes(item));
 
   const commonSubServices = subServiceByService.filter(itemB => sub_services.some(itemA => itemA?.id === itemB?.id));
   
-  //console.log('common',filteredSubService);
 
   const [activeTab, setActiveTab] = useState('addFromList');
   const toggleTab = () => {
@@ -59,6 +56,7 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
   });
 
   const [message, setMessage] = useState(null);
+
 
   const setDisappearMessage = (message: any) => {
     setMessage(message);
@@ -96,6 +94,11 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
       }
     }
   };
+
+
+  const { isDarkMode } = useSelector(
+    (state: RootStateOrAny) => state.theme,
+  );
 
 
   // console.log('providersss',user.provider.id);
@@ -140,7 +143,7 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
 
   return (
     <SafeAreaView
-      style={globalStyles.scrollBg}
+      style={stylesGlobal.scrollBg}
     >
       <View style={styles.container}>
         <TouchableOpacity
@@ -148,21 +151,22 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
           onPress={toggleTab}
         >
           <Text style={[styles.buttonText, activeTab === 'addFromList' ? styles.activeToggleText : null]}>
-            Add from List
+           {t('screens:addFromList')}
           </Text>
           <Text style={[styles.buttonText, activeTab === 'addNew' ? styles.activeToggleText : null]}>
-            Add New Service
+       
+            {t('screens:addNew')}
           </Text>
         </TouchableOpacity>
-        <BasicView style={globalStyles.centerView}>
-          <Text style={globalStyles.errorMessage}>{message}</Text>
+        <BasicView style={stylesGlobal.centerView}>
+          <Text style={stylesGlobal.errorMessage}>{message}</Text>
         </BasicView>
         {
           activeTab === 'addFromList' ? (
 
             <View style={styles.checkBoxContainer}>
 
-              <Text style={styles.textStyle}>Please Add by checking more sub services</Text>
+              <Text style={[styles.textStyle,{color:isDarkMode?colors.white:colors.black}]}>{t('screens:addByCheckingMore')}</Text>
               {
                 subServiceByService.map(subservice => (
                   <BouncyCheckbox
@@ -174,16 +178,11 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
                     text={subservice.name}
                     iconStyle={{ borderColor: "red" }}
                     innerIconStyle={{ borderWidth: 2 }}
-                    textStyle={{ fontFamily: "JosefinSans-Regular" }}
-                    isChecked={commonSubServices.some(commonSub => commonSub.id === subservice.id)} // Check if it's in commonSubServices
+                    textStyle={{ fontFamily: "JosefinSans-Regular" ,color:isDarkMode?colors.white:colors.alsoGrey}}
+                    isChecked={commonSubServices.some(commonSub => commonSub.id === subservice.id)}
                     
                     onPress={(isChecked: boolean) => {
-                      // Update the checked sub-services state
-                      // const isSubserviceInCommon = commonSubServices.some(commonSub => commonSub.id === subservice.id);
-                      // if (isSubserviceInCommon) {
-                      //   return;
-                      // }
-
+                
                       if (isChecked) {
                         setCheckedSubServices(prevChecked => [...prevChecked, subservice.id]);
                       } else {
@@ -202,16 +201,17 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
               <BasicView>
                 <Text
                   style={[
-                    globalStyles.inputFieldTitle,
-                    globalStyles.marginTop20,
+                    stylesGlobal.inputFieldTitle,
+                    stylesGlobal.marginTop20,
+                    {color:isDarkMode?colors.white:colors.black}
                   ]}>
-                  Sub service
+                  {t('screens:subService')}
                 </Text>
 
                 <Controller
                   control={control}
                   rules={{
-                    maxLength: 12,
+                   
                     required: true,
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
@@ -220,14 +220,15 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
                       onBlur={onBlur}
                       onChangeText={onChange}
                       value={value}
+                      style={ {color:isDarkMode?colors.white:colors.black}}
                     />
                   )}
                   name="name"
                 />
 
                 {errors.name && (
-                  <Text style={globalStyles.errorMessage}>
-                    Sub service is required
+                  <Text style={stylesGlobal.errorMessage}>
+                    {t('subserviceRequired')}
                   </Text>
                 )}
               </BasicView>
@@ -235,16 +236,17 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
               <BasicView>
                 <Text
                   style={[
-                    globalStyles.inputFieldTitle,
-                    globalStyles.marginTop20,
+                    stylesGlobal.inputFieldTitle,
+                    stylesGlobal.marginTop20,
+                    {color:isDarkMode?colors.white:colors.black}
                   ]}>
-                  Description
+                  {t('screens:description')}
                 </Text>
 
                 <Controller
                   control={control}
                   rules={{
-                    maxLength: 12,
+                 
                     required: true,
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
@@ -259,21 +261,21 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
                 />
 
                 {errors.description && (
-                  <Text style={globalStyles.errorMessage}>
-                    Description service is required
+                  <Text style={stylesGlobal.errorMessage}>
+                   {t('decriptionRequired')}
                   </Text>
                 )}
               </BasicView>
 
               <View style={{ marginVertical: 10 }}>
-                <Text style={styles.textStyle}>Upload Video or image of the service you offer</Text>
+                <Text style={styles.textStyle}>{t('screens:uploadVideoOrImage')}</Text>
                 <View style={styles.imageContainer}>
                   <TouchableOpacity
                    onPress={selectFile}
                   >
-                    <Text>Upload image</Text>
+                    <Text style={{color:isDarkMode?colors.white:colors.alsoGrey}}>{t('screens:uploadImage')}</Text>
                     <Ionicons name="image"
-                      color={colors.black}
+                      color={isDarkMode?colors.white:colors.black}
                       size={100}
                       style={{ alignSelf: 'center' }}
                     />
@@ -289,7 +291,7 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
 
         <BasicView>
           <Button loading={loading} onPress={handleSubmit(onSubmit)}>
-            <ButtonText>Add Sub Service</ButtonText>
+            <ButtonText>{t('screens:addSubService')}</ButtonText>
           </Button>
         </BasicView>
       </View>
@@ -328,7 +330,6 @@ const styles = StyleSheet.create({
     marginVertical: 30
   },
   textStyle: {
-    color: colors.black,
     marginBottom: 10,
     fontSize: 17,
 

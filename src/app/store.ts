@@ -13,7 +13,6 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import userReducer from '../features/auth/userSlice';
-import languageReducer from '../costants/languangeSlice';
 import RequestSlice from '../features/requests/RequestSlice';
 import ServiceProviderSlice from '../features/serviceproviders/ServiceProviderSlice';
 import AccountSlice from '../features/account/AccountSlice';
@@ -22,11 +21,15 @@ import CategorySlice from '../features/category/CategorySlice';
 import ServiceSlice from '../features/Service/ServiceSlice';
 import SubservicesSlice from '../features/subservices/SubservicesSlice';
 import EmployeeSlice from '../features/employees/EmployeeSlice';
+import themeSlice from '../costants/themes/themeSlice';
+import LocationSlice from '../components/Location/LocationSlice';
+import OnboardingSlice from '../features/onboarding/OnboardingSlice';
+import languangeSlice from '../costants/languangeSlice';
+import ChartSlice from '../features/home/ChartSlice';
 
 
 const reducers = combineReducers({
   user: userReducer,
-  language:languageReducer,
   requests:RequestSlice,
   providers:ServiceProviderSlice,
   account:AccountSlice,
@@ -34,7 +37,12 @@ const reducers = combineReducers({
   categories:CategorySlice,
   services:ServiceSlice,
   subservices:SubservicesSlice,
-  employees:EmployeeSlice
+  employees:EmployeeSlice,
+  theme:themeSlice,
+  locations:LocationSlice,
+  onboarding:OnboardingSlice,
+  language:languangeSlice,
+  charts:ChartSlice
 });
 
 const persistConfig = {

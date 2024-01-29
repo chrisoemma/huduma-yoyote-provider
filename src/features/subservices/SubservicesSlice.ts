@@ -18,6 +18,24 @@ export const getSubserviceByService = createAsyncThunk(
   );
 
 
+
+  export const getBusinessSubservices = createAsyncThunk(
+    'subservices/getBusinessSubservices',
+    async ({providerId,serviceId}:any) => {
+
+      console.log('providerid',providerId)
+      console.log('serviceid',serviceId)
+      
+      let header: any = await authHeader();
+      const response = await fetch(`${API_URL}/businesses/provider_businesses/${providerId}/${serviceId}`, {
+        method: 'GET',
+        headers: header,
+      });
+      return (await response.json()) as any;
+    },
+  );
+
+
   export const createSubService = createAsyncThunk(
     'subservices/createSubService',
     async ({data,providerId,businessId}:any) => {
@@ -157,6 +175,27 @@ export const getSubserviceByService = createAsyncThunk(
         state.loading = false;
         updateStatus(state, '');
       });
+
+
+           //single business
+
+           builder.addCase(getBusinessSubservices.pending, state => {
+            // console.log('Pending');
+             state.loading = true;
+           });
+           builder.addCase(getBusinessSubservices.fulfilled, (state, action) => {
+             
+             if (action.payload.status) {
+               state.subservices = action.payload.data.sub_services;
+             }
+             state.loading = false;
+           });
+           builder.addCase(getBusinessSubservices.rejected, (state, action) => {
+             console.log('Rejected');
+             console.log(action.error);
+             state.loading = false;
+           });
+    
 
     },
   });

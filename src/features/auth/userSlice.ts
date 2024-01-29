@@ -2,8 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { API_URL } from '../../utils/config';
 
-import * as RootNavigation from './../../navigation/RootNavigation';
-
 interface User {
   id: number;
   phone: string;
@@ -60,6 +58,66 @@ export const userLogin = createAsyncThunk(
     return (await response.json()) as UserData;
   },
 );
+
+
+export const updateProfile = createAsyncThunk(
+  'users/updateProfile',
+  async ({ data, userId }: any) => {
+    try {
+      console.log('user', userId);
+      const response = await fetch(`${API_URL}/users/change_profile_picture/${userId}`, {
+        method: 'PUT',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Request failed');
+      }
+
+      return await response.json();
+    } catch (error) {
+      // Handle the error gracefully, e.g., log the error and return an appropriate response
+      console.error('Error in updateProviderInfo:', error);
+      throw error; // Rethrow the error to be caught by Redux Toolkit
+    }
+  }
+);
+
+
+
+export const updateProviderInfo = createAsyncThunk(
+  'users/updateProviderInfo',
+  async ({data, userType,userId }: any) => {
+    try {
+      console.log('provider', userId);
+      const response = await fetch(`${API_URL}/users/update_account/${userType}/${userId}`, {
+        method: 'PUT',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Request failed: ${errorData.message}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      // Handle the error gracefully, e.g., log the error and return an appropriate response
+      console.error('Error in updateProviderInfo:', error);
+      throw error; // Rethrow the error to be caught by Redux Toolkit
+    }
+  }
+);
+
+
 
 export const userRegiter = createAsyncThunk(
   'users/userRegister',
@@ -122,6 +180,22 @@ export const resetPassword = createAsyncThunk(
   },
 );
 
+
+export const changePassword = createAsyncThunk(
+  'users/changePassword',
+  async ({ data, userId }: any) => {
+    const response = await fetch(`${API_URL}/auth/change_password/${userId}`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    return (await response.json()) as UserData;
+  },
+);
+
 function logout(state: any) {
   console.log('::: USER LOGOUT CALLED :::');
   state.user = {};
@@ -148,6 +222,7 @@ const userSlice = createSlice({
     user: {} as UserData,
     config: {},
     loading: false,
+    isFirstTimeUser:true,
     status: '',
   },
   reducers: {
@@ -156,6 +231,9 @@ const userSlice = createSlice({
     },
     clearMessage(state: any) {
       state.status = null;
+    },
+    setFirstTime: (state, action) => {
+      state.isFirstTimeUser = action.payload;
     },
   },
   extraReducers: builder => {
@@ -167,7 +245,7 @@ const userSlice = createSlice({
     });
     builder.addCase(userLogin.fulfilled, (state, action) => {
       console.log('Fulfilled case');
-      console.log(action.payload);
+      console.log('payload dataaaa',action.payload.user);
 
       if (action.payload.status) {
         state.user = action.payload.user as any;
@@ -296,9 +374,99 @@ const userSlice = createSlice({
       state.loading = false;
       updateStatus(state, '');
     });
+
+
+    //Change password
+
+    builder.addCase(changePassword.pending, state => {
+      console.log('Pending');
+      state.loading = true;
+      updateStatus(state, '');
+    });
+    builder.addCase(changePassword.fulfilled, (state, action) => {
+      console.log('Fulfilled case');
+      console.log(action.payload);
+
+      state.loading = false;
+      updateStatus(state, '');
+
+      if (action.payload.status) {
+        state.user.token = action.payload.token as any;
+        updateStatus(state, '');
+      } else {
+        updateStatus(state, action.payload);
+      }
+    });
+    builder.addCase(changePassword.rejected, (state, action) => {
+      console.log('Rejected');
+      console.log(action.error);
+      state.loading = false;
+      updateStatus(state, '');
+    });
+
+    builder.addCase(updateProviderInfo.pending, (state) => {
+      console.log('Update Provider Pending');
+      state.loading = true;
+      updateStatus(state, '');
+    });
+    builder.addCase(updateProviderInfo.fulfilled, (state, action) => {
+      console.log('Update Task Fulfilled');
+      console.log('dataaa1234556', action.payload.data)
+
+      state.user = {
+        ...state.user,
+        ...action.payload.data.user,
+      };
+
+      // Update token if it's received in the response
+      if (action.payload.data.token) {
+        state.user.token = action.payload.data.token;
+      }
+
+      state.loading = false;
+      updateStatus(state, '');
+    });
+    builder.addCase(updateProviderInfo.rejected, (state, action) => {
+      console.log('Rejected');
+      state.loading = false;
+      updateStatus(state, '');
+    });
+
+
+    //
+
+    builder.addCase(updateProfile.pending, (state) => {
+      console.log('Update Provider Pending');
+      state.loading = true;
+      updateStatus(state, '');
+    });
+
+    builder.addCase(updateProfile.fulfilled, (state, action) => {
+      console.log('Update Task Fulfilled');
+      console.log('dataaa1234', action.payload.data)
+
+      state.user = {
+        ...state.user,
+        ...action.payload.data.user,
+      };
+
+      // Update token if it's received in the response
+      if (action.payload.data.token) {
+        state.user.token = action.payload.data.token;
+      }
+
+      state.loading = false;
+      updateStatus(state, '');
+    });
+    builder.addCase(updateProfile.rejected, (state, action) => {
+      console.log('Rejected');
+      state.loading = false;
+      updateStatus(state, '');
+    });
+
   },
 });
 
-export const { userLogout, clearMessage } = userSlice.actions;
+export const { userLogout, clearMessage,setFirstTime } = userSlice.actions;
 
 export default userSlice.reducer;

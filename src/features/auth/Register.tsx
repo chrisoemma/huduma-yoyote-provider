@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/Feather';
 
 import { useForm, Controller } from 'react-hook-form';
 import { RootStateOrAny, useSelector } from 'react-redux';
-import { userRegiter } from './userSlice';
+import { setFirstTime, userRegiter } from './userSlice';
 import { globalStyles } from '../../styles/global';
 import { useTogglePasswordVisibility } from '../../hooks/useTogglePasswordVisibility';
 import PhoneInput from 'react-native-phone-number-input';
@@ -31,11 +31,12 @@ import { firebase } from '@react-native-firebase/storage';
 import { PermissionsAndroid, Platform } from 'react-native';
 import RNFS from 'react-native-fs';
 import { useTranslation } from 'react-i18next';
+import { formatErrorMessages, showErrorWithLineBreaks, validateNIDANumber } from '../../utils/utilts';
 
 const RegisterScreen = ({ route, navigation }: any) => {
 
   const dispatch = useAppDispatch();
-  const { user, loading, status } = useSelector(
+  const { user, loading, status,isFirstTimeUser } = useSelector(
     (state: RootStateOrAny) => state.user,
   );
 
@@ -45,6 +46,9 @@ const RegisterScreen = ({ route, navigation }: any) => {
   const phoneInput = useRef<PhoneInput>(null);
   const [message, setMessage] = useState('');
    const [fileDoc, setFileDoc] = useState<string | null>(null);
+   const [uploadingDoc,setUploadingDoc]=useState(false)
+   const [nidaError, setNidaError] = useState('');
+   const [nidaLoading,setNidaLoading]=useState(false)
 
 
    const { t } = useTranslation();
@@ -61,11 +65,17 @@ const RegisterScreen = ({ route, navigation }: any) => {
     return result;
   }
 
+  // useEffect(() => {
+  //   if (status !== '') {
+  //     setMessage(status);
+  //   }
+  // }, [status]);
+
   useEffect(() => {
-    if (status !== '') {
-      setMessage(status);
+    if(isFirstTimeUser){
+        dispatch(setFirstTime(false))
     }
-  }, [status]);
+  }, []);
 
   const {
     control,
@@ -75,7 +85,8 @@ const RegisterScreen = ({ route, navigation }: any) => {
     defaultValues: {
       phone: '',
       password: '',
-      name: '',
+      first_name: '',
+      last_name: '',
       email:'',
       nida: '',
     },
@@ -106,10 +117,6 @@ const RegisterScreen = ({ route, navigation }: any) => {
 
 
   const getPathForFirebaseStorage = async (uri: any) => {
-
-    // if (Platform.OS === "ios") return uri;
-    // const stat = await RNFetchBlob.fs.stat(uri);
-    // return stat.path;
     const destPath = `${RNFS.TemporaryDirectoryPath}/text`;
     await RNFS.copyFile(uri, destPath);
 
@@ -125,9 +132,112 @@ const RegisterScreen = ({ route, navigation }: any) => {
     }, 5000);
   };
 
+
+
   const onSubmit = async (data: any) => {
-   
-    dispatch(userRegiter(data))
+
+     data.app_type='provider';
+
+    if (fileDoc !== null) {
+      console.log('documents',fileDoc[0]); 
+      data.doc_type = fileDoc[0].type;
+      data.doc_format =fileDoc[0].name;
+      console.log('file document', fileDoc);
+      const fileExtension = fileDoc[0].type.split("/").pop();
+      var uuid = makeid(10)
+      const fileName = `${uuid}.${fileExtension}`;
+      var storageRef = firebase.storage().ref(`businesses/docs/${fileName}`);
+
+      console.log('file docs', fileDoc[0].uri);
+      const fileUri = await getPathForFirebaseStorage(fileDoc[0].uri);
+      try {
+
+          const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          
+          {
+            title: "Read Permission",
+            message: "Your app needs permission.",
+            buttonNeutral: "Ask Me Later",
+            buttonNegative: "Cancel",
+            buttonPositive: "OK",
+          }
+        );
+
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          setUploadingDoc(true);
+          storageRef.putFile(fileUri).on(
+            firebase.storage.TaskEvent.STATE_CHANGED,
+            (snapshot: any) => {
+              console.log("snapshost: " + snapshot.state);
+              if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
+              }
+            },
+            (error) => {
+              unsubscribe();
+            },
+            ()  => {
+              storageRef.getDownloadURL().then(async(downloadUrl: any) => {
+                data.doc_url = downloadUrl;
+                setUploadingDoc(false);
+                //    console.log('on submit data', data);
+
+                setNidaLoading(true)
+                const nidaValidationResult = await validateNIDANumber(data.nida);
+                setNidaLoading(false)
+            
+              
+                if (!nidaValidationResult.obj.error|| nidaValidationResult.obj.error.trim() === '') {
+                  data.status='S.Valid';
+                dispatch(userRegiter(data))
+                  .unwrap()
+                  .then(result => {
+                    console.log('resultsss', result);
+                    if (result.status) {
+                      console.log('excuted this true block')
+                      ToastAndroid.show("User created successfuly!", ToastAndroid.SHORT);
+
+                      navigation.navigate('Login', {
+                        screen: 'Login',
+                        message: message
+                      });
+                    } else {
+                      if (result.data) {
+                        const errors = result.data.errors;
+                        setDisappearMessage(
+                          showErrorWithLineBreaks(formatErrorMessages(errors))
+                        );
+                    } else {
+                        setDisappearMessage(result.message);
+                    }
+                    }
+
+                    console.log('result');
+                    console.log(result);
+                  })
+                  .catch(rejectedValueOrSerializedError => {
+                    // handle error here
+                    console.log('error');
+                    console.log(rejectedValueOrSerializedError);
+                  });
+
+                }else{
+                  setNidaError(t('auth:nidaDoesNotExist'))
+                  console.log('NIDA validation failed:', nidaValidationResult.error);
+                }
+              });
+            }
+          );
+        } else {
+          return false;
+        }
+      } catch (error) {
+        console.warn(error);
+        return false;
+      }
+    } else {
+      dispatch(userRegiter(data))
     .unwrap()
     .then(result => {
       console.log('resultsss', result);
@@ -142,34 +252,45 @@ const RegisterScreen = ({ route, navigation }: any) => {
       } 
 
    
-    })
+    }).catch(rejectedValueOrSerializedError => {
+          // handle error here
+          console.log('error');
+          console.log(rejectedValueOrSerializedError);
+        });
 
-  }
+    }
+  };
+
+  const stylesGlobal = globalStyles();
+
+  const { isDarkMode } = useSelector(
+    (state: RootStateOrAny) => state.theme,
+  );
 
   return (
 
-    <SafeAreaView>
+    <SafeAreaView style={stylesGlobal.scrollBg}>
       <ScrollView contentInsetAdjustmentBehavior="automatic">
-        <Container>
-          <View style={globalStyles.centerView}>
+       
+          <View style={stylesGlobal.centerView}>
             <Image
-              source={require('./../../../assets/images/logo.png')}
-              style={globalStyles.verticalLogo}
+             source={isDarkMode? require('./../../../assets/images/logo-white.png'): require('./../../../assets/images/logo.png')}
+              style={[stylesGlobal.verticalLogo,{height:100,marginTop:20}]}
             />
           </View>
           <View>
-            <Text style={globalStyles.largeHeading}>{t('auth:register')}</Text>
+            <Text style={stylesGlobal.largeHeading}>{t('auth:register')}</Text>
           </View>
           <View>
-            <BasicView style={globalStyles.centerView}>
-              <Text style={globalStyles.errorMessage}>{message}</Text>
+            <BasicView style={stylesGlobal.centerView}>
+              <Text style={stylesGlobal.errorMessage}>{message}</Text>
             </BasicView>
 
             <BasicView>
               <Text
                 style={[
-                  globalStyles.inputFieldTitle,
-                  globalStyles.marginTop10,
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop10,
                 ]}>
                 {t('auth:phone')}
               </Text>
@@ -195,9 +316,9 @@ const RegisterScreen = ({ route, navigation }: any) => {
                     withDarkTheme
                     withShadow
                     autoFocus
-                    containerStyle={globalStyles.phoneInputContainer}
-                    textContainerStyle={globalStyles.phoneInputTextContainer}
-                    textInputStyle={globalStyles.phoneInputField}
+                    containerStyle={stylesGlobal.phoneInputContainer}
+                    textContainerStyle={stylesGlobal.phoneInputTextContainer}
+                    textInputStyle={stylesGlobal.phoneInputField}
                     textInputProps={{
                       maxLength: 9,
                     }}
@@ -206,7 +327,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
                 name="phone"
               />
               {errors.phone && (
-                <Text style={globalStyles.errorMessage}>
+                <Text style={stylesGlobal.errorMessage}>
                   {t('auth:phoneRequired')}
                 </Text>
               )}
@@ -215,32 +336,31 @@ const RegisterScreen = ({ route, navigation }: any) => {
             <BasicView>
               <Text
                 style={[
-                  globalStyles.inputFieldTitle,
-                  globalStyles.marginTop20,
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop20,
                 ]}>
-               {t('auth:name')}
+               {t('auth:firstName')}
               </Text>
 
               <Controller
                 control={control}
                 rules={{
-                  maxLength: 12,
                   required: true,
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInputField
-                    placeholder= {t('auth:enterName')}
+                    placeholder= {t('auth:enterFirstName')}
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
                   />
                 )}
-                name="name"
+                name="first_name"
               />
 
-              {errors.name && (
-                <Text style={globalStyles.errorMessage}>
-                  {t('auth:nameRequired')}
+              {errors.first_name && (
+                <Text style={stylesGlobal.errorMessage}>
+                  {t('auth:firstNameRequired')}
                 </Text>
               )}
             </BasicView>
@@ -248,17 +368,57 @@ const RegisterScreen = ({ route, navigation }: any) => {
             <BasicView>
               <Text
                 style={[
-                  globalStyles.inputFieldTitle,
-                  globalStyles.marginTop20,
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop20,
                 ]}>
-                {t('auth:nida')}
+               {t('auth:lastName')}
               </Text>
 
               <Controller
                 control={control}
                 rules={{
-                  maxLength: 12,
                   required: true,
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInputField
+                    placeholder= {t('auth:enterLastName')}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                  />
+                )}
+                name="last_name"
+              />
+
+              {errors.last_name && (
+                <Text style={stylesGlobal.errorMessage}>
+                  {t('auth:lastNameRequired')}
+                </Text>
+              )}
+            </BasicView>
+
+            <BasicView>
+              <Text
+                style={[
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop20,
+                ]}>
+                {t('auth:nida')}
+              </Text>
+
+         
+              <Controller
+                control={control}
+                rules={{
+                  required: true,
+                  validate: (value) => {
+                    if (value.length !== 20) {
+                      setNidaError(t('auth:nida20numbers'));
+                      return false;
+                    }
+                    setNidaError('');
+                    return true;
+                  },
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInputField
@@ -266,32 +426,39 @@ const RegisterScreen = ({ route, navigation }: any) => {
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
+                    keyboardType='numeric'
                   />
                 )}
-                name="nida_number"
+                name="nida"
               />
-
+                   {nidaError && (
+                <Text style={stylesGlobal.errorMessage}>
+                  {nidaError}
+                </Text>
+              )}
             </BasicView>
 
             <BasicView>
               <Text
                 style={[
-                  globalStyles.inputFieldTitle,
-                  globalStyles.marginTop20,
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop20,
                 ]}>
                 {t('auth:password')}
               </Text>
 
-              <View style={globalStyles.passwordInputContainer}>
+              <View style={stylesGlobal.passwordInputContainer}>
                 <Controller
                   control={control}
                   rules={{
-                    maxLength: 12,
+               
                     required: true,
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInput
-                      style={globalStyles.passwordInputField}
+                      style={[stylesGlobal.passwordInputField,
+                        {backgroundColor:colors.white,color:colors.black}
+                      ]}
                       secureTextEntry={passwordVisibility}
                       placeholder={t('auth:enterPassword')}
                       onBlur={onBlur}
@@ -307,23 +474,20 @@ const RegisterScreen = ({ route, navigation }: any) => {
                 </TouchableOpacity>
               </View>
               {errors.password && (
-                <Text style={globalStyles.errorMessage}>
+                <Text style={stylesGlobal.errorMessage}>
                   {t('auth:passwordRequired')}
                 </Text>
               )}
             </BasicView>
 
-
-         
-
             <BasicView>
-                <View style={globalStyles.uploadView} >
+                <View style={stylesGlobal.uploadView} >
                   <Text style={{ fontSize: 12 }}>
-                    {fileDoc == null ? 'Attach the business licences' : 'File Attach'}
+                    {fileDoc == null ? `${t('screens:attachWorkingPermit')}` : `${t('screens:fileAttached')}`}
                   </Text>
-                  <View style={globalStyles.attachmentDiv}>
+                  <View style={stylesGlobal.attachmentDiv}>
                     <TouchableOpacity
-                      style={globalStyles.uploadBtn}
+                      style={stylesGlobal.uploadBtn}
                       onPress={selectFileDoc}
                       disabled={fileDoc == null ? false : true}
                     >
@@ -337,7 +501,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
                         color: colors.white,
                         fontSize: 12
                       }}>
-                        {fileDoc == null ? 'Attach' : 'Attached'}
+                        {fileDoc == null ? `${t('screens:attach')}` : `${t('screens:attached')}`}
                       </Text>
                     </TouchableOpacity>
                     {fileDoc == null ? (<View />) : (
@@ -347,7 +511,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
                       }}
                         onPress={() => removeAttachment()}
                       >
-                        <Text style={globalStyles.textChange}>Change</Text>
+                        <Text style={stylesGlobal.textChange}>{t('screens:change')}</Text>
                       </TouchableOpacity>)}
                   </View>
                   {fileDoc == null ? (<View>
@@ -357,15 +521,15 @@ const RegisterScreen = ({ route, navigation }: any) => {
                   </View>) : (<View />)}
                 </View>
                 {fileDoc == null ? (<View />) : (
-                  <View style={globalStyles.displayDoc}>
+                  <View style={stylesGlobal.displayDoc}>
                     {
                       fileDoc[0].type == 'application/pdf' ? (
-                        <Pdf source={{ uri: fileDoc[0].uri }} style={globalStyles.pdf}
+                        <Pdf source={{ uri: fileDoc[0].uri }} style={stylesGlobal.pdf}
                           maxScale={3}
                         />
                       ) : (
                         <Image source={{ uri: fileDoc[0].uri }}
-                          style={globalStyles.pdf}
+                          style={stylesGlobal.pdf}
                         />
                       )
                     }
@@ -374,7 +538,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
 
 
               <BasicView>
-              <Button loading={loading} onPress={handleSubmit(onSubmit)}>
+              <Button loading={loading || uploadingDoc || nidaLoading} onPress={handleSubmit(onSubmit)}>
                 <ButtonText>{t('auth:register')}</ButtonText>
               </Button>
             </BasicView>
@@ -383,13 +547,13 @@ const RegisterScreen = ({ route, navigation }: any) => {
               onPress={() => {
                 navigation.navigate('Login');
               }}
-              style={[globalStyles.marginTop20, globalStyles.centerView]}>
-              <Text style={globalStyles.touchablePlainTextSecondary}>
+              style={[stylesGlobal.marginTop20, stylesGlobal.centerView]}>
+              <Text style={stylesGlobal.touchablePlainTextSecondary}>
                 {t('auth:alreadyHaveAccount')}
               </Text>
             </TouchableOpacity>
           </View>
-        </Container>
+       
       </ScrollView>
     </SafeAreaView>
   );
