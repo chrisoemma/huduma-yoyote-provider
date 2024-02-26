@@ -69,7 +69,7 @@ const EmployeeDashboard = ({ navigation }: any) => {
     // callbacks
     const handlePresentModalPress = (title: any) => useCallback(() => {
         setSheetTitle(title)
-        console.log('shittitle', title);
+       
         bottomSheetModalRef.current?.present();
     }, []);
     const handleSheetChanges = useCallback((index: number) => {
@@ -185,7 +185,7 @@ const EmployeeDashboard = ({ navigation }: any) => {
                         >
                             <Text style={styles.title}>{sheetTitle}</Text>
 
-                            {sheetTitle === 'Active Requests' || sheetTitle === 'Maombi Yaliyopo' ? (
+                            {sheetTitle === 'Active Requests' || sheetTitle === 'Maombi yaliyopo' ? (
                                 activeRequests.map(item => (
                                     <TouchableOpacity style={styles.bottomView}
                                         onPress={() => {

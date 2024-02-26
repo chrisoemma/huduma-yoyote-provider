@@ -68,14 +68,14 @@ const VerifyScreen = ({route, navigation}: any) => {
     if (nextPage === 'PasswordReset') {
       
        const  {phone}=route?.params;
-     const result= await dispatch(userVerify({phone:phone, code:numericCode,app_type:'client'})).unwrap();
+     const result= await dispatch(userVerify({phone:phone, code:numericCode,app_type:'provider'})).unwrap();
         if(result.status){
           navigation.navigate('PasswordReset', {verificationCode: numericCode});
         }else{
           setDisappearMessage(result.message); 
         }
     } else {
-      dispatch(userVerify({user_id: user.id, code:numericCode,app_type:'client'}));
+      dispatch(userVerify({user_id: user.id, code:numericCode,app_type:'provider'}));
     }
   }else{
     

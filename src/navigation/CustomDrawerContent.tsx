@@ -96,7 +96,27 @@ const CustomDrawerContent = (props: any) => {
       
     ] 
 
-  }else if(user.employee && user.status=='Active'){
+  }else if(user.provider && user.status !=='Active'){
+
+    drawerItems = [
+      {
+        name: 'My Businesses',
+        icon: 'id-card',
+        language:'business',
+        screen: 'My Businesses',
+      },
+      {
+        name: 'Settings',
+        icon: 'cogs',
+        language:'settings',
+        screen: 'Settings',
+        options: {
+          screen: 'Settings',
+        },
+      },
+      
+    ] 
+  }else if(user?.employee && user.status=='Active'){
 
     drawerItems = [
       {

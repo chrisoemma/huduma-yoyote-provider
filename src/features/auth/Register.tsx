@@ -18,20 +18,15 @@ import { setFirstTime, userRegiter } from './userSlice';
 import { globalStyles } from '../../styles/global';
 import { useTogglePasswordVisibility } from '../../hooks/useTogglePasswordVisibility';
 import PhoneInput from 'react-native-phone-number-input';
-import { colors } from '../../utils/colors';
-import { Container } from '../../components/Container';
 import { BasicView } from '../../components/BasicView';
 import { TextInputField } from '../../components/TextInputField';
 import { useAppDispatch } from '../../app/store';
 import Button from '../../components/Button';
 import { ButtonText } from '../../components/ButtonText';
-import Pdf from 'react-native-pdf';
-import DocumentPicker, { types } from 'react-native-document-picker';
-import { firebase } from '@react-native-firebase/storage';
-import { PermissionsAndroid, Platform } from 'react-native';
-import RNFS from 'react-native-fs';
+
 import { useTranslation } from 'react-i18next';
 import { formatErrorMessages, showErrorWithLineBreaks, validateNIDANumber } from '../../utils/utilts';
+import { colors } from '../../utils/colors';
 
 const RegisterScreen = ({ route, navigation }: any) => {
 
@@ -45,25 +40,13 @@ const RegisterScreen = ({ route, navigation }: any) => {
 
   const phoneInput = useRef<PhoneInput>(null);
   const [message, setMessage] = useState('');
-   const [fileDoc, setFileDoc] = useState<string | null>(null);
-   const [uploadingDoc,setUploadingDoc]=useState(false)
    const [nidaError, setNidaError] = useState('');
    const [nidaLoading,setNidaLoading]=useState(false)
 
 
    const { t } = useTranslation();
 
-  const makeid = (length: any) => {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    let counter = 0;
-    while (counter < length) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-      counter += 1;
-    }
-    return result;
-  }
+ 
 
   // useEffect(() => {
   //   if (status !== '') {
@@ -93,36 +76,6 @@ const RegisterScreen = ({ route, navigation }: any) => {
   });
 
 
-  const removeAttachment = () => {
-    setFileDoc(null)
-  }
-
-  const selectFileDoc = async () => {
-
-    try {
-      const res = await DocumentPicker.pick({
-        type: [DocumentPicker.types.images, DocumentPicker.types.pdf],
-      })
-      setFileDoc(res);
-    } catch (error) {
-
-      if (DocumentPicker.isCancel(error)) {
-        setFileDoc(null)
-      } else {
-        alert('Unknown Error: ' + JSON.stringify(error));
-        throw error
-      }
-    }
-  }
-
-
-  const getPathForFirebaseStorage = async (uri: any) => {
-    const destPath = `${RNFS.TemporaryDirectoryPath}/text`;
-    await RNFS.copyFile(uri, destPath);
-
-    return (await RNFS.stat(destPath)).path;
-  };
-
 
   const setDisappearMessage = (message: any) => {
     setMessage(message);
@@ -138,127 +91,45 @@ const RegisterScreen = ({ route, navigation }: any) => {
 
      data.app_type='provider';
 
-    if (fileDoc !== null) {
-      console.log('documents',fileDoc[0]); 
-      data.doc_type = fileDoc[0].type;
-      data.doc_format =fileDoc[0].name;
-      console.log('file document', fileDoc);
-      const fileExtension = fileDoc[0].type.split("/").pop();
-      var uuid = makeid(10)
-      const fileName = `${uuid}.${fileExtension}`;
-      var storageRef = firebase.storage().ref(`businesses/docs/${fileName}`);
-
-      console.log('file docs', fileDoc[0].uri);
-      const fileUri = await getPathForFirebaseStorage(fileDoc[0].uri);
-      try {
-
-          const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          
-          {
-            title: "Read Permission",
-            message: "Your app needs permission.",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
-            buttonPositive: "OK",
-          }
-        );
-
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          setUploadingDoc(true);
-          storageRef.putFile(fileUri).on(
-            firebase.storage.TaskEvent.STATE_CHANGED,
-            (snapshot: any) => {
-              console.log("snapshost: " + snapshot.state);
-              if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
-              }
-            },
-            (error) => {
-              unsubscribe();
-            },
-            ()  => {
-              storageRef.getDownloadURL().then(async(downloadUrl: any) => {
-                data.doc_url = downloadUrl;
-                setUploadingDoc(false);
-                //    console.log('on submit data', data);
-
-                setNidaLoading(true)
-                const nidaValidationResult = await validateNIDANumber(data.nida);
-                setNidaLoading(false)
-            
-              
-                if (!nidaValidationResult.obj.error|| nidaValidationResult.obj.error.trim() === '') {
-                  data.status='S.Valid';
-                dispatch(userRegiter(data))
-                  .unwrap()
-                  .then(result => {
-                    console.log('resultsss', result);
-                    if (result.status) {
-                      console.log('excuted this true block')
-                      ToastAndroid.show("User created successfuly!", ToastAndroid.SHORT);
-
-                      navigation.navigate('Login', {
-                        screen: 'Login',
-                        message: message
-                      });
-                    } else {
-                      if (result.data) {
-                        const errors = result.data.errors;
-                        setDisappearMessage(
-                          showErrorWithLineBreaks(formatErrorMessages(errors))
-                        );
-                    } else {
-                        setDisappearMessage(result.message);
-                    }
-                    }
-
-                    console.log('result');
-                    console.log(result);
-                  })
-                  .catch(rejectedValueOrSerializedError => {
-                    // handle error here
-                    console.log('error');
-                    console.log(rejectedValueOrSerializedError);
-                  });
-
-                }else{
-                  setNidaError(t('auth:nidaDoesNotExist'))
-                  console.log('NIDA validation failed:', nidaValidationResult.error);
-                }
-              });
-            }
-          );
-        } else {
-          return false;
-        }
-      } catch (error) {
-        console.warn(error);
-        return false;
-      }
-    } else {
-      dispatch(userRegiter(data))
-    .unwrap()
-    .then(result => {
-      console.log('resultsss', result);
-      if (result.status) {
-        console.log('excuted this true block')
-        ToastAndroid.show("User created successfuly!", ToastAndroid.SHORT);
-
-        navigation.navigate('Login', {
-          screen: 'Login',
-          message: message
-        });
-      } 
-
+     setNidaLoading(true)
+     const nidaValidationResult = await validateNIDANumber(data.nida);
+     setNidaLoading(false)
+ 
    
-    }).catch(rejectedValueOrSerializedError => {
-          // handle error here
-          console.log('error');
-          console.log(rejectedValueOrSerializedError);
-        });
+     if (!nidaValidationResult.obj.error|| nidaValidationResult.obj.error.trim() === '') {
+      
+     dispatch(userRegiter(data))
+       .unwrap()
+       .then(result => {
+         console.log('resultsss', result);
+         if (result.status) {
+           console.log('excuted this true block')
+           ToastAndroid.show(`${t('auth:userCreatedSuccessfully')}`, ToastAndroid.LONG);
+           navigation.navigate('Verify',{nextPage:'Verify'});
+         } else {
+          if (result.error) {
+            setDisappearMessage(result.error
+            );
+        } else {
+            setDisappearMessage(result.message);
+        }
+         }
 
-    }
+         console.log('result');
+         console.log(result);
+       })
+       .catch(rejectedValueOrSerializedError => {
+         // handle error here
+         console.log('error');
+         console.log(rejectedValueOrSerializedError);
+       });
+
+     }else{
+       setNidaError(t('auth:nidaDoesNotExist'))
+       console.log('NIDA validation failed:', nidaValidationResult.error);
+     }
+
+  
   };
 
   const stylesGlobal = globalStyles();
@@ -445,9 +316,9 @@ const RegisterScreen = ({ route, navigation }: any) => {
                   stylesGlobal.marginTop20,
                 ]}>
                 {t('auth:password')}
-              </Text>
+              </Text> 
 
-              <View style={stylesGlobal.passwordInputContainer}>
+               <View style={stylesGlobal.passwordInputContainer}>
                 <Controller
                   control={control}
                   rules={{
@@ -480,65 +351,11 @@ const RegisterScreen = ({ route, navigation }: any) => {
               )}
             </BasicView>
 
-            <BasicView>
-                <View style={stylesGlobal.uploadView} >
-                  <Text style={{ fontSize: 12 }}>
-                    {fileDoc == null ? `${t('screens:attachWorkingPermit')}` : `${t('screens:fileAttached')}`}
-                  </Text>
-                  <View style={stylesGlobal.attachmentDiv}>
-                    <TouchableOpacity
-                      style={stylesGlobal.uploadBtn}
-                      onPress={selectFileDoc}
-                      disabled={fileDoc == null ? false : true}
-                    >
-                      {
-                        fileDoc == null ? (<View />) : (
-                          <Icon name={rightIcon} size={20} color={colors.successGreen} />
-                        )
-                      }
 
-                      <Text style={{
-                        color: colors.white,
-                        fontSize: 12
-                      }}>
-                        {fileDoc == null ? `${t('screens:attach')}` : `${t('screens:attached')}`}
-                      </Text>
-                    </TouchableOpacity>
-                    {fileDoc == null ? (<View />) : (
-                      <TouchableOpacity style={{
-                        alignSelf: 'center',
-                        marginLeft: 30
-                      }}
-                        onPress={() => removeAttachment()}
-                      >
-                        <Text style={stylesGlobal.textChange}>{t('screens:change')}</Text>
-                      </TouchableOpacity>)}
-                  </View>
-                  {fileDoc == null ? (<View>
-                    <Text style={{ color: '#f25d52' }}>
-
-                    </Text>
-                  </View>) : (<View />)}
-                </View>
-                {fileDoc == null ? (<View />) : (
-                  <View style={stylesGlobal.displayDoc}>
-                    {
-                      fileDoc[0].type == 'application/pdf' ? (
-                        <Pdf source={{ uri: fileDoc[0].uri }} style={stylesGlobal.pdf}
-                          maxScale={3}
-                        />
-                      ) : (
-                        <Image source={{ uri: fileDoc[0].uri }}
-                          style={stylesGlobal.pdf}
-                        />
-                      )
-                    }
-                  </View>)}
-              </BasicView>
 
 
               <BasicView>
-              <Button loading={loading || uploadingDoc || nidaLoading} onPress={handleSubmit(onSubmit)}>
+              <Button loading={loading || nidaLoading} onPress={handleSubmit(onSubmit)}>
                 <ButtonText>{t('auth:register')}</ButtonText>
               </Button>
             </BasicView>

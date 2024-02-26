@@ -39,7 +39,9 @@ export default {
     birthDate:'Siku ya kuzaliwa',
     nidaRequired: 'Nambari ya NIDA inahitajika',
     nida20numbers: 'Nambari ya NIDA lazima iwe na herufi 20',
-    nidaDoesNotExist:'Namba ya nida haipo'
-
+    nidaDoesNotExist:'Namba ya NIDA haipo',
+    userCreatedSuccessfully:'Usajili wa awali umekamilika! Thibitisha namba yako ya simu na nambari iliyotumwa kwako',
+    enterVerificationCode:'Ingiza nambari ya uthibitisho',
+    
 
 }

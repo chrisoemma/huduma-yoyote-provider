@@ -63,7 +63,11 @@ const Account = ({ navigation }: any) => {
 
   const [locationName, setLocationName] = useState(null);
   useEffect(() => {
-    getLocationName(user?.client?.latitude, user?.client?.longitude)
+
+    const latitudeData = user.provider? user?.provider?.latitude:user.employee.latitude
+    const longitudeData = user.provider? user?.provider?.longitude:user.employee.longitude;
+
+    getLocationName(latitudeData, longitudeData)
       .then((locationName) => {
         setLocationName(locationName);
         console.log('Location Name:', locationName);
@@ -199,8 +203,13 @@ const Account = ({ navigation }: any) => {
 
           <TouchableOpacity style={{ marginRight: 10, alignSelf: 'flex-end' }}
             onPress={() => {
+               if(user.provider)
               navigation.navigate('Edit Account', {
                 provider: user?.provider
+              })
+              else
+              navigation.navigate('Edit Account', {
+                employee: user?.employee
               })
             }}
           >

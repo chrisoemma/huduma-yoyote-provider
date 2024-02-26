@@ -72,8 +72,6 @@ const EmployeeAccount = ({ route, navigation }: any) => {
     const subServices = combineSubServices(request);
 
 
-    console.log('subservices1234',subServices);
-
     const maxItemsToShow = 4;
     return (
       <View style={styles.requestContainer}

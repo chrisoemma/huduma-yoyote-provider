@@ -19,7 +19,7 @@ export default{
     alreadyHaveAccount:'Already have an account? Login',
     login:'Login',
     verify:'Verify',
-    dontHaveAcount:' Don\'t have an account? Register',
+    dontHaveAccount:' Don\'t have an account? Register',
     register:'Register',
     nida:'Nida number',
     enterNida:'Enter Nida Number',
@@ -40,7 +40,9 @@ export default{
     birthDate:'Birth date',
     nidaRequired:'NIDA  number required',
     nida20numbers:'NIDA number must be 20 characters long',
-    nidaDoesNotExist:'NIDA number does not exists'
+    nidaDoesNotExist:'NIDA number does not exists',
+    userCreatedSuccessfully:'Initial Registration complete! Verify your phone number with the code sent to you.',
+    enterVerificationCode:'Enter verification code',
 
    
 }

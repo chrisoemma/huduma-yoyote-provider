@@ -18,10 +18,10 @@ export const getProviderRequestVsSubservice = createAsyncThunk(
 
   export const getEmployeeTranferRequests = createAsyncThunk(
     'charts/getEmployeeTranferRequests',
-    async (emloyeeId:any) => {
+    async (employeeId:any) => {
       
       let header: any = await authHeader();
-      const response = await fetch(`${API_URL}/employees/service_requests/${emloyeeId}`, {
+      const response = await fetch(`${API_URL}/employees/service_requests/${employeeId}`, {
         method: 'GET',
         headers: header,
       });
@@ -48,6 +48,8 @@ export const getProviderRequestVsSubservice = createAsyncThunk(
         state.loading = true;
       });
       builder.addCase(getProviderRequestVsSubservice.fulfilled, (state, action) => {
+
+        console.log('full fiels',action.payload.data.requests_vs_sub_services);
         if (action.payload.status) {
           state.providerServiceRequests = action.payload.data.requests_vs_sub_services;
         }

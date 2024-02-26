@@ -101,7 +101,7 @@ const tabNavScreenOptions = ({ route }: any) => ({
       },
     ];
   
-    if ((user.provider || user.employee) && user.status !== 'Active') {
+    if ((user?.provider || user?.employee) && user.status !== 'Active') {
       // Remove 'Home' and 'Requests' screens if the user's status is not active
       return screens.filter(screen => screen.name !== 'Home' && screen.name !== 'Requests');
     }

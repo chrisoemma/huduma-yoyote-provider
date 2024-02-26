@@ -212,7 +212,8 @@ const LoginScreen = ({ route, navigation }: any) => {
               }}
               style={[styles.marginTop20, styles.centerView]}>
               <Text style={styles.touchablePlainTextSecondary}>
-              {t('auth:dontHaveAcount')}
+              {t('auth:dontHaveAccount')}
+              
               </Text>
             </TouchableOpacity>
           </View>

@@ -82,7 +82,7 @@
     decriptionRequired:'Description Required',
     dark:'Dark',
     light:'Light',
-    onbordingWelcome:'Welcome! Ready to make service requests effortlessly? We\'re here to simplify the process for you. Let\'s get started!',
+    onbordingWelcome:'Welcome! Ready to effortlessly provide your services to clients? We\'re here to streamline the process for you. Let\'s get started',
     chooseLanguage:'Choose your preferred language',
     getStarted:'Hello! Lets get started',
     requestsVsSubserices:'Service Requests Distribution by Sub-Services',
@@ -107,6 +107,8 @@
     Comfirmed:'Confirmed',
     Completed:'Completed',
     dataRefreshed:'Data refreshed successfully',
+    userUpatedSuccessfully:'Updated Successfully',
+  
 
   
   };

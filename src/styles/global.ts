@@ -162,6 +162,7 @@ import { colors } from '../utils/colors';
       width: '90%',
       paddingHorizontal: 10,
       color: textInputColor,
+      elevation:1
     },
     phoneInputContainer: {
       backgroundColor: colors.white,
