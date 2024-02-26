@@ -1,9 +1,10 @@
-import { View, Text, SafeAreaView, StyleSheet, 
+import {
+  View, Text, SafeAreaView, StyleSheet,
   TouchableOpacity, ToastAndroid, Alert, ScrollView, Image,
-  PermissionsAndroid, 
-  Platform 
- } from 'react-native';
-import React, { useEffect, useMemo, useState,useRef } from 'react';
+  PermissionsAndroid,
+  Platform
+} from 'react-native';
+import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { globalStyles } from '../../styles/global';
 import DropDownPicker from "react-native-dropdown-picker";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
@@ -28,15 +29,15 @@ import RNFS from 'react-native-fs';
 import VideoPlayer from '../../components/VideoPlayer';
 
 
-const AddBusiness = ({route, navigation }: any) => {
+const AddBusiness = ({ route, navigation }: any) => {
 
-  const [isEditMode,setIsEditMode]=useState(false);
-  
+  const [isEditMode, setIsEditMode] = useState(false);
+
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [value, setCategoryValue] = useState(null);
   const [ServiceValue, setServiceValue] = useState(null);
-  
+
   const [checkedSubServices, setCheckedSubServices] = useState([]);
 
   const [open, setOpen] = useState(false);
@@ -48,67 +49,74 @@ const AddBusiness = ({route, navigation }: any) => {
   const { subServiceByService } = useSelector((state: RootStateOrAny) => state.subservices);
   const { loading, business } = useSelector((state: RootStateOrAny) => state.businesses);
 
- const existingBusiness= route?.params?.business;
+  const existingBusiness = route?.params?.business;
 
- const sub_services =route?.params?.sub_services
- 
- useEffect(() => {
-  dispatch(clearSubServiceByService());
-  setSubs([]);
-  dispatch(getCategories());
-}, []);
+  const sub_services = route?.params?.sub_services
 
-useEffect(() => {
-  const existingBusiness= route?.params?.business;
- // console.log('existingBusiness', existingBusiness.service.category_id);
-  if (existingBusiness) {
-    setIsEditMode(true);
-    setCategoryValue(String(existingBusiness?.service?.category_id))
-    setServiceValue(String(existingBusiness?.service_id))
-    setValue('description',existingBusiness.description)
-   
-    navigation.setOptions({
-      title:t('screens:editBusiness'),
-    });
-  }else{
+  useEffect(() => {
+    dispatch(clearSubServiceByService());
+    setSubs([]);
+    dispatch(getCategories());
+  }, []);
+
+  useEffect(() => {
+    const existingBusiness = route?.params?.business;
+    // console.log('existingBusiness', existingBusiness.service.category_id);
+    if (existingBusiness) {
+      setIsEditMode(true);
+      setCategoryValue(String(existingBusiness?.service?.category_id))
+      setServiceValue(String(existingBusiness?.service_id))
+      setValue('description', existingBusiness.description)
+
       navigation.setOptions({
-          title: t('screens:addBusiness') ,
-        }); 
-  }
+        title: t('screens:editBusiness'),
+      });
+    } else {
+      navigation.setOptions({
+        title: t('screens:addBusiness'),
+      });
+    }
 
-}, [route.params]);
-
-
-// useEffect(() => {
-//   if (categories) {
-//     setItems(transformDataToDropdownOptions(categories));
-//   }
-// }, [categories]);
+  }, [route.params]);
 
 
-useEffect(() => {
-  // This effect is only for dispatching the action, it won't trigger unnecessary re-renders
-  if (value !== null) {
-    dispatch(getServicesByCategory({ categoryId: value }));
-  }
-}, [value]);
-
-// useEffect(() => {
-//   if (servicesByCategory) {
-//     setServiceItems(transformDataToDropdownOptions(servicesByCategory));
-//   }
-// }, [servicesByCategory]);
+  // useEffect(() => {
+  //   if (categories) {
+  //     setItems(transformDataToDropdownOptions(categories));
+  //   }
+  // }, [categories]);
 
 
-useEffect(() => {
-  
-  if (subServiceByService) {
-    setSubs(subServiceByService);
-  }
-}, [subServiceByService]);
+  useEffect(() => {
+    // This effect is only for dispatching the action, it won't trigger unnecessary re-renders
+    if (value !== null) {
+      dispatch(getServicesByCategory({ categoryId: value }));
+    }
+  }, [value]);
+
+  // useEffect(() => {
+  //   if (servicesByCategory) {
+  //     setServiceItems(transformDataToDropdownOptions(servicesByCategory));
+  //   }
+  // }, [servicesByCategory]);
 
 
-const commonSubServices = subServiceByService.filter(itemB => sub_services?.some(itemA => itemA?.id === itemB?.id));
+  useEffect(() => {
+
+    if (subServiceByService) {
+
+      setSubs(subServiceByService);
+      if (isEditMode) {
+        const ids = sub_services?.map(subService => subService?.id);
+        setCheckedSubServices(ids)
+
+      }
+
+    }
+  }, [subServiceByService]);
+
+
+  const commonSubServices = subServiceByService.filter(itemB => sub_services?.some(itemA => itemA?.id === itemB?.id));
 
   const {
     control,
@@ -146,21 +154,7 @@ const commonSubServices = subServiceByService.filter(itemB => sub_services?.some
 
 
 
-
-
-  // useEffect(() => {
-  //   // This effect is only for dispatching the action, it won't trigger unnecessary re-renders
-  //   if (ServiceValue !== null) {
-  //     dispatch(getSubserviceByService({ serviceId: ServiceValue }));
-  //   }
-  // }, [ServiceValue, dispatch]);
-
-
-
- 
-
-
-  const [uploadingDoc,setUploadingDoc]=useState(false)
+  const [uploadingDoc, setUploadingDoc] = useState(false)
   const [items, setItems] = useState(transformDataToDropdownOptions(categories));
   const [ServiceItems, setServiceItems] = useState(transformDataToDropdownOptions(servicesByCategory));
   const [subs, setSubs] = useState(subServiceByService)
@@ -200,10 +194,6 @@ const commonSubServices = subServiceByService.filter(itemB => sub_services?.some
     return transformDataToDropdownOptions(servicesByCategory);
   }, [servicesByCategory]);
 
-  // console.log('subservicesss', subServiceByService);
-
-  //console.log('cheked subservice', checkedSubServices);
-  //console.log('subs',subs);
   const [video, setVideo] = useState(null);
   const [image, setImage] = useState(null)
   const [message, setMessage] = useState(null);
@@ -216,17 +206,14 @@ const commonSubServices = subServiceByService.filter(itemB => sub_services?.some
     }, 5000);
   };
 
-  const removeAttachment = () => {
-    setImage(null);
-    setVideo(null);
-  };
+
   const selectImage = async () => {
     try {
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.images],
       });
-        setImage(res);
-  
+      setImage(res);
+
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
         // User canceled the file picker
@@ -237,14 +224,14 @@ const commonSubServices = subServiceByService.filter(itemB => sub_services?.some
       }
     }
   };
-  
+
   const selectVideo = async () => {
     try {
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.video],
       });
-        setVideo(res);
-  
+      setVideo(res);
+
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
         // User canceled the file picker
@@ -258,44 +245,37 @@ const commonSubServices = subServiceByService.filter(itemB => sub_services?.some
 
 
 
-  // Function to upload an image to Firebase Storage
-const uploadFileToFirebase = async (uri, storagePath) => {
-  try {
-    const storageRef = firebase.storage().ref(storagePath);
-    await storageRef.putFile(uri);
-    const downloadUrl = await storageRef.getDownloadURL();
-    return downloadUrl;
-  } catch (error) {
-    console.error('Error uploading File to Firebase:', error);
-    return null;
-  }
-};
+  const onSubmit = useCallback(async (data) => {
+    data.provider_id = user.provider.id;
+    data.category_id = value;
+    data.service_id = ServiceValue;
+    data.sub_services = checkedSubServices;
 
-const onSubmit = async (data) => {
-  data.provider_id = user.provider.id;
-  data.category_id = value;
-  data.service_id = ServiceValue;
-  data.sub_services = checkedSubServices;
-
-  let uploadCounter = 0;
+    let uploadCounter = 0;
 
 
-  console.log('businessId',business.id);
 
-  return 
-
-  const handleUploadFinish = () => {
-    uploadCounter++;
-    //if (uploadCounter ===2) {
-      if (value == null || ServiceValue == null || checkedSubServices==null) {
+    const handleUploadFinish = () => {
+      uploadCounter++;
+      if (uploadCounter ===2) {
+      if (value == null || ServiceValue == null || checkedSubServices.length < 1) {
 
         setDisappearMessage(`${t('screens:chooseCategoryServiceSubService')}`);
+
       } else {
-        dispatch( isEditMode? updateBusiness({data,businessId:business.id}): createBusiness(data))
+                if(isEditMode && data.img_url==null){
+                  data.img_url=existingBusiness?.img_url || existingBusiness?.images[0].img_url
+                }
+
+                if(isEditMode && data.video_url==null){
+                  data.video_url=existingBusiness?.video_url || null
+                }
+
+        dispatch(isEditMode ? updateBusiness({ data, businessId: existingBusiness.id }) : createBusiness(data))
           .unwrap()
           .then(result => {
             if (result.status) {
-              ToastAndroid.show(`${t('screens:businessAddedSuccessfully')}`, ToastAndroid.SHORT);
+              ToastAndroid.show(`${isEditMode ? t('screens:updatedSuccessfully') : t('screens:businessAddedSuccessfully')}`, ToastAndroid.SHORT);
               navigation.navigate('My Businesses', {
                 screen: 'My Businesses',
               });
@@ -309,80 +289,78 @@ const onSubmit = async (data) => {
             console.log(rejectedValueOrSerializedError);
           });
       }
-    //}
-  };
+      }
+    };
 
-  const uploadFileAndHandleFinish = async (file, storagePath) => {
-    const fileExtension = file[0].type.split("/").pop();
-    const uuid = makeid(10);
-    const fileName = `${uuid}.${fileExtension}`;
-    const storageRef = firebase.storage().ref(storagePath);
+    const uploadFileAndHandleFinish = async (file, storagePath) => {
+      const fileExtension = file[0].type.split("/").pop();
+      const uuid = makeid(10);
+      const fileName = `${uuid}.${fileExtension}`;
+      const storageRef = firebase.storage().ref(storagePath);
 
-    const fileUri = await getPathForFirebaseStorage(file[0].uri);
+      const fileUri = await getPathForFirebaseStorage(file[0].uri);
 
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        {
-          title: "Read Permission",
-          message: "Your app needs permission.",
-          buttonNeutral: "Ask Me Later",
-          buttonNegative: "Cancel",
-          buttonPositive: "OK",
-        }
-      );
-
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        setUploadingDoc(true);
-
-        storageRef.putFile(fileUri).on(
-          firebase.storage.TaskEvent.STATE_CHANGED,
-          (snapshot: any) => {
-            console.log("snapshot state: " + snapshot.state);
-            if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
-              storageRef.getDownloadURL().then((downloadUrl: any) => {
-                if (file === image) {
-                  data.img_url = downloadUrl;
-                } else if (file === video) {
-                  data.video_url = downloadUrl;
-                }
-                setUploadingDoc(false);
-
-                // Check if both image and video uploads are complete
-                handleUploadFinish();
-              });
-            }
-          },
-          (error) => {
-            unsubscribe();
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          {
+            title: "Read Permission",
+            message: "Your app needs permission.",
+            buttonNeutral: "Ask Me Later",
+            buttonNegative: "Cancel",
+            buttonPositive: "OK",
           }
         );
+
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          setUploadingDoc(true);
+
+          storageRef.putFile(fileUri).on(
+            firebase.storage.TaskEvent.STATE_CHANGED,
+            (snapshot: any) => {
+              console.log("snapshot state: " + snapshot.state);
+              if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
+                storageRef.getDownloadURL().then((downloadUrl: any) => {
+                  if (file === image) {
+
+                    data.img_url = downloadUrl;
+                  } else if (file === video) {
+                    data.video_url = downloadUrl;
+                  }
+                  setUploadingDoc(false);
+
+                  // Check if both image and video uploads are complete
+                  handleUploadFinish();
+                });
+              }
+            },
+            (error) => {
+              unsubscribe();
+            }
+          );
+        }
+      } catch (error) {
+        console.warn(error);
       }
-    } catch (error) {
-      console.warn(error);
+    };
+
+    uploadCounter = 0;
+
+    if (image !== null) {
+      await uploadFileAndHandleFinish(image, 'businesses/images/');
     }
-  };
-
-  // Reset the upload counter
-  uploadCounter = 0;
-
-  if (image !== null) {
-    await uploadFileAndHandleFinish(image, 'businesses/images/');
-  }
-
-  if (video !== null) {
-    await uploadFileAndHandleFinish(video, 'businesses/videos/');
-  }
-
-  // Check if both image and video uploads are skipped
-  if (image === null && video === null) {
-    handleUploadFinish();
-  }
-};
+    if (video !== null) {
+      await uploadFileAndHandleFinish(video, 'businesses/videos/');
+    }
+    if (image === null && video === null) {
+      handleUploadFinish();
+    }
+  }, [value, ServiceValue, checkedSubServices, image, video, isEditMode, existingBusiness, dispatch, t, navigation]);
 
 
-const stylesGlobal = globalStyles();
+  const stylesGlobal = globalStyles();
+
 
 
   return (
@@ -392,7 +370,7 @@ const stylesGlobal = globalStyles();
           <Text style={stylesGlobal.errorMessage}>{message}</Text>
         </BasicView>
         <View style={styles.marginDropdown}>
-          <Text style={{color:isDarkMode?colors.white:colors.black}}>{t('screens:category')}</Text>
+          <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:category')}</Text>
           <DropDownPicker
             searchable={true}
             zIndex={6000}
@@ -405,11 +383,11 @@ const stylesGlobal = globalStyles();
             setOpen={setOpen}
             setValue={setCategoryValue}
             setItems={setItems}
-         
+
           />
         </View>
         <View style={styles.marginDropdown}>
-        <Text style={{color:isDarkMode?colors.white:colors.black}}>{t('screens:service')}</Text>
+          <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:service')}</Text>
           <DropDownPicker
             searchable={true}
             placeholder={t('screens:selectService')}
@@ -425,11 +403,11 @@ const stylesGlobal = globalStyles();
 
         </View>
         <View style={styles.checkBoxContainer}>
-          <Text style={[styles.textStyle,{color:isDarkMode?'white':'black'}]}>{t('screens:pleaseChooseSubServiceYouOffer')}</Text>
+          <Text style={[styles.textStyle, { color: isDarkMode ? 'white' : 'black' }]}>{t('screens:pleaseChooseSubServiceYouOffer')}</Text>
           {
             subs.map(subservice => (
               <BouncyCheckbox
-                key={subservice.id} 
+                key={subservice.id}
                 size={25}
                 fillColor={colors.secondary}
                 style={{ marginTop: 5 }}
@@ -438,26 +416,31 @@ const stylesGlobal = globalStyles();
                 iconStyle={{ borderColor: "red" }}
                 innerIconStyle={{ borderWidth: 2 }}
                 textStyle={{ fontFamily: "JosefinSans-Regular" }}
-                isChecked={commonSubServices.some(commonSub => commonSub.id === subservice.id)} 
+                isChecked={commonSubServices.some(commonSub => commonSub.id === subservice.id)}
                 onPress={(isChecked: boolean) => {
-                 
+
                   if (isChecked) {
                     setCheckedSubServices(prevChecked => [...prevChecked, subservice.id]);
                   } else {
+                    console.log('executing this block')
                     setCheckedSubServices(prevChecked =>
                       prevChecked.filter(id => id !== subservice.id)
                     );
+
+                    console.log('checked sub servicesss', checkedSubServices)
                   }
                 }}
               />
             ))
           }
+
+
         </View>
         <BasicView>
           <Text
             style={[
-              
-              stylesGlobal.marginTop20,{color:isDarkMode?'white':'black'}
+
+              stylesGlobal.marginTop20, { color: isDarkMode ? 'white' : 'black' }
             ]}>
             {t('screens:description')}
           </Text>
@@ -473,7 +456,7 @@ const stylesGlobal = globalStyles();
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
-                style={{color:colors.black}}
+                style={{ color: colors.black }}
               />
             )}
             name="description"
@@ -486,45 +469,71 @@ const stylesGlobal = globalStyles();
           )}
         </BasicView>
         <View style={{ marginVertical: 10 }}>
-          <Text style={[styles.textStyle,{color:isDarkMode?colors.white:colors.black}]}>{t('screens:UploadImagesVideosOfService')}</Text>
+          <Text style={[styles.textStyle, { color: isDarkMode ? colors.white : colors.black }]}>{t('screens:UploadImagesVideosOfService')}</Text>
           <View style={styles.imageContainer}>
-          <TouchableOpacity onPress={selectImage}>
-            <Text style={{color:isDarkMode?colors.white:colors.black}}>{t('screens:uploadImage')}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={selectImage}>
+              <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:uploadImage')}</Text>
+            </TouchableOpacity>
 
-          {/* {console.log('editedBusinesss',editedBusiness?.service?.images[0]?.img_url)} */}
-          {image == null ? (
-            <Ionicons name="image" color={isDarkMode?colors.white:colors.black} size={100} style={{ alignSelf: 'center' }} />
-          ) : (
-            <>
-              <Image source={{ uri: image[0].uri }} style={styles.docView} />
-              <TouchableOpacity onPress={removeImage}>
-                <Text style={{color:isDarkMode?colors.white:colors.black}}>{t('screens:removeImage')}</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
-        <View style={styles.imageContainer}>
-          <TouchableOpacity onPress={selectVideo}>
-            <Text style={{color:isDarkMode?colors.white:colors.black}}>{t('screens:uploadVideo')}</Text>
-          </TouchableOpacity>
-          {video == null ? (
-            <Ionicons name="videocam-outline" color={isDarkMode?colors.white:colors.black} size={100} style={{ alignSelf: 'center' }} />
-          ) : (
-            <>
-            <VideoPlayer
-              video_url={`${video[0]?.uri}`} 
-              />
+            {/* {console.log('editedBusinesss',editedBusiness?.service?.images[0]?.img_url)}
+          /show this when there is service[0]?.img_url */}
+            {!isEditMode ? (image == null ? (<Ionicons name="image" color={isDarkMode ? colors.white : colors.black}
+              size={100} style={{ alignSelf: 'center' }} />) : (<>
+                <Image source={{ uri: image[0].uri }} style={styles.docView} />
+                <TouchableOpacity onPress={removeImage}>
+                  <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeImage')}</Text>
+                </TouchableOpacity>
+              </>)
 
-              <TouchableOpacity onPress={removeVideo}>
-                <Text style={{color:isDarkMode?colors.white:colors.black}}>{t('screens:removeVideo')}</Text>
-              </TouchableOpacity>
-            </>
-          )}
+            ) : (
+              <>
+                {isEditMode && image && image[0]?.uri ? (
+                  <Image source={{ uri: image[0].uri }} style={styles.docView} />
+                ) : (
+                  <Image source={{ uri: (isEditMode && existingBusiness?.img_url) || image?.[0]?.uri || (existingBusiness?.service?.images?.[0]?.img_url) || 'default-image-uri' }} style={styles.docView} />
+                )}
+                <TouchableOpacity onPress={removeImage}>
+                  <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeImage')}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+          </View>
+          <View style={styles.imageContainer}>
+            <TouchableOpacity onPress={selectVideo}>
+              <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:uploadVideo')}</Text>
+            </TouchableOpacity>
+
+            {!isEditMode ? (video == null ? (<Ionicons name="videocam-outline" color={isDarkMode ? colors.white : colors.black}
+              size={100} style={{ alignSelf: 'center' }} />) : (<>
+                <VideoPlayer
+                  video_url={`${video[0]?.uri}`} />
+                <TouchableOpacity onPress={removeVideo}>
+                  <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeVideo')}</Text>
+                </TouchableOpacity>
+              </>)
+
+            ) : (
+              <>
+                {isEditMode && video && video[0]?.uri ? (
+                  <VideoPlayer
+                    video_url={`${video[0]?.uri}`} />
+                ) : (
+                  existingBusiness?.video_url==null?(<Ionicons name="videocam-outline" color={isDarkMode ? colors.white : colors.black}
+                  size={100} style={{ alignSelf: 'center' }} />):(
+                  <VideoPlayer
+                    video_url={`${existingBusiness?.video_url || video[0]?.uri}`} />
+                ))}
+                <TouchableOpacity onPress={removeVideo}>
+                  <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeVideo')}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
           </View>
           <BasicView>
-            <Button loading={loading|| uploadingDoc} onPress={handleSubmit(onSubmit)}>
-              <ButtonText>{isEditMode ?`${t('screens:editBusiness')}`:`${t('screens:addBusiness')}`}</ButtonText>
+            <Button loading={loading || uploadingDoc} onPress={handleSubmit(onSubmit)}>
+              <ButtonText>{isEditMode ? `${t('screens:editBusiness')}` : `${t('screens:addBusiness')}`}</ButtonText>
             </Button>
           </BasicView>
         </View>

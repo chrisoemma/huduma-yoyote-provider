@@ -88,8 +88,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         height: 150,
         padding: 10,
+        elevation:2,
         backgroundColor: colors.white,
-        borderRadius: 10
+        borderRadius: 25
     },
     textContainer: {
         margin: 5

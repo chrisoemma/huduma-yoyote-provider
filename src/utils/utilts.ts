@@ -1,5 +1,6 @@
 import { Alert, Linking } from 'react-native';
 import { GOOGLE_MAPS_API_KEY } from './config';
+import { colors } from './colors';
 
 export const currencyFormatter: any = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -125,26 +126,42 @@ export const getLocationName = async (latitude, longitude) => {
     }
 
     const data = await response.json();
-    console.log('dataaaaMap',data);
+
+    console.log('data',data)
+
     if (data.results.length > 0) {
-      const addressComponents = data.results[0].address_components;
+      const result = data.results[0];
 
-      // Extract relevant parts of the address (e.g., locality and country)
-      const locationNameParts = addressComponents
-        .filter((component) =>
-          ['locality', 'administrative_area_level_1', 'country'].includes(
-            component.types[0]
-          )
-        )
-        .map((component) => component.long_name)
-        .join(', ');
+      // Check if there's a formatted address
+      if (result.formatted_address) {
+        return result.formatted_address;
+      }
 
-      return locationNameParts;
+      // Check if there's a street address
+      const streetAddress = result.address_components.find(component =>
+        component.types.includes('street_address')
+      );
+
+      if (streetAddress) {
+        return streetAddress.long_name;
+      }
+
+      // Check if there's a locality and administrative area level 1
+      const locality = result.address_components.find(component =>
+        ['locality', 'administrative_area_level_1'].includes(component.types[0])
+      );
+
+      if (locality) {
+        return locality.long_name;
+      }
+
+      // If none of the above, return the first address component
+      return result.address_components[0].long_name;
     } else {
       return 'Location not found';
     }
   } catch (error) {
-  //  console.error('Error fetching location data:', error);
+    console.error('Error fetching location data:', error);
     return 'Error fetching location data';
   }
 };
@@ -290,6 +307,38 @@ export const showErrorWithLineBreaks = (errors) => {
   );
 };
 
+export const combineSubServices = (item) => {
+  return (
+    item?.request_sub_services?.map((subService) => {
+      const providerSubListData = item.provider_sub_list.find(
+        (providerSub) => providerSub.sub_service_id === subService.sub_service_id || providerSub.provider_sub_service_id === subService.provider_sub_service_id
+      );
 
+      return {
+        ...subService,
+        provider_sub_list: providerSubListData,
+      };
+    }) || []
+  );
+};
 
-
+export const getStatusBackgroundColor = (status: string) => {
+  switch (status) {
+    case 'Requested':
+      return colors.orange;
+    case 'Accepted':
+      return colors.blue;
+    case 'Cancelled':
+      return colors.dangerRed;
+    case 'Rejected':
+      return colors.dangerRed;
+    case 'Comfirmed':
+      return colors.successGreen;
+    case 'Completed':
+      return colors.successGreen;
+    case 'Pending':
+      return colors.darkYellow;
+    default:
+      return colors.secondary;
+  }
+};

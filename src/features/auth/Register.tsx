@@ -302,7 +302,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
                 render={({ field: { onChange, onBlur, value } }) => (
                   <PhoneInput
                     ref={phoneInput}
-                    placeholder="672 127 313"
+                    placeholder="714 055 666"
                     defaultValue={value}
                     defaultCode="TZ"
                     countryPickerProps={{

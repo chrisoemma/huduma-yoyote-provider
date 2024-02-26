@@ -1,5 +1,5 @@
-import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet,ToastAndroid } from 'react-native'
-import React, { useState,useEffect } from 'react'
+import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet, ToastAndroid, Image, ScrollView, PermissionsAndroid } from 'react-native'
+import React, { useState, useEffect } from 'react'
 import { globalStyles } from '../../styles/global';
 import { colors } from '../../utils/colors';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
@@ -9,40 +9,50 @@ import { ButtonText } from '../../components/ButtonText';
 import { useForm, Controller } from 'react-hook-form';
 import { TextInputField } from '../../components/TextInputField';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useSelector,RootStateOrAny } from 'react-redux';
+import { useSelector, RootStateOrAny } from 'react-redux';
 import { createSubService, getSubserviceByService } from '../subservices/SubservicesSlice';
 import { useAppDispatch } from '../../app/store';
 import DocumentPicker from 'react-native-document-picker';
 import { useTranslation } from 'react-i18next';
+import VideoPlayer from '../../components/VideoPlayer';
+import { firebase } from '@react-native-firebase/storage';
+import RNFS from 'react-native-fs';
 
-const AddSubServiceScreen = ({route,navigation}:any) => {
+const AddSubServiceScreen = ({ route, navigation }: any) => {
 
-  const {business,sub_services} = route.params;
+  const { business, sub_services } = route.params;
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const stylesGlobal = globalStyles();
 
-  useEffect(() => {
-      dispatch(getSubserviceByService({ serviceId: business?.service_id }));
-  }, [business?.service_id]);
-
-  const { user} = useSelector((state: RootStateOrAny) => state.user);
+  const { user } = useSelector((state: RootStateOrAny) => state.user);
   const { loading, subServiceByService } = useSelector((state: RootStateOrAny) => state.subservices);
 
+  const [checkedSubServices, setCheckedSubServices] = useState([]);
+  const [image, setImage] = useState(null)
+  const [video, setVideo] = useState(null)
+  const [message, setMessage] = useState(null);
+  const [uploadingDoc, setUploadingDoc] = useState(false)
 
-
-  const commonSubServices = subServiceByService.filter(itemB => sub_services.some(itemA => itemA?.id === itemB?.id));
-  
-
-  const [activeTab, setActiveTab] = useState('addFromList');
+  const [activeTab, setActiveTab] = useState('addNew');
   const toggleTab = () => {
-    setActiveTab(activeTab === 'addFromList' ? 'addNew' : 'addFromList');
+    setActiveTab(activeTab === 'addNew' ? 'addFromList' : 'addNew');
   };
 
-  const [checkedSubServices, setCheckedSubServices] = useState([]);
-  const [imageFile, setImageFile] = useState<string | null>(null);
-  const [image, setImage] = useState(null)
-  const [video,setVideo]=useState(null)
+  useEffect(() => {
+    dispatch(getSubserviceByService({ serviceId: business?.service_id }));
+  }, [business?.service_id]);
+
+  useEffect(() => {
+    // console.log('servicessall',subServiceByService)
+    // console.log('checked1l',checkedSubServices)
+    if (subServiceByService) {
+      const ids = sub_services?.map(subService => subService?.id);
+      console.log('checked1l', checkedSubServices)
+      setCheckedSubServices(ids)
+      console.log('checked1222', checkedSubServices)
+    }
+  }, [subServiceByService]);
 
   const {
     control,
@@ -55,8 +65,29 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
     },
   });
 
-  const [message, setMessage] = useState(null);
 
+  const commonSubServices = subServiceByService.filter(itemB => sub_services.some(itemA => itemA?.id === itemB?.id));
+
+
+
+  const makeid = (length: any) => {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      counter += 1;
+    }
+    return result;
+  }
+
+  const getPathForFirebaseStorage = async (uri: any) => {
+    const destPath = `${RNFS.TemporaryDirectoryPath}/text`;
+    await RNFS.copyFile(uri, destPath);
+
+    return (await RNFS.stat(destPath)).path;
+  };
 
   const setDisappearMessage = (message: any) => {
     setMessage(message);
@@ -66,31 +97,48 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
     }, 5000);
   };
 
-  // const removeAttachment = () => {
-  //   setImage(null);
-  //   setVideo(null);
-  // };
 
-  const selectFile = async () => {
+
+  const removeImage = () => {
+    setImage(null)
+  }
+
+  const removeVideo = () => {
+    setVideo(null)
+  }
+
+  const selectImage = async () => {
     try {
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.images],
       });
-
-      if (res.type === 'image') {
-        setImage(res);
-      } else if (res.type === 'video') {
-        setVideo(res);
-      }
+      setImage(res);
 
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
-        setImage(null);
-        setVideo(null);
+        // User canceled the file picker
       } else {
         // For Unknown Error
         alert("Unknown Error: " + JSON.stringify(error));
-        throw err;
+        throw error;
+      }
+    }
+  };
+
+  const selectVideo = async () => {
+    try {
+      const res = await DocumentPicker.pick({
+        type: [DocumentPicker.types.video],
+      });
+      setVideo(res);
+
+    } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+        // User canceled the file picker
+      } else {
+        // For Unknown Error
+        alert("Unknown Error: " + JSON.stringify(error));
+        throw error;
       }
     }
   };
@@ -101,62 +149,134 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
   );
 
 
-  // console.log('providersss',user.provider.id);
-  const onSubmit = (data) => {
+
+  ///New upload 
+
+  const onSubmit = async (data) => {
+
+
     data.provider_id = user.provider.id;
     data.service_id = business?.service_id;
-    data.business_id=business?.id;
-    // data.img_url="https/img_real.com";
-    //data.video_url="https://www.youtube.com/watch?v=rKMEkQ-e9I8";
+    data.business_id = business?.id;
     data.sub_services = checkedSubServices;
 
-    console.log('datatattta',data)
+    let mediaUploadHandled = false;
 
-    if (checkedSubServices == null || data.name == null) {
+    const handleUploadFinish = () => {
 
-    } else {
+      if (!mediaUploadHandled) {
+        mediaUploadHandled = true;
+      if (checkedSubServices.length < 1 || data.name == null) {
+        setDisappearMessage(`${t('screens:chooseSubserviceOrEnterName')}`);
 
-      dispatch(createSubService({data:data,providerId:user.provider.id,businessId:business.id}))
-        .unwrap()
-        .then(result => {
-          if (result.status) {
+      } else {
+        dispatch(createSubService({ data: data, providerId: user.provider.id, businessId: business.id }))
+          .unwrap()
+          .then(result => {
+            if (result.status) {
+              ToastAndroid.show(`${t('screens:createdSuccessfully')}`, ToastAndroid.SHORT);
+              navigation.navigate('My Businesses', {
+                screen: 'My Businesses',
+              });
+            } else {
+              setDisappearMessage(`${t('screens:requestFail')}`);
+              console.log('dont navigate');
+            }
+          })
+          .catch(rejectedValueOrSerializedError => {
+            console.log('error');
+            console.log(rejectedValueOrSerializedError);
+          });
+      }
 
-            ToastAndroid.show(`${t('screens:addedSuccessfully')}`, ToastAndroid.SHORT);
-            navigation.navigate('My Businesses', {
-              screen: 'My Businesses',
-            });
-          } else {
-            setDisappearMessage(
-              `${t('screens:requestFail')}`,
-            );
-            console.log('dont navigate');
+      }
+    };
+
+    const uploadFileAndHandleFinish = async (file, storagePath) => {
+      const fileExtension = file[0].type.split("/").pop();
+      const uuid = makeid(10);
+      const fileName = `${uuid}.${fileExtension}`;
+      const storageRef = firebase.storage().ref(storagePath);
+
+      const fileUri = await getPathForFirebaseStorage(file[0].uri);
+
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          {
+            title: "Read Permission",
+            message: "Your app needs permission.",
+            buttonNeutral: "Ask Me Later",
+            buttonNegative: "Cancel",
+            buttonPositive: "OK",
           }
-        })
-        .catch(rejectedValueOrSerializedError => {
-          // handle error here
-          console.log('error');
-          console.log(rejectedValueOrSerializedError);
-        });
+        );
+
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          setUploadingDoc(true);
+
+          storageRef.putFile(fileUri).on(
+            firebase.storage.TaskEvent.STATE_CHANGED,
+            (snapshot: any) => {
+              console.log("snapshot state: " + snapshot.state);
+              if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
+                storageRef.getDownloadURL().then((downloadUrl: any) => {
+                  if (file === image) {
+
+                    data.img_url = downloadUrl;
+                  } else if (file === video) {
+                    data.video_url = downloadUrl;
+                  }
+                  setUploadingDoc(false);
+                //  mediaUploaded = true;
+
+                  // Check if both image and video uploads are complete
+                  handleUploadFinish();
+                });
+              }
+            },
+            (error) => {
+              unsubscribe();
+            }
+          );
+        }
+      } catch (error) {
+        console.warn(error);
+      }
+    };
+
+  
+
+    if (image !== null) {
+      await uploadFileAndHandleFinish(image, 'businesses/images/');
     }
-    console.log(data);
-  }
+    if (video !== null) {
+      await uploadFileAndHandleFinish(video, 'businesses/videos/');
+    }
+    if (image === null && video === null) {
+      handleUploadFinish();
+    }
+  };
 
   return (
-    <SafeAreaView
+    <ScrollView
       style={stylesGlobal.scrollBg}
+      showsVerticalScrollIndicator={false}
     >
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.toggleButton}
           onPress={toggleTab}
         >
-          <Text style={[styles.buttonText, activeTab === 'addFromList' ? styles.activeToggleText : null]}>
-           {t('screens:addFromList')}
-          </Text>
           <Text style={[styles.buttonText, activeTab === 'addNew' ? styles.activeToggleText : null]}>
-       
+
             {t('screens:addNew')}
           </Text>
+          <Text style={[styles.buttonText, activeTab === 'addFromList' ? styles.activeToggleText : null]}>
+            {t('screens:addFromList')}
+          </Text>
+
         </TouchableOpacity>
         <BasicView style={stylesGlobal.centerView}>
           <Text style={stylesGlobal.errorMessage}>{message}</Text>
@@ -166,11 +286,11 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
 
             <View style={styles.checkBoxContainer}>
 
-              <Text style={[styles.textStyle,{color:isDarkMode?colors.white:colors.black}]}>{t('screens:addByCheckingMore')}</Text>
+              <Text style={[styles.textStyle, { color: isDarkMode ? colors.white : colors.black }]}>{t('screens:addByCheckingMore')}</Text>
               {
                 subServiceByService.map(subservice => (
                   <BouncyCheckbox
-                  // key={subservice.id}
+                    // key={subservice.id}
                     size={25}
                     fillColor={colors.secondary}
                     style={{ marginTop: 5 }}
@@ -178,11 +298,11 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
                     text={subservice.name}
                     iconStyle={{ borderColor: "red" }}
                     innerIconStyle={{ borderWidth: 2 }}
-                    textStyle={{ fontFamily: "JosefinSans-Regular" ,color:isDarkMode?colors.white:colors.alsoGrey}}
+                    textStyle={{ fontFamily: "JosefinSans-Regular", color: isDarkMode ? colors.white : colors.alsoGrey }}
                     isChecked={commonSubServices.some(commonSub => commonSub.id === subservice.id)}
-                    
+
                     onPress={(isChecked: boolean) => {
-                
+
                       if (isChecked) {
                         setCheckedSubServices(prevChecked => [...prevChecked, subservice.id]);
                       } else {
@@ -203,7 +323,7 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
                   style={[
                     stylesGlobal.inputFieldTitle,
                     stylesGlobal.marginTop20,
-                    {color:isDarkMode?colors.white:colors.black}
+                    { color: isDarkMode ? colors.white : colors.black }
                   ]}>
                   {t('screens:subService')}
                 </Text>
@@ -211,16 +331,16 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
                 <Controller
                   control={control}
                   rules={{
-                   
+
                     required: true,
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInputField
-                      placeholder="Enter Sub service"
+                      placeholder={t('screens:enterSubService')}
                       onBlur={onBlur}
                       onChangeText={onChange}
                       value={value}
-                      style={ {color:isDarkMode?colors.white:colors.black}}
+                      style={{ color:colors.black }}
                     />
                   )}
                   name="name"
@@ -228,7 +348,7 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
 
                 {errors.name && (
                   <Text style={stylesGlobal.errorMessage}>
-                    {t('subserviceRequired')}
+                    {t('screens:subserviceRequired')}
                   </Text>
                 )}
               </BasicView>
@@ -238,7 +358,7 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
                   style={[
                     stylesGlobal.inputFieldTitle,
                     stylesGlobal.marginTop20,
-                    {color:isDarkMode?colors.white:colors.black}
+                    { color: isDarkMode ? colors.white : colors.black }
                   ]}>
                   {t('screens:description')}
                 </Text>
@@ -246,12 +366,12 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
                 <Controller
                   control={control}
                   rules={{
-                 
+
                     required: true,
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInputField
-                      placeholder="Enter Description"
+                      placeholder={t('screens:enterDescription')}
                       onBlur={onBlur}
                       onChangeText={onChange}
                       value={value}
@@ -262,26 +382,58 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
 
                 {errors.description && (
                   <Text style={stylesGlobal.errorMessage}>
-                   {t('decriptionRequired')}
+                    {t('screens:decriptionRequired')}
                   </Text>
                 )}
               </BasicView>
 
-              <View style={{ marginVertical: 10 }}>
-                <Text style={styles.textStyle}>{t('screens:uploadVideoOrImage')}</Text>
-                <View style={styles.imageContainer}>
-                  <TouchableOpacity
-                   onPress={selectFile}
-                  >
-                    <Text style={{color:isDarkMode?colors.white:colors.alsoGrey}}>{t('screens:uploadImage')}</Text>
-                    <Ionicons name="image"
-                      color={isDarkMode?colors.white:colors.black}
-                      size={100}
-                      style={{ alignSelf: 'center' }}
-                    />
 
+              <View style={{ marginVertical: 10 }}>
+                <Text style={[styles.textStyle, { color: isDarkMode ? colors.white : colors.black }]}>{t('screens:UploadImagesVideosOfService')}</Text>
+                <View style={styles.imageContainer}>
+                  <TouchableOpacity onPress={selectImage}>
+                    <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:uploadImage')}</Text>
                   </TouchableOpacity>
 
+                  {image == null ? (
+                    <Ionicons name="image" color={isDarkMode ? colors.white : colors.black} size={100} style={{ alignSelf: 'center' }} />
+                  ) : (
+                    <>
+                      {image == null ? (
+                        <Ionicons name="image" color={isDarkMode ? colors.white : colors.black} size={100} style={{ alignSelf: 'center' }} />
+                      ) : (
+                        <>
+                          <Image source={{ uri: image[0].uri }} style={styles.docView} />
+                          <TouchableOpacity onPress={removeImage}>
+                            <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:removeImage')}</Text>
+                          </TouchableOpacity>
+                        </>
+                      )}
+                      <TouchableOpacity onPress={removeImage}>
+                        <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeImage')}</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+
+                </View>
+
+                <View style={styles.imageContainer}>
+                  <TouchableOpacity onPress={selectVideo}>
+                    <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:uploadVideo')}</Text>
+                  </TouchableOpacity>
+                  {video == null ? (
+                    <Ionicons name="videocam-outline" color={isDarkMode ? colors.white : colors.black} size={100} style={{ alignSelf: 'center' }} />
+                  ) : (
+                    <>
+                      <VideoPlayer
+                        video_url={`${video[0]?.uri}`}
+                      />
+
+                      <TouchableOpacity onPress={removeVideo}>
+                        <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeVideo')}</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
                 </View>
 
               </View>
@@ -290,12 +442,12 @@ const AddSubServiceScreen = ({route,navigation}:any) => {
           )}
 
         <BasicView>
-          <Button loading={loading} onPress={handleSubmit(onSubmit)}>
+          <Button loading={uploadingDoc || loading} onPress={handleSubmit(onSubmit)}>
             <ButtonText>{t('screens:addSubService')}</ButtonText>
           </Button>
         </BasicView>
       </View>
-    </SafeAreaView>
+    </ScrollView>
   )
 }
 
@@ -332,8 +484,12 @@ const styles = StyleSheet.create({
   textStyle: {
     marginBottom: 10,
     fontSize: 17,
-
-  }
+  },
+  docView: {
+    width: 200,
+    height: 150,
+    alignSelf: 'center'
+  },
 
 })
 

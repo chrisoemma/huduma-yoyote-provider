@@ -48,6 +48,7 @@ const EmployeeListModal = ({ isVisible, onClose, employees,transferFunc }:any) =
                     <TouchableOpacity onPress={() => transferFunc(value)}
                       style={{backgroundColor:colors.primary,borderRadius:8,justifyContent:'center'}}
                     >
+                        {/* //if request is tranfer has transfer show re-tranfer and revert to owner */}
                         <Text style={{color:colors.white,padding:5}}>{t('screens:transfer')}</Text>
                     </TouchableOpacity>
                     </View>

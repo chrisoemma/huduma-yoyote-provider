@@ -22,9 +22,6 @@ export const getSubserviceByService = createAsyncThunk(
   export const getBusinessSubservices = createAsyncThunk(
     'subservices/getBusinessSubservices',
     async ({providerId,serviceId}:any) => {
-
-      console.log('providerid',providerId)
-      console.log('serviceid',serviceId)
       
       let header: any = await authHeader();
       const response = await fetch(`${API_URL}/businesses/provider_businesses/${providerId}/${serviceId}`, {
@@ -54,10 +51,11 @@ export const getSubserviceByService = createAsyncThunk(
 
   export const deleteSubService = createAsyncThunk(
     'subservices/deleteSubService',
-    async ({providerId,subServiceId}:any) => {
-      try {
+    async ({providerId,id,type,providerList}:any) => {
+      try {       
+
         const header: any = await authHeader();
-        const response = await fetch(`${API_URL}/businesses/delete_provider_sub_service/${providerId}/${subServiceId}`, {
+        const response = await fetch(`${API_URL}/businesses/delete_provider_sub_service/${providerId}/${id}/${type}/${providerList}`, {
           method: 'DELETE',
           headers: header,
         });
@@ -73,6 +71,24 @@ export const getSubserviceByService = createAsyncThunk(
       }
     }
   );
+
+
+  export const updateSubService = createAsyncThunk(
+    'businesses/updateSubService',
+    async ({ data, id }: any) => {
+    
+
+        const response = await fetch(`${API_URL}/sub_services/update_mobile_sub_service/${id}`, {
+            method: 'PUT',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+        return (await response.json());
+    }
+);
 
 
   function updateStatus(state: any, status: any) {
@@ -92,6 +108,7 @@ export const getSubserviceByService = createAsyncThunk(
     name: 'subservices',
     initialState: {
         subservices:[],
+        providerSubServices:[],
         subServiceByService:[],
         subService:[],
       loading: false,
@@ -187,14 +204,62 @@ export const getSubserviceByService = createAsyncThunk(
              
              if (action.payload.status) {
                state.subservices = action.payload.data.sub_services;
+               state.providerSubServices=action.payload.data.provider_sub_services;
              }
              state.loading = false;
            });
+           
            builder.addCase(getBusinessSubservices.rejected, (state, action) => {
              console.log('Rejected');
              console.log(action.error);
              state.loading = false;
            });
+           ///
+           builder.addCase(updateSubService.pending, (state) => {
+            state.loading = true;
+            updateStatus(state, '');
+        });
+    
+        builder.addCase(updateSubService.fulfilled, (state, action) => {
+          
+            const updatedSubService = action.payload.data.sub_service;
+            const updatedProviderSubService = action.payload.data.provider_sub_service;
+
+            if(updatedSubService){
+              const subServiceIndex = state.subservices.findIndex((subService) => subService.id === updatedSubService.id);
+           
+              if (subServiceIndex !== -1) {
+                  // Update the task in the array immutably
+                 
+                  state.subservices = [
+                      ...state.subservices.slice(0, subServiceIndex),
+                      updatedSubService,
+                      ...state.subservices.slice(subServiceIndex + 1),
+                  ];
+              }  
+
+            }else{
+              const providerSubServiceIndex = state.providerSubServices.findIndex((providerSubService) => providerSubService.id === updatedProviderSubService.id);
+          
+              if (providerSubServiceIndex !== -1) {
+                  // Update the task in the array immutably
+                 
+                  state.providerSubServices = [
+                      ...state.providerSubServices.slice(0, providerSubServiceIndex),
+                      updatedSubService,
+                      ...state.providerSubServices.slice(providerSubServiceIndex + 1),
+                  ];
+              }  
+            }
+            state.loading = false;
+            updateStatus(state, '');
+        });
+    
+        builder.addCase(updateSubService.rejected, (state, action) => {
+          console.log('Update Business Rejected');
+          state.loading = false;
+          updateStatus(state, '');
+        });
     
 
     },

@@ -17,6 +17,9 @@ export default {
     editEmployee:'Edit Employee',
     employeeAccount:'Employee Account',
     editAccount:'Edit Account',
-    changePassword:'Change Password'
+    changePassword:'Change Password',
+    editSubService:'Edit Sub service',
+    viewSubService:'View Sub service'
+
 
   };

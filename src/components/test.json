@@ -1,0 +1,136 @@
+{
+    "id": 1,
+    "created_at": "2023-10-09T11:11:08.000000Z",
+    "deleted_at": null,
+    "is_transferred": false,
+    "request_time": "2023-10-09 14:11:08",
+    "client": {
+      "id": 1,
+      "name": "Client 11",
+      "first_name": "Client",
+      "last_name": "Pass",
+      "nida": "12334445555566777766",
+      "phone": "+255672222222",
+      "profile_img": "client.jpg",
+      "status": "Active",
+      "user": {
+        "id": 1,
+        "phone": "+255672222222",
+        "profile_img": "https://firebasestorage.googleapis.com/v0/b/huduma-yoyote-3333.appspot.com/o/profile%2Fpexels-alexander-suhorucov-6457486.jpg?alt=media&token=c1d0b247-d93e-49c2-9f00-3809b788b6a3"
+      }
+    },
+    "location": {
+      "id": 1,
+      "request_id": 1,
+      "client_latitude": "-6.7756482",
+      "client_longitude": "39.2443584",
+      "provider_latitude": "-6.7980000",
+      "provider_longitude": "39.2219000",
+      "created_at": "2023-10-09T11:11:08.000000Z",
+      "updated_at": "2023-10-09T11:11:08.000000Z"
+    },
+    "provider": {
+      "id": 1,
+      "name": "Provider 2 Provider 2",
+      "first_name": "Provider 2",
+      "last_name": "Provider 2",
+      "nida": "19941111141280000221",
+      "phone": "+255672111111",
+      "profile_img": "provider.jpg",
+      "status": "Active",
+      "user_id": 2,
+      "created_at": "2023-10-09T08:39:16.000000Z",
+      "updated_at": "2024-01-09T03:34:26.000000Z",
+      "latitude": "-6.6767610",
+      "longitude": "39.1960550",
+      "address": null,
+      "business_name": null,
+      "deleted_at": null
+    },
+    "provider_sub_list": [
+      {
+        "id": 283,
+        "created_at": "2024-02-03T15:30:09.000000Z",
+        "deleted_at": null,
+        "description": "Wabandikaji wa kucha maarufu mjinirrr",
+        "name": "Kubandika kuchatt",
+        "provider_business_id": 1,
+        "provider_id": 1,
+        "provider_sub_service_id": null,
+        "status": "Active",
+        "sub_service_id": 1,
+        "updated_at": "2024-02-03T15:30:32.000000Z"
+      }
+    ],
+    "request_sub_services": [
+      {
+        "id": 1,
+        "created_at": "2023-10-09T11:11:08.000000Z",
+        "provider_sub_service": null,
+        "provider_sub_service_id": null,
+        "request_id": 1,
+        "status": "Requested",
+        "sub_service": {
+          "id": 1,
+          "created_at": "2023-10-09T07:38:00.000000Z",
+          "default_images": [Array],
+          "assets": [],
+          "deleted_at": null,
+          "description": "Wabandikaji wa kucha maarufu mjini",
+          "name": "Kubandika kucha",
+          "service_id": 2,
+          "updated_at": "2023-11-20T08:04:16.000000Z"
+        },
+        "sub_service_id": 1,
+        "updated_at": "2023-10-09T11:11:08.000000Z"
+      }
+    ],
+    "request_time": "2023-10-09 14:11:08",
+    "service": {
+      "id": 2,
+      "name": "Kupaka rangi kucha",
+      "category_id": 45,
+      "created_at": "2023-10-09T07:35:26.000000Z",
+      "deleted_at": null,
+      "description": "Tunapaka rangi kucha aina zote",
+      "updated_at": "2023-11-20T08:08:49.000000Z"
+    },
+    "service_id": 2,
+    "statuses": [
+      {
+        "id": 1,
+        "created_at": "2023-10-09T11:11:08.000000Z",
+        "request_id": 1,
+        "status": "Requested",
+        "updated_at": "2023-10-09T11:11:08.000000Z"
+      },
+      {
+        "id": 6,
+        "created_at": "2024-01-26T05:42:26.000000Z",
+        "request_id": 1,
+        "status": "Accepted",
+        "updated_at": "2024-01-26T05:42:26.000000Z"
+      },
+      {
+        "id": 7,
+        "created_at": "2024-01-26T05:55:29.000000Z",
+        "request_id": 1,
+        "status": "Confirmed",
+        "updated_at": "2024-01-26T05:55:29.000000Z"
+      }
+    ],
+    "transfer": [
+      {
+        "id": 1,
+        "created_at": "2024-01-26T05:57:11.000000Z",
+        "employee": [Object],
+        "employee_id": 14,
+        "request_id": 1,
+        "transfered_by": 1,
+        "updated_at": "2024-01-26T05:57:11.000000Z"
+      }
+    ],
+    "updated_at": "2023-10-09T11:11:08.000000Z",
+  
+  }
+  

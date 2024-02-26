@@ -2,24 +2,32 @@ import React from 'react';
 import { FlatList, View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { colors } from '../utils/colors';
 import { useTranslation } from 'react-i18next';
+import { combineSubServices } from '../utils/utilts';
 
-const ContentServiceList = ({  data, toggleSubService, selectedSubServices,navigation,screen }: any) => {
+const ContentServiceList = ({ selectedProviderSubServices, subServices,providerSubServices, toggleSubService, selectedSubServices,navigation,screen }: any) => {
 
   const { t } = useTranslation();
 
- 
+  
+  
+  const RenderItem = ({type, item }: any) => (
+      
 
-
-  const RenderItem = ({ item }: any) => (
-       
     <TouchableOpacity 
     style={styles.contentItem}
     onPress={()=>{}}
     >
-      
+     
       <View style={{flexDirection:'row'}}>
+       
       <Image
-        source={{uri:item?.default_images[0]?.img_url}}
+        source={
+          type=="subService"? 
+          { uri:item?.assets[0]?.img_url || item?.default_images[0]?.img_url }
+           :
+           {uri: item?.assets[0]?.img_url}
+        }
+      
         style={{
           resizeMode: 'cover',
           width: 90,
@@ -28,26 +36,30 @@ const ContentServiceList = ({  data, toggleSubService, selectedSubServices,navig
         }}
         
       />
+      {type=="subService"?(
       <View style={styles.textContainer}>
-      <Text style={styles.categoryService}>{item?.name}</Text>
+      <Text style={styles.categoryService}>{item?.provider_sub_list?.name || item.name}</Text>
       <Text style={styles.subservice}>{item?.service?.category?.name}</Text>
-      <Text style={styles.desc}>{item?.description}</Text>
+      <Text style={{color:colors.black}}>{item?.provider_sub_list?.description || item.description}</Text>
       </View>
+      ):( <View style={styles.textContainer}>
+        <Text style={styles.categoryService}>{item?.name}</Text>
+        <Text style={styles.subservice}>{item?.service?.category?.name}</Text>
+        <Text style={{color:colors.black}}>{item?.description}</Text>
+        </View>)}
       </View>
       {screen=="new"?
       <TouchableOpacity   style={[
           styles.addBtn,
           {
-            backgroundColor: selectedSubServices.includes(item?.name)
+            backgroundColor: selectedSubServices.includes(item?.id) || selectedProviderSubServices.includes(item?.id)
               ? colors.dangerRed
               : colors.secondary,
           },
         ]} 
-      onPress={() => toggleSubService(item?.name)}
-      key={item.id}
-      >
+      onPress={() => toggleSubService(type,item.id)}>
   <Text style={{ color: colors.white }}>
-    {selectedSubServices.includes(item?.name) ? `${t('screens:remove')}` : `${t('screens:add')}`}
+    {selectedSubServices.includes(item?.id) || selectedProviderSubServices.includes(item?.id) ? `${t('screens:remove')}` : `${t('screens:add')}`}
   </Text>
 </TouchableOpacity>
 :<View />}
@@ -55,17 +67,27 @@ const ContentServiceList = ({  data, toggleSubService, selectedSubServices,navig
   )
 
   return (
-
-   
     <View style={styles.container}>
-     {data.map((item)=>(
+     {subServices?.map((item)=>(
+       
       <RenderItem  
       item={item} 
-      key={item?.name.toString()}
+      type="subService" 
+      key={item?.id.toString()}
       />
      ))
-
      }
+
+{providerSubServices?.map((item)=>(
+    
+       <RenderItem  
+       item={item}
+       type="providerSubService" 
+       key={item?.id.toString()}
+       />
+      ))
+      }
+   
     </View>
   );
 };
@@ -101,7 +123,7 @@ const styles = StyleSheet.create({
         color:colors.black
       },
       desc:{
-      color:colors.alsoGrey
+       
       },
       addBtn:{
       alignSelf:'flex-end',

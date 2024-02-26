@@ -13,6 +13,8 @@ import EmployeeAccount from "../features/employees/EmployeeAccount";
 import EditAccount from "../features/account/EditAccount";
 import Documents from "../features/account/Documents";
 import ChangePassword from "../features/auth/ChangePassword";
+import EditSubService from "../features/business/EditSubService";
+import ViewSubService from "../features/business/ViewSubService";
 
 
 const AppStack = () => {
@@ -30,9 +32,20 @@ const AppStack = () => {
         options={{ headerShown: false }}
       />
 
+      
+
       <Stack.Screen name="Requested services"
         component={RequestedServices}
         options={{ title: t('navigate:requestedServices') }}
+      />
+
+      <Stack.Screen name="Edit sub service"
+        component={EditSubService}
+        options={{ title: t('navigate:editSubService') }}
+      />
+       <Stack.Screen name="View sub service"
+        component={ViewSubService}
+        options={{ title: t('navigate:viewSubService') }}
       />
       <Stack.Screen name="My Businesses" component={MyBusiness}
         options={{ title: t('navigate:business') }}

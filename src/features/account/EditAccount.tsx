@@ -303,7 +303,7 @@ const EditAccount = ({
                     }}
                     value={value}
                     keyboardType="phone-pad"
-                    maxLength={12}
+                  
                   />
                 )}
                 name="phone"

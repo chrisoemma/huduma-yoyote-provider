@@ -2,30 +2,25 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Text, SafeAreaView, Image, TouchableOpacity, StyleSheet, Button, ToastAndroid, Alert, ScrollView } from 'react-native'
 import { globalStyles } from '../../styles/global'
 import { colors } from '../../utils/colors'
-import RatingStars from '../../components/RatinsStars';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
     BottomSheetModal,
     BottomSheetModalProvider,
     BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
-import {
-    Menu,
-    MenuOptions,
-    MenuOption,
-    MenuTrigger,
-} from 'react-native-popup-menu';
+
 import { useTranslation } from 'react-i18next';
 import ContentServiceList from '../../components/ContentServiceList';
 import MapDisplay from '../../components/MapDisplay';
 import Icon from 'react-native-vector-icons/AntDesign';
-import { makePhoneCall } from '../../utils/utilts';
+import { combineSubServices, getStatusBackgroundColor, makePhoneCall } from '../../utils/utilts';
 import { useSelector, RootStateOrAny } from 'react-redux';
 import { useAppDispatch } from '../../app/store';
 import { getProviderSubServices } from '../serviceproviders/ServiceProviderSlice';
 import { transferRequest, updateRequestStatus } from '../requests/RequestSlice';
 import EmployeeListModal from '../../components/EmployeeListModel';
 import { getEmployees } from '../employees/EmployeeSlice';
+import Notification from '../../components/Notification';
 
 
 const RequestedServices = ({ navigation, route }: any) => {
@@ -43,7 +38,7 @@ const RequestedServices = ({ navigation, route }: any) => {
     }, []);
 
 
-    const { loading, providerSubServices } = useSelector(
+    const { loading, providerSubServices, subServices } = useSelector(
         (state: RootStateOrAny) => state.providers,
     );
 
@@ -52,10 +47,13 @@ const RequestedServices = ({ navigation, route }: any) => {
     );
 
 
-
     const { employees } = useSelector(
         (state: RootStateOrAny) => state.employees,
     );
+
+    const getStatusTranslation = (status: string) => {
+        return t(`screens:${status}`);
+    };
 
     if (user.provider) {
         useEffect(() => {
@@ -63,8 +61,6 @@ const RequestedServices = ({ navigation, route }: any) => {
         }, [])
 
     }
-
-
 
 
     const dispatch = useAppDispatch();
@@ -182,9 +178,6 @@ const RequestedServices = ({ navigation, route }: any) => {
                             data.status = 'Completed';
                         }
 
-
-
-
                         dispatch(updateRequestStatus({ data: data, requestId: id }))
                             .unwrap()
                             .then((result) => {
@@ -217,13 +210,13 @@ const RequestedServices = ({ navigation, route }: any) => {
 
     return (
         <>
-            <ScrollView
-                style={stylesGlobal.scrollBg}
+            <View
+                style={[stylesGlobal.scrollBg, { flex: 1 }]}
             >
 
-                <GestureHandlerRootView style={{ flex: 1, margin: 10 }}>
+                <GestureHandlerRootView style={{ flex: 0.9, margin: 10 }}>
 
-                    <View>
+                    <View >
                         <View style={[stylesGlobal.circle, { backgroundColor: colors.white, marginTop: 15, alignContent: 'center', justifyContent: 'center' }]}>
                             {request?.client?.profile_img.startsWith("https://") ?
                                 <Image
@@ -280,11 +273,15 @@ const RequestedServices = ({ navigation, route }: any) => {
                                 <Text style={{ color: colors.white }}>{t('navigate:requestedServices')}</Text>
                             </TouchableOpacity>
 
-                       
-                            <TouchableOpacity style={stylesGlobal.otherBtn}>
-                                <Text style={{ color: colors.white }}>{request?.statuses[request?.statuses.length - 1].status}</Text>
+
+                            <TouchableOpacity style={[stylesGlobal.otherBtn, { backgroundColor: getStatusBackgroundColor(request_status) }]}>
+                                <Text style={{ color: colors.white }}>{getStatusTranslation(request_status)}</Text>
                             </TouchableOpacity>
+
                         </View>
+                        {user.provider && request.is_transferred ? (
+                            <Notification message={`${t('screens:requestTransferToEmployee')} ${request?.transfer[0]?.employee?.name}`} type="info" />
+                        ) : (<></>)}
                     </View>
                     <View>
                         <View style={styles.mapContainer}>
@@ -312,7 +309,8 @@ const RequestedServices = ({ navigation, route }: any) => {
 
                                     <View style={stylesGlobal.subCategory}>
                                         <ContentServiceList
-                                            data={providerSubServices}
+                                            subServices={subServices}
+                                            providerSubServices={providerSubServices}
                                             toggleSubService={{}}
                                             selectedSubServices={selectedSubservice}
                                             screen="requested"
@@ -323,71 +321,64 @@ const RequestedServices = ({ navigation, route }: any) => {
                             </BottomSheetModal>
                         </View>
                     </BottomSheetModalProvider>
-                    <View style={{
-                        backgroundColor: isDarkMode ? colors.black : colors.white, height: 100,
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        padding: 20
 
-                    }}>
+                </GestureHandlerRootView>
+                <View style={[styles.bottomDiv, { backgroundColor: isDarkMode ? colors.black : colors.white, height: 100 }]}>
 
-                        {request_status == 'Comfirmed' ? (
+                    {request_status == 'Comfirmed' ? (
+                        <TouchableOpacity
+                            onPress={() => updateRequest(request?.id, 'Complete')}
+                            style={{
+                                backgroundColor: colors.successGreen, borderRadius: 20,
+                                justifyContent: 'center',
+                                padding: 20
+                            }}>
+                            <Text style={{ color: colors.white }}>{t('screens:complete')}</Text>
+                        </TouchableOpacity>
+
+                    ) : <></>}
+
+                    {!request?.is_transferred && user.provider && request_status == 'Comfirmed' ? (
+
+                        <TouchableOpacity
+                            onPress={toggleEmployeeListModal}
+                            style={{
+                                backgroundColor: colors.primary, borderRadius: 20,
+                                justifyContent: 'center',
+                                padding: 20
+                            }}>
+                            <Text style={{ color: colors.white }}>{t('screens:transfer')}</Text>
+                        </TouchableOpacity>
+
+                    ) : (<></>)
+                    }
+
+                    {request_status == 'Requested' ? (
+                        <>
                             <TouchableOpacity
-                                onPress={() => updateRequest(request?.id, 'Complete')}
+                                onPress={() => updateRequest(request?.id, 'Accept')}
                                 style={{
                                     backgroundColor: colors.successGreen, borderRadius: 20,
                                     justifyContent: 'center',
                                     padding: 20
                                 }}>
-                                <Text style={{ color: colors.white }}>{t('screens:complete')}</Text>
+                                <Text style={{ color: colors.white }}>{t('screens:accept')}</Text>
                             </TouchableOpacity>
 
-                        ) : <></>}
+                            <TouchableOpacity
+                                onPress={() => updateRequest(request?.id, 'Reject')}
+                                style={{
+                                    backgroundColor: colors.dangerRed, borderRadius: 20,
+                                    justifyContent: 'center',
+                                    padding: 20
+                                }}>
+                                <Text style={{ color: colors.white }}>{t('screens:reject')}</Text>
+                            </TouchableOpacity>
+                        </>
+                    ) : <></>}
 
-                    { user.provider && request_status == 'Comfirmed' ? (
-
-                                <TouchableOpacity
-                                    onPress={toggleEmployeeListModal}
-                                    style={{
-                                        backgroundColor: colors.primary, borderRadius: 20,
-                                        justifyContent: 'center',
-                                        padding: 20
-                                    }}>
-                                    <Text style={{ color: colors.white }}>{t('screens:transfer')}</Text>
-                                </TouchableOpacity>
-
-                            ) : (<></>)
-                        }
-
-                        {request_status == 'Requested' ? (
-                            <>
-                                <TouchableOpacity
-                                    onPress={() => updateRequest(request?.id, 'Accept')}
-                                    style={{
-                                        backgroundColor: colors.successGreen, borderRadius: 20,
-                                        justifyContent: 'center',
-                                        padding: 20
-                                    }}>
-                                    <Text style={{ color: colors.white }}>{t('screens:accept')}</Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    onPress={() => updateRequest(request?.id, 'Reject')}
-                                    style={{
-                                        backgroundColor: colors.dangerRed, borderRadius: 20,
-                                        justifyContent: 'center',
-                                        padding: 20
-                                    }}>
-                                    <Text style={{ color: colors.white }}>{t('screens:reject')}</Text>
-                                </TouchableOpacity>
-                            </>
-                        ) : <></>}
-                  
-                    </View>
-                </GestureHandlerRootView>
-            </ScrollView>
-
-
+                </View>
+            </View>
             <EmployeeListModal
                 isVisible={isEmployeeListVisible}
                 onClose={toggleEmployeeListModal}
@@ -400,7 +391,7 @@ const RequestedServices = ({ navigation, route }: any) => {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1
+        //  flex: 1
         // height:300,
         // margin: 10
     },
@@ -417,6 +408,15 @@ const styles = StyleSheet.create({
         flex: 1,
         marginBottom: '10%',
     },
+    bottomDiv: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 20
+    }
 })
 
 export default RequestedServices

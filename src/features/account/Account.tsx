@@ -200,7 +200,7 @@ const Account = ({ navigation }: any) => {
           <TouchableOpacity style={{ marginRight: 10, alignSelf: 'flex-end' }}
             onPress={() => {
               navigation.navigate('Edit Account', {
-                client: user?.client
+                provider: user?.provider
               })
             }}
           >

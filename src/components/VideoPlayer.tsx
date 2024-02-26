@@ -108,7 +108,6 @@ const VideoPlayer = (video_url) => {
 
   const uriString = String(video_url);
 
-  console.log('tyeoooosss',video_url.video_url);
 
   // Check if uriString is a valid string
   if (!uriString || typeof uriString !== 'string') {

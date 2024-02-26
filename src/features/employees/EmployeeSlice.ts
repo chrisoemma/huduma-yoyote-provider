@@ -89,11 +89,26 @@ export const updateEmployee = createAsyncThunk(
     }
 );
 
+export const getEmployeeRequests = createAsyncThunk(
+    'employees/getEmployeeRequests',
+    async ({ employeeId }: any) => {
+
+        let header: any = await authHeader();
+        const response = await fetch(`${API_URL}/requests/employee/${employeeId}`, {
+            method: 'GET',
+            headers: header,
+        });
+        return (await response.json()) as any;
+    },
+);
+
+
 const EmployeeSlice = createSlice({
     name: 'employees',
     initialState: {
         employees: [],
         employee: {},
+        employee_requests: [],
         loading: false,
     },
     reducers: {
@@ -108,9 +123,9 @@ const EmployeeSlice = createSlice({
             state.loading = true;
         });
         builder.addCase(getEmployees.fulfilled, (state, action) => {
-            console.log('Fulfilled case111',action.payload);
-              
-           
+            console.log('Fulfilled case111', action.payload);
+
+
             if (action.payload.status) {
                 state.employees = action.payload.data.employees;
             }
@@ -157,7 +172,7 @@ const EmployeeSlice = createSlice({
         builder.addCase(deleteEmployee.fulfilled, (state, action) => {
             console.log('Delete Employee Fulfilled');
             const deletedEmployeeId = action.payload.data.employee.id;
-            
+
             state.employees = state.employees.filter((employee) => employee.id !== deletedEmployeeId);
 
             state.loading = false;
@@ -181,7 +196,7 @@ const EmployeeSlice = createSlice({
 
         builder.addCase(updateEmployee.fulfilled, (state, action) => {
             console.log('Update Task Fulfilled');
-          
+
             const updatedEmployee = action.payload.data.employee;
 
             const employeeIndex = state.employees.findIndex((employee) => employee.id === updatedEmployee.id);
@@ -197,6 +212,24 @@ const EmployeeSlice = createSlice({
 
             state.loading = false;
             updateStatus(state, '');
+        });
+
+
+        //employees sub services 
+
+        builder.addCase(getEmployeeRequests.pending, state => {
+            console.log('Pending');
+            state.loading = true;
+        });
+        builder.addCase(getEmployeeRequests.fulfilled, (state, action) => {
+            if (action.payload.status) {
+                state.employee_requests = action.payload.data.requests;
+            }
+            state.loading = false;
+        });
+        builder.addCase(getEmployeeRequests.rejected, (state, action) => {
+            console.log('Rejected');
+            state.loading = false;
         });
     },
 });

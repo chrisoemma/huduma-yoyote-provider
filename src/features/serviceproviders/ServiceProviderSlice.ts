@@ -47,6 +47,7 @@ export const getBestProviders = createAsyncThunk(
     initialState: {
       bestProviders: [],
       nearProviders:[],
+      subServices:[],
       providerSubServices:[],
       loading: false,
     },
@@ -103,13 +104,13 @@ export const getBestProviders = createAsyncThunk(
          state.loading = true;
        });
        builder.addCase(getProviderSubServices.fulfilled, (state, action) => {
-       // console.log('Fulfilled case');
-         console.log(action.payload);
-         if (action.payload.status) {
-           state.providerSubServices = action.payload.data.sub_services;
-         }
-         state.loading = false;
-       });
+  
+          if (action.payload.status) {
+           state.subServices = action.payload.data.sub_services;
+           state.providerSubServices=action.payload.data.provider_sub_services;
+          }
+          state.loading = false;
+        });
        builder.addCase(getProviderSubServices.rejected, (state, action) => {
          console.log('Rejected');
          console.log(action.error);

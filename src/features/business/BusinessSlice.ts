@@ -63,7 +63,10 @@ export const getBusinesses = createAsyncThunk(
   export const updateBusiness = createAsyncThunk(
     'businesses/updateBusiness',
     async ({ data, businessId }: any) => {
-        console.log('businessId', businessId);
+        console.log('businessId111', businessId);
+        console.log('dtaaaa',data);
+
+      
         const response = await fetch(`${API_URL}/businesses/${businessId}`, {
             method: 'PUT',
             headers: {
@@ -300,7 +303,7 @@ export const getBusinesses = createAsyncThunk(
     builder.addCase(updateBusiness.fulfilled, (state, action) => {
         console.log('Update Task Fulfilled');
       
-        const updatedBusiness = action.payload.data.busisness;
+        const updatedBusiness = action.payload.data.business;
 
         const businessIndex = state.businesses.findIndex((business) => business.id === updatedBusiness.id);
         console.log('businessindex', businessIndex);

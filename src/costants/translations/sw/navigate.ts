@@ -17,5 +17,7 @@ export default {
     editEmployee:'Hariri Mfanyakazi',
     employeeAccount:'Akaunti ya Mfanyakazi',
     editAccount:'Hariri Akaunti',
-    changePassword:'Badilisha Nywila'
+    changePassword:'Badilisha Nywila',
+    editSubService:'Hariri Huduma ndogo',
+    viewSubService:'Tazama Huduma ndogo'
   };

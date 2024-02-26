@@ -208,8 +208,7 @@ export const getActiveRequests = createAsyncThunk(
          state.loading = true;
        });
        builder.addCase(updateRequestStatus.fulfilled, (state, action) => {
-        console.log('Update Task Fulfilled');
-        console.log('request', action.payload);
+  
       
         const updatedRequest = action.payload.data.request;
         const status = updatedRequest.statuses[updatedRequest.statuses.length - 1].status;
@@ -258,8 +257,6 @@ export const getActiveRequests = createAsyncThunk(
        state.loading = true;
      });
      builder.addCase(transferRequest.fulfilled, (state, action) => {
-      console.log('Update Task Fulfilled');
-      //console.log('request', action.payload);
     
       const updatedRequest = action.payload.data.request;
       const status = updatedRequest.statuses[updatedRequest.statuses.length - 1].status;

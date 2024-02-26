@@ -179,7 +179,8 @@ const Home = ({ navigation }: any) => {
                         </View>
                     </BasicView>
 
-
+                    <ScrollView horizontal={true}>
+                        
                     <View style={styles.chart}>
                     <Text style={{fontSize:18,color:colors.alsoGrey}}>{t('screens:requestsVsSubserices')}</Text>
                        {providerServiceRequests?
@@ -190,14 +191,15 @@ const Home = ({ navigation }: any) => {
                             chartConfig={chartConfig}
                             accessor="value"
                             backgroundColor="transparent"
-                            paddingLeft="5"
+                            paddingLeft="10"
+                           
                             absolute
-                            style={{ marginVertical: 8, borderRadius: 16 }}
+                            style={{ marginVertical: 8, borderRadius:30}}
                         />):
                        <Text>{t('screens:noDataAvailable')}</Text>}
                      
                     </View>
-
+                    </ScrollView>
                 </ScrollView>
             </SafeAreaView>
             <BottomSheetModalProvider>
@@ -268,11 +270,13 @@ const styles = StyleSheet.create({
 
     },
 
+
     chart: {
         alignItems: 'center',
         marginVertical: 8,
         borderRadius: 20,
-        backgroundColor:colors.white
+        backgroundColor:colors.white,
+       
     },
     contentContainer: {
         marginHorizontal: 10

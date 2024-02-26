@@ -24,7 +24,6 @@ const App = () => {
     </PersistGate>
   </Provider>
      
-  
   );
 };
 

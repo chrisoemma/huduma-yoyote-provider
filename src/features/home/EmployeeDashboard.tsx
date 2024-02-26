@@ -78,8 +78,8 @@ const EmployeeDashboard = ({ navigation }: any) => {
 
     const stylesGlobal = globalStyles();
 
-    const labels = providerServiceRequests?.map(entry => entry.sub_service_name);
-    const dataset = providerServiceRequests?.map(entry => entry.request_count);
+    const labels = employeeTranferedRequests?.map(entry => entry.sub_service_name);
+    const dataset = employeeTranferedRequests?.map(entry => entry.request_count);
 
     const getRandomColor = () => {
         const letters = '0123456789ABCDEF';
@@ -277,6 +277,13 @@ const styles = StyleSheet.create({
     },
     service: {
         paddingTop: 5
+    },
+    chart: {
+        alignItems: 'center',
+        marginVertical: 8,
+        borderRadius: 20,
+        backgroundColor:colors.white,
+       
     },
     subservice: {
         paddingTop: 5,
