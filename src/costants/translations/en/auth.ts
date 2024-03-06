@@ -43,6 +43,8 @@ export default{
     nidaDoesNotExist:'NIDA number does not exists',
     userCreatedSuccessfully:'Initial Registration complete! Verify your phone number with the code sent to you.',
     enterVerificationCode:'Enter verification code',
+    businessName:'Business Name',
+    enterBusinessName:'Enter Business Name'
 
    
 }

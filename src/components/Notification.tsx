@@ -1,4 +1,4 @@
-// Notification.js
+
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
@@ -20,7 +20,7 @@ const Notification = ({ message, type }:any) => {
       case 'warning':
         return  'orange';
       case 'info':
-        return 'blue';
+        return '#3495eb';
       case 'danger':
         return colors.dangerRed;
       case 'success':

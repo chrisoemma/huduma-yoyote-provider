@@ -108,6 +108,7 @@
     Completed:'Completed',
     dataRefreshed:'Data refreshed successfully',
     userUpatedSuccessfully:'Updated Successfully',
+    chooseProfessions:'Choose Profession'
   
 
   

@@ -107,6 +107,7 @@ Rejected: 'Imekataliwa',
 Comfirmed: 'Imethibitishwa',
 Completed: 'Imekamilishwa',
 dataRefreshed: 'Data imeboreshwa kwa mafanikio',
-userUpatedSuccessfully:'Taharifa zimehaririwa Kikamilifu'
+userUpatedSuccessfully:'Taharifa zimehaririwa Kikamilifu',
+chooseProfessions:'Chagua Taaluma'
 
 };

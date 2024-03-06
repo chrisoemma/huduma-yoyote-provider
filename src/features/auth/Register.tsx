@@ -8,6 +8,9 @@ import {
   TouchableOpacity,
   Image,
   ToastAndroid,
+  ActivityIndicator,
+  Dimensions,
+  StyleSheet,
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Feather';
@@ -25,8 +28,10 @@ import Button from '../../components/Button';
 import { ButtonText } from '../../components/ButtonText';
 
 import { useTranslation } from 'react-i18next';
-import { formatErrorMessages, showErrorWithLineBreaks, validateNIDANumber } from '../../utils/utilts';
+import { formatErrorMessages, showErrorWithLineBreaks, transformDataToDropdownOptions, validateNIDANumber } from '../../utils/utilts';
 import { colors } from '../../utils/colors';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { getProfessions } from '../professionsSlice';
 
 const RegisterScreen = ({ route, navigation }: any) => {
 
@@ -35,6 +40,20 @@ const RegisterScreen = ({ route, navigation }: any) => {
     (state: RootStateOrAny) => state.user,
   );
 
+  const { professions,profesionsLoading } = useSelector(
+    (state: RootStateOrAny) => state.professions,
+  );
+
+  const { selectedLanguage } = useSelector(
+    (state: RootStateOrAny) => state.language,
+  );
+
+
+  useEffect(() => {
+    dispatch(getProfessions({ language:selectedLanguage }));
+    
+  }, [ selectedLanguage])
+
   const { passwordVisibility, rightIcon, handlePasswordVisibility } =
     useTogglePasswordVisibility();
 
@@ -42,6 +61,10 @@ const RegisterScreen = ({ route, navigation }: any) => {
   const [message, setMessage] = useState('');
    const [nidaError, setNidaError] = useState('');
    const [nidaLoading,setNidaLoading]=useState(false)
+   const [open, setOpen] = useState(false);
+   const [value, setValue] = useState([]);
+
+   const WIDTH = Dimensions.get("window").width;
 
 
    const { t } = useTranslation();
@@ -129,7 +152,6 @@ const RegisterScreen = ({ route, navigation }: any) => {
        console.log('NIDA validation failed:', nidaValidationResult.error);
      }
 
-  
   };
 
   const stylesGlobal = globalStyles();
@@ -268,6 +290,70 @@ const RegisterScreen = ({ route, navigation }: any) => {
               )}
             </BasicView>
 
+
+            <BasicView>
+              <Text
+                style={[
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop20,
+                ]}>
+               {t('auth:businessName')}
+              </Text>
+
+              <Controller
+                control={control}
+                rules={{
+                  required: true,
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInputField
+                    placeholder= {t('auth:enterBusinessName')}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                  />
+                )}
+                name="business_name"
+              />
+
+              {errors.first_name && (
+                <Text style={stylesGlobal.errorMessage}>
+                  {t('auth:businessNameRequired')}
+                </Text>
+              )}
+            </BasicView>
+
+
+    <BasicView>
+    <View
+      style={{
+  
+        marginVertical:30
+      }}
+    >
+      { profesionsLoading?<View style={styles.loading}>
+      <ActivityIndicator size='large' color={colors.primary}/>
+    </View>:<></>}
+      <DropDownPicker
+        containerStyle={{
+          width: WIDTH/1.1 ,
+          marginRight: 10,
+        }}
+        zIndex={6000}
+        placeholder={t(`screens:chooseProfessions`)}
+        listMode="SCROLLVIEW"
+        searchable={true}
+        open={open}
+        value={value}
+        items={transformDataToDropdownOptions(professions)}
+        setOpen={setOpen}
+        setValue={setValue}
+     
+      />
+      
+    </View>
+    </BasicView>
+
             <BasicView>
               <Text
                 style={[
@@ -375,5 +461,17 @@ const RegisterScreen = ({ route, navigation }: any) => {
     </SafeAreaView>
   );
 };
+
+
+const styles =  StyleSheet.create({
+
+        loading: {
+          position: 'absolute',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginLeft:50,
+          zIndex:15000,
+        },
+      });
 
 export default RegisterScreen;

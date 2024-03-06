@@ -42,6 +42,8 @@ export default {
     nidaDoesNotExist:'Namba ya NIDA haipo',
     userCreatedSuccessfully:'Usajili wa awali umekamilika! Thibitisha namba yako ya simu na nambari iliyotumwa kwako',
     enterVerificationCode:'Ingiza nambari ya uthibitisho',
+    businessName:'Jina la Biashara',
+    enterBusinessName:'Ingiza jina la Biashara'
     
 
 }

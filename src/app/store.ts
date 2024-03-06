@@ -26,6 +26,7 @@ import LocationSlice from '../components/Location/LocationSlice';
 import OnboardingSlice from '../features/onboarding/OnboardingSlice';
 import languangeSlice from '../costants/languangeSlice';
 import ChartSlice from '../features/home/ChartSlice';
+import professionsSlice from '../features/professionsSlice';
 
 
 const reducers = combineReducers({
@@ -42,7 +43,8 @@ const reducers = combineReducers({
   locations:LocationSlice,
   onboarding:OnboardingSlice,
   language:languangeSlice,
-  charts:ChartSlice
+  charts:ChartSlice,
+  professions:professionsSlice
 });
 
 const persistConfig = {
