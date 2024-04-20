@@ -10,7 +10,7 @@ export default {
     business:'Biashara yangu',
     logout: 'Toka',
     addBusiness:'Ongeza Biashara',
-    addSubService:'Ongeza Huduma Ndogo',
+    addSubService:'Ongeza Huduma',
     businessDetails:'Biashara zaidi',
     requestedServices:'Huduma Zilizoombwa',
     addEmployee:'Ongeza Mfanyakazi',
@@ -18,6 +18,7 @@ export default {
     employeeAccount:'Akaunti ya Mfanyakazi',
     editAccount:'Hariri Akaunti',
     changePassword:'Badilisha Nywila',
-    editSubService:'Hariri Huduma ndogo',
-    viewSubService:'Tazama Huduma ndogo'
+    editSubService:'Hariri Huduma',
+    viewSubService:'Tazama Huduma',
+    subscriptions:'Vifurushi vya usajili'
   };

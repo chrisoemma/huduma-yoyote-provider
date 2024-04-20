@@ -9,8 +9,8 @@ import { colors } from '../utils/colors';
   );
 
   
-  const containerBackgroundColor = isDarkMode ? 'black' : colors.lightGrey;
-  const scrollBgBackgroundColor = isDarkMode ? 'black' : colors.whiteBackground;
+  const containerBackgroundColor = isDarkMode ? colors.blackBg : colors.lightGrey;
+  const scrollBgBackgroundColor = isDarkMode ? colors.blackBg : colors.whiteBackground;
   const textInputColor = isDarkMode ? 'white' : 'black';
   const buttonText = isDarkMode ? colors.white : colors.primary;
   const borderColor = isDarkMode ? 'gray' : colors.lightGrey;
@@ -83,6 +83,8 @@ import { colors } from '../utils/colors';
     horizontalLogo: {
       width: 150,
       height: 50,
+      resizeMode: 'contain',
+      alignSelf: 'center',
     },
   
      
@@ -95,7 +97,7 @@ import { colors } from '../utils/colors';
       textTransform: 'uppercase',
       fontSize: 60,
       textAlign: 'center',
-      color: colors.primary,
+      color: colors.secondary,
     },
     mediumHeading: {
       fontFamily: 'Prompt-Bold',
@@ -104,12 +106,12 @@ import { colors } from '../utils/colors';
       textAlign: 'left',
       justifyContent: 'flex-start',
       lineHeight: 40,
-      color: colors.primary,
+      color: colors.secondary,
     },
     smallHeading: {
       fontFamily: 'Prompt-Bold',
       fontSize: 27,
-      color: colors.primary,
+      color: colors.secondary,
     },
     errorMessage: {
       color: colors.dangerRed,

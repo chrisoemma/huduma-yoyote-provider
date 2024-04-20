@@ -15,6 +15,8 @@ import Documents from "../features/account/Documents";
 import ChangePassword from "../features/auth/ChangePassword";
 import EditSubService from "../features/business/EditSubService";
 import ViewSubService from "../features/business/ViewSubService";
+import Subscriptions from "../features/subscriptions/Subscriptions";
+
 
 
 const AppStack = () => {
@@ -98,6 +100,12 @@ const AppStack = () => {
          component={Documents}
          options={{ title: t('screens:myDocuments') }}
           />
+    
+    <Stack.Screen name="Subscriptions"
+         component={Subscriptions}
+         options={{ title: t('navigate:subscriptions') }}
+          />
+
     </Stack.Navigator>
 
   );

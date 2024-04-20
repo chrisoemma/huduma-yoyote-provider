@@ -21,6 +21,8 @@ import { transferRequest, updateRequestStatus } from '../requests/RequestSlice';
 import EmployeeListModal from '../../components/EmployeeListModel';
 import { getEmployees } from '../employees/EmployeeSlice';
 import Notification from '../../components/Notification';
+import { getClientLastLocation } from '../account/AccountSlice';
+import { getRequestLastLocation } from '../../components/Location/LocationSlice';
 
 
 const RequestedServices = ({ navigation, route }: any) => {
@@ -46,6 +48,14 @@ const RequestedServices = ({ navigation, route }: any) => {
         (state: RootStateOrAny) => state.user,
     );
 
+    const { requestLastLocation } = useSelector(
+        (state: RootStateOrAny) => state.locations,
+    );
+
+
+    const { clientLastLocation } = useSelector(
+        (state: RootStateOrAny) => state.account,
+      );
 
     const { employees } = useSelector(
         (state: RootStateOrAny) => state.employees,
@@ -54,6 +64,18 @@ const RequestedServices = ({ navigation, route }: any) => {
     const getStatusTranslation = (status: string) => {
         return t(`screens:${status}`);
     };
+
+
+    useEffect(() => {
+        dispatch(getClientLastLocation(request?.client?.id));
+     }, [])
+
+     useEffect(() => {
+        dispatch(getRequestLastLocation(request?.id));
+     }, [])
+
+
+
 
     if (user.provider) {
         useEffect(() => {
@@ -118,8 +140,12 @@ const RequestedServices = ({ navigation, route }: any) => {
         }, 5000);
     };
 
-    const data = {
+    let data = {
         status: '',
+        client_latitude:'',
+        client_longitude:'',
+        provider_latitude:'',
+        provider_longitude:''
 
     }
 
@@ -159,6 +185,18 @@ const RequestedServices = ({ navigation, route }: any) => {
     };
 
     const updateRequest = (id, requestType) => {
+
+        console.log('providerLocation',providerLocation)
+        console.log('client location',userLocation)
+        
+        data.client_latitude=userLocation?.latitude
+        data.client_longitude=userLocation?.longitude
+        data.provider_latitude=providerLocation?.latitude
+        data.provider_longitude=providerLocation?.longitude
+
+
+        
+
         Alert.alert(
             'Confirm Action',
             `Are you sure you want to ${requestType} this request?`,
@@ -177,6 +215,8 @@ const RequestedServices = ({ navigation, route }: any) => {
                         } else if (requestType === 'Complete') {
                             data.status = 'Completed';
                         }
+
+                      
 
                         dispatch(updateRequestStatus({ data: data, requestId: id }))
                             .unwrap()
@@ -217,7 +257,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                 <GestureHandlerRootView style={{ flex: 0.9, margin: 10 }}>
 
                     <View >
-                        <View style={[stylesGlobal.circle, { backgroundColor: colors.white, marginTop: 15, alignContent: 'center', justifyContent: 'center' }]}>
+                        <View style={[stylesGlobal.circle, { backgroundColor: colors.white, alignContent: 'center', justifyContent: 'center' }]}>
                             {request?.client?.profile_img.startsWith("https://") ?
                                 <Image
                                     source={{ uri: request?.client?.profile_img }}
@@ -266,20 +306,20 @@ const RequestedServices = ({ navigation, route }: any) => {
                         </View>
                         <Text>{request?.service?.description}</Text>
 
-                        <View style={[stylesGlobal.chooseServiceBtn, { justifyContent: 'space-between' }]}>
-                            <TouchableOpacity style={stylesGlobal.chooseBtn}
+                        <View style={[stylesGlobal.chooseServiceBtn, { justifyContent: 'space-between',marginBottom:50 }]}>
+                            <TouchableOpacity style={[stylesGlobal.otherBtn, { backgroundColor: getStatusBackgroundColor(request_status) }]}>
+                                <Text style={{ color: colors.white }}>{getStatusTranslation(request_status)}</Text>
+                            </TouchableOpacity>
+                           
+                           
+                            <TouchableOpacity style={[stylesGlobal.chooseBtn,]}
                                 onPress={() => handlePresentModalPress('Services')}
                             >
                                 <Text style={{ color: colors.white }}>{t('navigate:requestedServices')}</Text>
                             </TouchableOpacity>
-
-
-                            <TouchableOpacity style={[stylesGlobal.otherBtn, { backgroundColor: getStatusBackgroundColor(request_status) }]}>
-                                <Text style={{ color: colors.white }}>{getStatusTranslation(request_status)}</Text>
-                            </TouchableOpacity>
-
+                               
                         </View>
-                        {user.provider && request.is_transferred ? (
+                        {user.provider && request?.is_transferred ? (
                             <Notification message={`${t('screens:requestTransferToEmployee')} ${request?.transfer[0]?.employee?.name}`} type="info" />
                         ) : (<></>)}
                     </View>
@@ -288,7 +328,9 @@ const RequestedServices = ({ navigation, route }: any) => {
                             <MapDisplay
                                 onLocationUpdate={handleLocationUpdate}
                                 client={request?.client}
-                                requestLocation={request.location}
+                                clientLastLocation={clientLastLocation}
+                                requestStatus={request_status}
+                                requestLastLocation={requestLastLocation}
                             />
                         </View>
                     </View>

@@ -9,5 +9,5 @@ border-radius: 8px;
 font-size: 14px;
 padding-horizontal: 10px;
 elevation:2;
-color:${colors.black}
+color: ${colors.black};
 `;

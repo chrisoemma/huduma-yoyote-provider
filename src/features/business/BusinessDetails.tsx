@@ -14,6 +14,7 @@ import { BasicView } from '../../components/BasicView';
 import { deleteSubService, getBusinessSubservices } from '../subservices/SubservicesSlice';
 import VideoPlayer from '../../components/VideoPlayer';
 import Orientation from 'react-native-orientation-locker';
+import { selectLanguage } from '../../costants/languangeSlice';
 
 const BusinessDetails = ({ route, navigation }: any) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -42,6 +43,9 @@ const BusinessDetails = ({ route, navigation }: any) => {
   const { isDarkMode } = useSelector(
     (state: RootStateOrAny) => state.theme,
   );
+
+
+  const selectedLanguage = useSelector(selectLanguage);
 
 
   // useEffect(() => {
@@ -174,6 +178,8 @@ const BusinessDetails = ({ route, navigation }: any) => {
               <Text style={{ color: colors.alsoGrey }}>{sub_service?.provider_sub_list?.description || sub_service.description}</Text>
             </View>
             <View style={styles.btnContainer}>
+            {user.provider && user.status!=='In Active'?(
+              <>
               <TouchableOpacity style={[styles.status, { backgroundColor: colors.dullYellow, marginRight: 10 }]} onPress={() => navigation.navigate('Edit sub service', {
                 sub_service: sub_service,
                 type: 'subService'
@@ -183,6 +189,9 @@ const BusinessDetails = ({ route, navigation }: any) => {
               <TouchableOpacity style={[styles.status, { backgroundColor: colors.dangerRed }]} onPress={() => removeSubService('subService', sub_service?.provider_sub_list?.id, sub_service.id)}>
                 <Text style={{ color: colors.white }}>{t('screens:delete')}</Text>
               </TouchableOpacity>
+              </>
+            ):(<View />)}
+            
             </View>
           </View>
         </TouchableOpacity>
@@ -295,6 +304,8 @@ const BusinessDetails = ({ route, navigation }: any) => {
 
                 </BottomSheetScrollView>
 
+
+                {user.provider && user.status!=='In Active'?(
                 <FloatBtn
                   onPress={() => {
                     navigation.navigate('Add Sub Service', {
@@ -309,6 +320,8 @@ const BusinessDetails = ({ route, navigation }: any) => {
                   }
                   iconType='add'
                 />
+
+                ):(<View />)}
               </BottomSheetModal>
             </View>
           </BottomSheetModalProvider>
@@ -324,7 +337,9 @@ const BusinessDetails = ({ route, navigation }: any) => {
           justifyContent: 'space-between',
           padding: 20,
         }}>
+           {user.provider && user.status!=='In Active'?(
           <>
+         
             <TouchableOpacity
               onPress={() => navigation.navigate('Add Business', {
                 business: service,
@@ -347,7 +362,9 @@ const BusinessDetails = ({ route, navigation }: any) => {
               }}>
               <Text style={{ color: colors.white }}>{t('screens:delete')}</Text>
             </TouchableOpacity>
+         
           </>
+          ):(<View />)}
         </View>
       </View>
 

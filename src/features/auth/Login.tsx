@@ -169,6 +169,7 @@ const LoginScreen = ({ route, navigation }: any) => {
                       ]}
                       secureTextEntry={passwordVisibility}
                       placeholder={t('auth:enterPassword')}
+                      placeholderTextColor={colors.alsoGrey}
                       onBlur={onBlur}
                       onChangeText={onChange}
                       value={value}
@@ -205,7 +206,7 @@ const LoginScreen = ({ route, navigation }: any) => {
                 <ButtonText>{t('auth:login')}</ButtonText>
               </Button>
             </BasicView>
-
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 20, marginBottom: 80 }}>
             <TouchableOpacity
               onPress={() => {
                 navigation.navigate('Register');
@@ -216,6 +217,16 @@ const LoginScreen = ({ route, navigation }: any) => {
               
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('CheckPhoneNumber');
+              }}
+              style={[styles.marginTop20, styles.centerView]}>
+              <Text style={styles.touchablePlainTextSecondary}>
+                {t('auth:haveOtp')}
+              </Text>
+            </TouchableOpacity> 
+            </View>
           </View>
       
       </ScrollView>

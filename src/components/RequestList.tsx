@@ -35,7 +35,7 @@ const RequestList = ({item,navigation}:any) => {
     >
        <View>
         <Text style={{color:isDarkMode?colors.black:colors.primary,fontWeight:'bold'}}>{item?.service?.name}</Text>
-        <Text style={{paddingVertical:10,color:isDarkMode?colors.white:colors.darkGrey}}>{item?.provider?.name}</Text>
+        <Text style={{paddingVertical:10,color:isDarkMode?colors.white:colors.darkGrey}}>{item?.client?.name}</Text>
         {subServices.slice(0, maxItemsToShow).map((subService, index) => (
   <Text style={{ color: isDarkMode ? colors.white : colors.darkGrey }} key={subService.id}>
     - {subService.provider_sub_list?.name || subService?.sub_service?.name || subService?.provider_sub_service?.name} 

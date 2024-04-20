@@ -127,7 +127,7 @@ export const getLocationName = async (latitude, longitude) => {
 
     const data = await response.json();
 
-    console.log('data',data)
+   // console.log('data',data)
 
     if (data.results.length > 0) {
       const result = data.results[0];
@@ -158,22 +158,22 @@ export const getLocationName = async (latitude, longitude) => {
       // If none of the above, return the first address component
       return result.address_components[0].long_name;
     } else {
-      return 'Location not found';
+      return '';
     }
   } catch (error) {
     console.error('Error fetching location data:', error);
-    return 'Error fetching location data';
+    return '';
   }
 };
 
 export function breakTextIntoLines(text, maxLength) {
-  if (text.length <= maxLength) {
+  if (text?.length <= maxLength) {
     return text; // No need to break into lines if it's within the maxLength
   }
 
   const chunks = [];
-  while (text.length > 0) {
-    chunks.push(text.substring(0, maxLength));
+  while (text?.length > 0) {
+    chunks.push(text?.substring(0, maxLength));
     text = text.substring(maxLength);
   }
 
@@ -191,10 +191,9 @@ export const  convertBusinessesToLabelsAndValues=(businesses)=> {
 }
 
 export const convertRegDoc=(regdocs)=> {
-  const labelsAndValues = regdocs.map((doc) => ({
-    value: doc.id,
-    label: doc.doc_name,
-    percentage:doc.percentage
+  const labelsAndValues = regdocs?.map((doc) => ({
+    value: doc?.id,
+    label: doc?.doc_name,
   }));
   return labelsAndValues;
 }
@@ -242,6 +241,19 @@ export async function validateNIDANumber(nidaNumber) {
     };
   }
 }
+
+
+
+export function extractEventName(fullEventName) {
+  // Split the full event name by backslashes
+  const segments = fullEventName.split('\\');
+
+  // Get the last segment
+  const lastSegment = segments.pop();
+
+  return lastSegment;
+}
+
 
 export const formatErrorMessages=(errorObject)=>{
   if (!errorObject) {
@@ -333,6 +345,7 @@ export const getStatusBackgroundColor = (status: string) => {
     case 'Rejected':
       return colors.dangerRed;
     case 'Comfirmed':
+    case 'Approved':
       return colors.successGreen;
     case 'Completed':
       return colors.successGreen;
@@ -341,4 +354,19 @@ export const getStatusBackgroundColor = (status: string) => {
     default:
       return colors.secondary;
   }
+};
+
+export const calculateDistance = (coord1, coord2) => {
+  const earthRadius = 6371000; 
+  const latitude1 = coord1.latitude * (Math.PI / 180); // Latitude in radians
+  const latitude2 = coord2.latitude * (Math.PI / 180);
+  const deltaLatitude = ((coord2.latitude - coord1.latitude) * (Math.PI / 180));
+  const deltaLongitude = ((coord2.longitude - coord1.longitude) * (Math.PI / 180));
+
+  const a = Math.sin(deltaLatitude / 2) * Math.sin(deltaLatitude / 2) +
+            Math.cos(latitude1) * Math.cos(latitude2) * Math.sin(deltaLongitude / 2) * Math.sin(deltaLongitude / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  const distance = earthRadius * c; // Distance in meters
+  return distance;
 };

@@ -7,6 +7,7 @@ import { useAppDispatch } from '../../app/store';
 import { getDistrictByRegion, getPlacesByWard, getRegions, getWardsByDistrict } from './LocationSlice';
 import { colors } from '../../utils/colors';
 import { transformArray } from '../../utils/utilts';
+import { useTranslation } from 'react-i18next';
 
 
 const Location = ({
@@ -33,7 +34,7 @@ const Location = ({
     const [error, setError] = useState(null);
     const [streetChoosing,setStreetChoosing]=useState(true);
 
-
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const {regions,regionsLoading,places,placesLoading,wards,wardsLoading, districts,districtsLoading} = useSelector(
       (state: RootStateOrAny) => state.locations,
@@ -61,6 +62,7 @@ const Location = ({
     }, [dispatch, wardValue]);
   
     const onChangeRegionValue = (value) => {
+      // console.log('Regionvalue',value);
       if (value !== null && value !== RegionValue) {
         dispatch(getDistrictByRegion(value));
         setRegionValue(value);
@@ -76,6 +78,7 @@ const Location = ({
         if(value!==null && value !== districtValue){
           dispatch(getWardsByDistrict(value));
           setDistrictValue(value)
+        
           }
         if (error) {
           setError(null);
@@ -87,7 +90,7 @@ const Location = ({
       
         if(value!==null && value !== wardValue){
           dispatch(getPlacesByWard(value));
-          setStreetValue(value)
+          setWardValue(value)
           }
         if (error) {
           setError(null);
@@ -98,9 +101,11 @@ const Location = ({
       const onChangeStreetValue = (value) => {
      
           // alert('onchange strreet',value)
+
+        ///  console.log('screet value',value)
         getStreetValue(value)
         setStreetValue(value)
-        setStreetChoosing(true)
+       // setStreetChoosing(true)
         if (error) {
           setError(null);
        //   console.log(error);
@@ -123,6 +128,7 @@ const Location = ({
         setStreetOpen(false);
       }, []);
       const onStreetOpen = useCallback(() => {
+      
         setRegionOpen(false);
         setDistrictOpen(false);
         setWardOpen(false);
@@ -132,7 +138,7 @@ const Location = ({
     //      getStreetInput(value);
     //   }
 
-    //      const addStreetInput =()=>{
+        //  const addStreetInput =()=>{
     //         setStreetOpen(false);
     //      setStreetValue(null);
     //      setStreetChoosing(false);
@@ -156,7 +162,7 @@ const Location = ({
           marginRight: 10,
         }}
         zIndex={6000}
-        placeholder="Choose region"
+        placeholder={t('screens:chooseRegion')}
         listMode="SCROLLVIEW"
         searchable={true}
         open={RegionOpen}
@@ -176,7 +182,7 @@ const Location = ({
           width: WIDTH / 2.5,
         }}
         zIndex={6000}
-        placeholder="Choose District"
+        placeholder={t('screens:chooseDistrict')}
         searchable={true}
         listMode="SCROLLVIEW"
         open={districtOpen}
@@ -204,7 +210,7 @@ const Location = ({
           marginRight:2,
         }}
         zIndex={5100}
-        placeholder="Choose ward"
+        placeholder={t('screens:chooseWard')}
         searchable={true}
         open={wardOpen}
         listMode="SCROLLVIEW"
@@ -223,12 +229,12 @@ const Location = ({
           width: WIDTH / 2.5,
         }}
         zIndex={5100}
-        placeholder="Choose Place"
+        placeholder={t('screens:chooseStreet')}
         searchable={true}
         listMode="SCROLLVIEW"
         open={streetOpen}
         value={streetValue}
-        items={transformArray(places,'place_name','place_code')}
+        items={transformArray(places,'place_name','id')}
         setOpen={setStreetOpen}
         onOpen={onStreetOpen}
         setValue={setStreetValue}
@@ -236,6 +242,7 @@ const Location = ({
         onPress={()=>setStreetChoosing(true)}
       />
     </View>
+
     {/* <TouchableOpacity 
      onPress={()=>addStreetInput()}
     >

@@ -27,6 +27,7 @@ import OnboardingSlice from '../features/onboarding/OnboardingSlice';
 import languangeSlice from '../costants/languangeSlice';
 import ChartSlice from '../features/home/ChartSlice';
 import professionsSlice from '../features/professionsSlice';
+import SubscriptionSlice from '../features/subscriptions/SubscriptionSlice';
 
 
 const reducers = combineReducers({
@@ -44,7 +45,8 @@ const reducers = combineReducers({
   onboarding:OnboardingSlice,
   language:languangeSlice,
   charts:ChartSlice,
-  professions:professionsSlice
+  professions:professionsSlice,
+  subscriptions:SubscriptionSlice
 });
 
 const persistConfig = {

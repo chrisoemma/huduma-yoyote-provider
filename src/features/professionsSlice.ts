@@ -35,13 +35,11 @@ export const getProfessions = createAsyncThunk(
        
 
       builder.addCase(getProfessions.pending, state => {
-    ;
+    
         state.professionsLoading = true;
       });
       builder.addCase(getProfessions.fulfilled, (state, action) => {
   
-               console.log('payload ststuss',action.payload);
-               
         if (action.payload.status) {
           state.professions = action.payload.data.designations;
         }

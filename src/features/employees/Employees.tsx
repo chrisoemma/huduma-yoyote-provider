@@ -32,6 +32,7 @@ const Employees = ({ navigation }: any) => {
 
         <View style={styles.employeesContainer}>
             <TouchableOpacity
+               key={item?.id}
                 style={[styles.employees,{backgroundColor:isDarkMode?colors.darkModeBackground:colors.white}]}
                 onPress={() => navigation.navigate('Employee Account',{
                     employee:item

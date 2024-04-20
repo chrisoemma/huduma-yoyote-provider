@@ -35,7 +35,7 @@ export default {
     comfirmNewPassword: 'Thibitisha Nenosiri Jipya',
     enterComfirmPassword: 'Ingiza Thibitisha Nenosiri',
     comfirmedPasswordRequired: 'Thibitisha Nenosiri Linahitajika',
-    passwordMatch:'Nywila mpya hazifanani',
+    passwordMatch:'Nywila  hazifanani',
     birthDate:'Siku ya kuzaliwa',
     nidaRequired: 'Nambari ya NIDA inahitajika',
     nida20numbers: 'Nambari ya NIDA lazima iwe na herufi 20',
@@ -43,7 +43,19 @@ export default {
     userCreatedSuccessfully:'Usajili wa awali umekamilika! Thibitisha namba yako ya simu na nambari iliyotumwa kwako',
     enterVerificationCode:'Ingiza nambari ya uthibitisho',
     businessName:'Jina la Biashara',
-    enterBusinessName:'Ingiza jina la Biashara'
+    enterBusinessName:'Ingiza jina la Biashara',
+    confirmPassword:'Thibitisha Neno siri',
+    passwordMismatch:'Neno siri aliendani',
+    designationError:'Tafadhali, changua Taaluma yako',
+    haveOtp:"Una OTP?",
+    checkPhoneNumber:'Angalia Namba',
+    checkNumber:'Tafuta Namba',
+    createAccountPassword:'Tengeneza Nywila ya Akaunti',
+    accountPasswordCreated:'Nywila ya Akaunti yako imetengenezwa kikamilifu',
+    businessNameRequired:'Jina la Biashara linahitajika',
+    changePassword:'Badili Nywila',
+    nidaEmptyError:'Namba ya NIDA inahitajika',
+    errorValidatingNIDA:'Tumeshidwa kupata NIDA angalia intaneti yako'
     
 
 }

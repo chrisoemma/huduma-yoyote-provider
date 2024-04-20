@@ -12,7 +12,7 @@ import {
 import { globalStyles } from '../../styles/global'
 import { useAppDispatch } from '../../app/store'
 import { useTranslation } from 'react-i18next';
-import { getPastRequests } from '../requests/RequestSlice'
+import { getActiveRequests} from '../requests/RequestSlice'
 import { useSelector, RootStateOrAny } from 'react-redux'
 import { getBusinesses } from '../business/BusinessSlice'
 import FloatBtn from '../../components/FloatBtn'
@@ -55,7 +55,7 @@ const Home = ({ navigation }: any) => {
     const statusBarColor = colors.primary
 
     useEffect(() => {
-        dispatch(getPastRequests(user?.provider?.id));
+        dispatch(getActiveRequests(user?.provider?.id));
         dispatch(getBusinesses({ providerId: user?.provider?.id }))
         dispatch(getProviderRequestVsSubservice({ providerId: user?.provider?.id }))
     }, [dispatch])
@@ -64,7 +64,7 @@ const Home = ({ navigation }: any) => {
     const callGetDashboard = React.useCallback(() => {
 
         setRefreshing(true);
-        dispatch(getPastRequests(user?.provider?.id));
+        dispatch(getActiveRequests(user?.provider?.id));
         dispatch(getProviderRequestVsSubservice({ providerId: user?.provider?.id }))
         dispatch(getBusinesses({ providerId: user?.provider?.id })).unwrap()
             .then(result => {

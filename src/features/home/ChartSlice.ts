@@ -49,7 +49,7 @@ export const getProviderRequestVsSubservice = createAsyncThunk(
       });
       builder.addCase(getProviderRequestVsSubservice.fulfilled, (state, action) => {
 
-        console.log('full fiels',action.payload.data.requests_vs_sub_services);
+      //  console.log('full fiels',action.payload.data.requests_vs_sub_services);
         if (action.payload.status) {
           state.providerServiceRequests = action.payload.data.requests_vs_sub_services;
         }

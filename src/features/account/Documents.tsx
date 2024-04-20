@@ -6,8 +6,9 @@ import {
   Modal,
   Button,
   Image,
+  Alert,
 } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { globalStyles } from '../../styles/global'
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
@@ -18,19 +19,24 @@ import {
   MenuOption,
   MenuTrigger,
 } from 'react-native-popup-menu';
+import { BottomSheetModal, BottomSheetModalProvider, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
-import { createDocument, getDocuments, getRegDocs } from '../business/BusinessSlice';
+
+import { createDocument, deleteDocument, getDocuments, getRegDocs } from '../business/BusinessSlice';
 import { useAppDispatch } from '../../app/store';
 import { useSelector, RootStateOrAny } from 'react-redux';
-import { breakTextIntoLines } from '../../utils/utilts';
+import { breakTextIntoLines,getStatusBackgroundColor } from '../../utils/utilts';
 import PreviewDocumentModel from '../../components/PriewDocumentModel';
-import UploadBusinessDocumentModal from '../../components/UploadBusinessDocumentModal';
 import { firebase } from '@react-native-firebase/storage';
 import RNFS from 'react-native-fs';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import UploadBusinessDocument from '../../components/UploadBusinessDocument';
+import { getProviderDocumentToRegister } from '../serviceproviders/ServiceProviderSlice';
 
 const Documents = () => {
 
   const { t } = useTranslation();
+  
 
   const [uploadedDocument, setUploadedDocument] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
@@ -38,10 +44,18 @@ const Documents = () => {
   const [previewSource, setPreviewSource] = useState(null);
   const [selectedBusiness, setSelectedBusiness] = useState(null)
   const [message, setMessage] = useState('');
-  const [uploadingDoc,setUploadingDoc] =useState(false);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
   const [resetModal, setResetModal] = useState(false);
 
+  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+  const snapPoints = useMemo(() => ['25%', '95%'], []);
+
   const [docId, setDocId] = useState(null);
+
+
+ 
+
 
   const togglePreviewModal = () => {
     if (!isModalVisible) {
@@ -50,8 +64,16 @@ const Documents = () => {
     setModalVisible(!isModalVisible);
   };
 
+  const handlePresentModalPress = useCallback(() => {
+    console.log('clickedddd')
+    bottomSheetModalRef.current?.present();
+  }, []);
+  const handleSheetChanges = useCallback((index: number) => {
+    console.log('handleSheetChanges', index);
+  }, []);
 
-  const stylesGlobal=globalStyles();
+
+  const stylesGlobal = globalStyles();
 
 
   const handleDocumentPreview = (docType, docUrl) => {
@@ -71,18 +93,20 @@ const Documents = () => {
     (state: RootStateOrAny) => state.theme,
   );
 
+  
 
-
-  const { documents, businesses,regDocs } = useSelector(
+  const { documents, businesses, regDocs } = useSelector(
     (state: RootStateOrAny) => state.businesses,
+  );
+
+
+  const { documentForRegister,documentForBusiness } = useSelector(
+    (state: RootStateOrAny) => state.providers,
   );
 
 
   const getPathForFirebaseStorage = async (uri: any) => {
 
-    // if (Platform.OS === "ios") return uri;
-    // const stat = await RNFetchBlob.fs.stat(uri);
-    // return stat.path;
     const destPath = `${RNFS.TemporaryDirectoryPath}/text`;
     await RNFS.copyFile(uri, destPath);
 
@@ -95,18 +119,41 @@ const Documents = () => {
 
     setTimeout(() => {
       setMessage('');
-    }, 5000);
+    }, 10000);
   };
+
+
+
+  const [toastMessage, setToastMessage] = useState(''); 
+  const [showToast, setShowToast] = useState(false);
+
+  const toggleToast = () => {
+    setShowToast(!showToast);
+  };
+
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    toggleToast();
+    setTimeout(() => {
+      toggleToast(); 
+    }, 5000); 
+  };
+
 
   const dispatch = useAppDispatch();
   if (user.provider) {
     useEffect(() => {
-       dispatch(getRegDocs());
+      //dispatch(getRegDocs());
+      dispatch(getProviderDocumentToRegister(user.provider.id));
       dispatch(getDocuments({ providerId: user.provider.id }));
     }, [dispatch])
+
   }
 
-  // console.log('documents', documents);
+ /// console.log('documents1234', documents);
+
+
+  
 
 
   const makeid = (length: any) => {
@@ -131,34 +178,80 @@ const Documents = () => {
   const data = {
     doc_url: '',
     document_type: '',
-    business: '',
+   // business: '',
     provider_id: '',
     doc_format: '',
-    working_document_id:''
+    working_document_id: ''
   }
 
 
 
-  const handleDocumentUpload = async (value, doc, text,valueType) => {
+  const removeDocument = (id) =>
+  Alert.alert(`${t('screens:deleteDocument')}`, `${t('screens:areYouWantToDelete')}`, [
+    {
+      text: `${t('screens:cancel')}`,
+      onPress: () => console.log('Cancel task delete'),
+      style: 'cancel',
+    },
+    {
+      text: `${t('screens:ok')}`,
+      onPress: () => {
+     
+        dispatch(deleteDocument({ documentId: id }))
+          .unwrap()
+          .then(result => {
+            if (result.status) {
+              ToastAndroid.show(`${t('screens:deletedSuccessfully')}`, ToastAndroid.SHORT);
+     
+            } else {
+              setDisappearMessage(
+                `${t('screens:requestFail')}`,
+              );
+           
+            }
 
+          
+          })
+          .catch(rejectedValueOrSerializedError => {
+            // handle error here
+            console.log('error');
+            console.log(rejectedValueOrSerializedError);
+          });
+      },
+    },
+  ]);
+
+
+  const handleDocumentUpload = async (value, doc, text, valueType) => {
+   
     data.provider_id = user.provider.id,
       data.doc_format = text;
-         if(valueType==1){
-          data.working_document_id=value
-         }else if(valueType==2){
-          data.business = value;
-         }
-   // console.log('business_id',value);
+    if (valueType == 1) {
+      data.working_document_id = value
+    } else if (valueType == 2) {
+     // data.business = value;
+     data.working_document_id=value
+    }
 
-    if (doc !== null) {
+    const existingDocument = documents.find(doc => doc.working_document_id === data.working_document_id);
+
+
+    if (existingDocument) {
+      setShowToast(true)
+      showToastMessage(t('screens:documentAlreadyUploaded'))
+      return; 
+  }
+
+
+    if (doc !== null && value !==null) {
+      setShowToast(false)
       data.document_type = doc[0].type;
-      console.log('file document', doc);
+    
       const fileExtension = doc[0].type.split("/").pop();
       var uuid = makeid(10)
       const fileName = `${uuid}.${fileExtension}`;
       var storageRef = firebase.storage().ref(`businesses/docs/${fileName}`);
 
-      console.log('file docs', doc[0].uri);
       const fileUri = await getPathForFirebaseStorage(doc[0].uri);
       try {
         const granted = await PermissionsAndroid.request(
@@ -191,7 +284,7 @@ const Documents = () => {
                 data.doc_url = downloadUrl;
                 setUploadingDoc(false);
                 //    console.log('on submit data', data);
-                dispatch(createDocument({data:data,providerId:user.provider.id}))
+                dispatch(createDocument({ data: data, providerId: user.provider.id }))
                   .unwrap()
                   .then(result => {
                     console.log('resultsss', result);
@@ -199,15 +292,15 @@ const Documents = () => {
                       console.log('excuted this true block')
                       ToastAndroid.show(`${t('screens:uploadedDocSuccessfully')}`, ToastAndroid.SHORT);
 
-                      toggleBusinessListModal(); 
+                      toggleBusinessListModal();
                       setResetModal(true)
                       onSuccess();
-                   
+
                     } else {
-                      setDisappearMessage(
-                        'Unable to process request. Please try again later.',
-                      );
-                      console.log('dont navigate');
+                        
+                        setDisappearMessage(`${t('screens:unAbletoProcessRequest')}`);
+                        setShowToast(true)
+                        showToastMessage(t('screens:unAbletoProcessRequest'))
                     }
 
                     console.log('result');
@@ -228,7 +321,10 @@ const Documents = () => {
         console.warn(error);
         return false;
       }
-    } 
+    }else{
+      setShowToast(true)
+      showToastMessage(t('screens:documentUploadError'))
+    }
   };
 
   const [isBusinessListVisible, setBusinessListVisible] = useState(false);
@@ -244,8 +340,14 @@ const Documents = () => {
     setSelectedBusiness(null);
   };
 
+  const getStatusTranslation = (status: string) => {
+    return t(`screens:${status}`);
+  };
+
   return (
+    
     <>
+    <GestureHandlerRootView>
       <SafeAreaView
         style={stylesGlobal.scrollBg}
       >
@@ -253,7 +355,7 @@ const Documents = () => {
 
           <TouchableOpacity
             style={styles.uploadArea}
-            onPress={toggleBusinessListModal}
+            onPress={handlePresentModalPress}
           >
             {uploadedDocument ? (
               <Text style={styles.uploadedFileName}>
@@ -264,7 +366,7 @@ const Documents = () => {
                 <Icon
                   name="cloud-upload-outline"
                   size={48}
-                  color="#888"
+                  color="#3238a8"
                 />
                 <Text style={styles.uploadText}>{t('screens:uploadDocument')}</Text>
               </>
@@ -273,8 +375,10 @@ const Documents = () => {
           </TouchableOpacity>
           <View style={styles.listView}>
             <Text style={{
-              color: colors.black,
-              fontWeight: 'bold'
+              color: isDarkMode ?colors.white : colors.black,
+              fontWeight: 'bold',
+              textTransform:'uppercase',
+              paddingBottom:10
             }}>{t('screens:uploadedDocuments')}</Text>
             {
               documents?.map(document => (
@@ -289,7 +393,8 @@ const Documents = () => {
                     />
                   </View>
                   <View>
-                    <Text style={{ color: isDarkMode?colors.white:colors.black }}>{breakTextIntoLines(document?.doc_format, 30)}</Text>
+                    <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{breakTextIntoLines(document?.doc_format, 30)}{' '} ({document?.working_document?.doc_name})</Text>
+                    <Text style={{color:getStatusBackgroundColor(document?.status)}}>{getStatusTranslation(document?.status)}</Text>
                   </View>
                   <TouchableOpacity>
                     <Menu>
@@ -297,14 +402,14 @@ const Documents = () => {
                         <Icon
                           name="ellipsis-horizontal-sharp"
                           size={25}
-                          color={isDarkMode?colors.white:colors.black}
+                          color={isDarkMode ? colors.white : colors.black}
                         />
                       </MenuTrigger>
                       <MenuOptions>
                         <MenuOption onSelect={() => handleDocumentPreview(document?.doc_type, document?.doc_url)} >
-                         <Text style={{color:colors.black}}>{t('screens:preview')}</Text>
-                      </MenuOption>
-                        <MenuOption onSelect={() => alert(`Delete`)} >
+                          <Text style={{ color: colors.black }}>{t('screens:preview')}</Text>
+                        </MenuOption>
+                        <MenuOption onSelect={()=>removeDocument(document?.id)} >
                           <Text style={{ color: 'red' }}>{t('screens:delete')}</Text>
                         </MenuOption>
                       </MenuOptions>
@@ -323,17 +428,39 @@ const Documents = () => {
         </ScrollView>
       </SafeAreaView>
 
-      <UploadBusinessDocumentModal
-        isVisible={isBusinessListVisible}
-        onClose={toggleBusinessListModal}
-        businesses={businesses}
-        regDocs={regDocs}
-        handleDocumentUpload={handleDocumentUpload}
-        uploadingDoc={uploadingDoc}
-        resetModalState={[resetModal, setResetModal]}
-        onSuccess={toggleBusinessListModal}
-      />
+        <BottomSheetModalProvider>
+          <View style={styles.bottomSheetContainer}>
+            <BottomSheetModal
+              ref={bottomSheetModalRef}
+              index={1}
+              snapPoints={snapPoints}
+              onChange={handleSheetChanges}
+            >
+              <BottomSheetScrollView style={styles.bottomSheetContentContainer}>
+              <UploadBusinessDocument
+              businesses={businesses}
+              regDocs={documentForRegister}
+              documentForBusiness={documentForBusiness}
+              handleDocumentUpload={handleDocumentUpload}
+              uploadingDoc={uploadingDoc}
+              resetModalState={[resetModal, setResetModal]}
+              onSuccess={toggleBusinessListModal}
+              errorMessage={message}
+              showToast={showToast}
+              showToastMessage={showToastMessage}
+              toastMessage={toastMessage}
+              toggleToast={toggleToast}
+              setShowToast={setShowToast}
+         />
+                  
+              </BottomSheetScrollView>
+            </BottomSheetModal>
+          </View>
+        </BottomSheetModalProvider>
+
+      </GestureHandlerRootView>
     </>
+
   )
 }
 
@@ -341,7 +468,7 @@ const styles = StyleSheet.create({
 
   uploadArea: {
     alignSelf: 'center',
-    width: '100%',
+    width: '45%',
     height: 150,
     backgroundColor: '#f0f0f0',
     justifyContent: 'center',
@@ -353,15 +480,25 @@ const styles = StyleSheet.create({
   },
   uploadedFileName: {
     fontSize: 16,
-    color:colors.alsoGrey,
+    color: colors.alsoGrey,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 5,
   },
   uploadText: {
     fontSize: 16,
-    color:colors.alsoGrey,
+    color: colors.alsoGrey,
     textAlign: 'center',
+  },
+  bottomSheetContainer: {
+  // flex: 1,
+    zIndex: 1000
+  },
+  bottomSheetContentContainer: {
+    // flex:1,
+    padding: 10,
+    backgroundColor: 'white',
+    borderRadius: 10,
   },
   dottedLine: {
     borderStyle: 'dotted',

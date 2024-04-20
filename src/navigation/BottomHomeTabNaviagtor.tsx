@@ -76,7 +76,7 @@ const tabNavScreenOptions = ({ route }: any) => ({
     return <FontAwesome5 name={iconName as string} size={size} color={color} />;
   },
   tabBarActiveTintColor: colors.secondary,
-  tabBarInactiveTintColor:isDarkMode?colors.white:colors.black,
+  tabBarInactiveTintColor:isDarkMode?colors.white:colors.blackBg,
 });
 
 
@@ -101,8 +101,8 @@ const tabNavScreenOptions = ({ route }: any) => ({
       },
     ];
   
-    if ((user?.provider || user?.employee) && user.status !== 'Active') {
-      // Remove 'Home' and 'Requests' screens if the user's status is not active
+    if ((user?.provider || user?.employee) && user?.status !== 'Active' || user?.provider?.status=='Pending approval' ) {
+     
       return screens.filter(screen => screen.name !== 'Home' && screen.name !== 'Requests');
     }
   

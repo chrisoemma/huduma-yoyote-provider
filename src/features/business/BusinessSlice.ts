@@ -21,8 +21,7 @@ export const getBusinesses = createAsyncThunk(
   export const getDocuments = createAsyncThunk(
     'businesses/getDocuments',
     async ({providerId}:any) => {
-       
-       console.log('documemnyddId',providerId);
+      // console.log('documemnyddId',providerId);
       let header: any = await authHeader();
       const response = await fetch(`${API_URL}/providers/documents/${providerId}`, {
         method: 'GET',
@@ -83,8 +82,7 @@ export const getBusinesses = createAsyncThunk(
   export const createDocument = createAsyncThunk(
     'businesses/createDocument',
     async ({data,providerId}:any) => {
-        console.log('dataaa12345',data)
-        console.log('providerr',providerId)
+     
         
       const response = await fetch(`${API_URL}/providers/documents/${providerId}`, {
         method: 'POST',
@@ -110,6 +108,32 @@ export const getBusinesses = createAsyncThunk(
       return;
     }
   }
+
+
+
+  export const deleteDocument = createAsyncThunk(
+    'businesses/deleteDocument',
+    async ({documentId}:any) => {
+      try {
+       
+        const header: any = await authHeader();
+        const response = await fetch(`${API_URL}/providers/documents/delete_document/${documentId}`, {
+          method: 'DELETE',
+          headers: header,
+        });
+  
+        if (!response.status) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to delete document');
+        }
+  
+        return (await response.json())
+      } catch (error) {
+        throw error;
+      }
+    }
+  );
+
 
 
   export const deleteBusiness = createAsyncThunk(
@@ -269,6 +293,32 @@ export const getBusinesses = createAsyncThunk(
       updateStatus(state, '');
     });
 
+
+
+    //delete document 
+
+    builder.addCase(deleteDocument.pending, (state) => {
+    
+      state.loading = true;
+      updateStatus(state, '');
+    });
+
+    builder.addCase(deleteDocument.fulfilled, (state, action) => {
+
+          
+      const deletedDocumentId = action.payload.data.document.id;
+          
+      state.documents = state.documents.filter((document) => document.id !== deletedDocumentId);
+
+      state.loading = false;
+      updateStatus(state, '');
+    });
+
+    builder.addCase(deleteDocument.rejected, (state, action) => {
+      console.log('Delete Business Rejected');
+      state.loading = false;
+      updateStatus(state, '');
+    });
 
 
        //delete business

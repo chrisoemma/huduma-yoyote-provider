@@ -30,6 +30,19 @@ export const getBestProviders = createAsyncThunk(
   );
 
 
+  export const getProviderDocumentToRegister = createAsyncThunk(
+    'services/getProviderDocumentToRegister',
+    async (id) => {
+      let header: any = await authHeader();
+      const response = await fetch(`${API_URL}/providers/provider_working_documents_by_type/${id}`, {
+        method: 'GET',
+        headers: header,
+      });
+      return (await response.json()) as any;
+    },
+  );
+
+
   export const getProviderSubServices = createAsyncThunk(
     'services/providerServiceInfo',
     async ({providerId,serviceId}) => {
@@ -48,6 +61,8 @@ export const getBestProviders = createAsyncThunk(
       bestProviders: [],
       nearProviders:[],
       subServices:[],
+      documentForRegister:[],
+      documentForBusiness:[],
       providerSubServices:[],
       loading: false,
     },
@@ -112,6 +127,30 @@ export const getBestProviders = createAsyncThunk(
           state.loading = false;
         });
        builder.addCase(getProviderSubServices.rejected, (state, action) => {
+         console.log('Rejected');
+         console.log(action.error);
+ 
+         state.loading = false;
+       });
+
+
+
+       //data 
+
+       builder.addCase(getProviderDocumentToRegister.pending, state => {
+        // console.log('Pending');
+         state.loading = true;
+       });
+       builder.addCase(getProviderDocumentToRegister.fulfilled, (state, action) => {
+  
+          if (action.payload.status) {
+          // state.subServices = action.payload.data.sub_services;
+           state.documentForRegister=action.payload.data.documents.registration;
+           state.documentForBusiness=action.payload.data.documents.business;
+          }
+          state.loading = false;
+        });
+       builder.addCase(getProviderDocumentToRegister.rejected, (state, action) => {
          console.log('Rejected');
          console.log(action.error);
  

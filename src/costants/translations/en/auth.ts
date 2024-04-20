@@ -44,7 +44,20 @@ export default{
     userCreatedSuccessfully:'Initial Registration complete! Verify your phone number with the code sent to you.',
     enterVerificationCode:'Enter verification code',
     businessName:'Business Name',
-    enterBusinessName:'Enter Business Name'
+    enterBusinessName:'Enter Business Name',
+    confirmPassword:'Confirm Password',
+    passwordMismatch:'Password Mismatch',
+    
+    designationError:'Please, Choose your profession',
+    haveOtp:'Have OTP?',
+    checkPhoneNumber:'Check Phone',
+    checkNumber:'Find Number',
+    createAccountPassword:'Create Account Password',
+    accountPasswordCreated:'Account Password created Successfully',
+    businessNameRequired:'Business Name Required',
+    changePassword:'Change Password',
+    nidaEmptyError:'NIDA Number is required',
+    errorValidatingNIDA:'Could not get NIDA check network'
 
    
 }

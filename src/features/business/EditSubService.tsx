@@ -301,6 +301,7 @@ const EditSubService = ({ route, navigation }: any) => {
             }}
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInputField
+              placeholderTextColor={colors.alsoGrey}
                 placeholder={t('screens:enterSubService')}
                 onBlur={onBlur}
                 onChangeText={onChange}
@@ -358,7 +359,7 @@ const EditSubService = ({ route, navigation }: any) => {
           <Text style={[styles.textStyle, { color: isDarkMode ? colors.white : colors.black }]}>{t('screens:UploadImagesVideosOfService')}</Text>
           <View style={styles.imageContainer}>
             <TouchableOpacity onPress={selectImage}>
-              <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:uploadImage')}</Text>
+              <Text style={{ color: isDarkMode ? colors.white : colors.blue }}>{t('screens:uploadImage')}</Text>
             </TouchableOpacity>
 
             {image ? (
@@ -392,9 +393,9 @@ const EditSubService = ({ route, navigation }: any) => {
                     {sub_service !== null ? (
                       <Image source={{ uri: sub_service?.assets[0]?.img_url || sub_service?.default_images[0]?.img_url }} style={styles.docView} />
                     ) : (
-                      <>
-                        <Ionicons name="image" color={isDarkMode ? colors.white : colors.black} size={100} style={{ alignSelf: 'center' }} />
-                      </>
+                      <TouchableOpacity onPress={selectImage}>
+                        <Ionicons name="image" color={isDarkMode ? colors.white : colors.blue} size={100} style={{ alignSelf: 'center' }} />
+                      </TouchableOpacity>
                     )}
                   </>
                 )}
@@ -407,7 +408,7 @@ const EditSubService = ({ route, navigation }: any) => {
 
           <View style={styles.imageContainer}>
             <TouchableOpacity onPress={selectVideo}>
-              <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:uploadVideo')}</Text>
+              <Text style={{ color: isDarkMode ? colors.white : colors.blue }}>{t('screens:uploadVideo')}</Text>
             </TouchableOpacity>
             {video && video[0]?.uri ? (
                   <>
@@ -426,7 +427,9 @@ const EditSubService = ({ route, navigation }: any) => {
                     <VideoPlayer video_url={sub_service?.assets[0]?.video_url || sub_service?.default_images[0]?.video_url} />):(
                       <VideoPlayer video_url={providerSubService?.assets[0]?.video_url} />)}
                    </>):(
-                    <Ionicons name="videocam-outline" color={isDarkMode ? colors.white : colors.black} size={100} style={{ alignSelf: 'center' }} />
+                    <TouchableOpacity onPress={selectVideo}>
+                    <Ionicons name="videocam-outline" color={isDarkMode ? colors.white : colors.blue} size={100} style={{ alignSelf: 'center' }} />
+                    </TouchableOpacity>
                    )}
                 </>)
 

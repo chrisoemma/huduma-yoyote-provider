@@ -1,24 +1,30 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors } from '../utils/colors';
 
-const Notification = ({ message, type }:any) => {
+const Notification = ({ message, type, duration = 30000, allowClose = true, autoDismiss = true, height, textSize }: any) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-    }, 50000); // Adjust the duration as needed
+    let timer: NodeJS.Timeout;
 
-    return () => clearTimeout(timer);
-  }, []);
+    if (autoDismiss) {
+      timer = setTimeout(() => {
+        setIsVisible(false);
+      }, duration);
+    }
+
+    return () => {
+      if (autoDismiss) {
+        clearTimeout(timer);
+      }
+    };
+  }, [autoDismiss, duration]);
 
   const getBackgroundColor = () => {
     switch (type) {
       case 'warning':
-        return  'orange';
+        return 'orange';
       case 'info':
         return '#3495eb';
       case 'danger':
@@ -34,13 +40,27 @@ const Notification = ({ message, type }:any) => {
     setIsVisible(false);
   };
 
+  const containerStyle = [
+    styles.container,
+    { backgroundColor: getBackgroundColor() },
+    height && { height },
+  ];
+
+  const textStyle = [
+    styles.message,
+    { fontSize: textSize || 15 },
+    {lineHeight:textSize<20 ?20 :40}
+  ];
+
   return (
     isVisible && (
-      <View style={[styles.container, { backgroundColor: getBackgroundColor() }]}>
-        <Text style={styles.message}>{message}</Text>
-        <TouchableOpacity onPress={closeNotification} style={styles.closeButton}>
-          <Text style={styles.closeButtonText}>X</Text>
-        </TouchableOpacity>
+      <View style={containerStyle}>
+        <Text style={textStyle}>{message}</Text>
+        {allowClose && (
+          <TouchableOpacity onPress={closeNotification} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>X</Text>
+          </TouchableOpacity>
+        )}
       </View>
     )
   );
@@ -52,14 +72,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     margin: 10,
     flexDirection: 'row',
-    alignContent:'center',
-    alignItems:'center'
+    alignItems: 'center',
   },
   message: {
     color: 'white',
-    fontSize:15,
     flex: 1,
-    alignSelf:'center'
   },
   closeButton: {
     marginLeft: 8,

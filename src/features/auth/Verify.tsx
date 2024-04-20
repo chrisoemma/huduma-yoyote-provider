@@ -29,7 +29,7 @@ const VerifyScreen = ({route, navigation}: any) => {
 
   const dispatch = useAppDispatch();
   const [message, setMessage] = useState('');
-  const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
+  const [verificationCode, setVerificationCode] = useState(['', '', '', '']);
 
 
   useEffect(() => {
@@ -37,7 +37,7 @@ const VerifyScreen = ({route, navigation}: any) => {
   }, [user]);
 
 
-  const inputs = Array(6).fill(0).map((_, i) => React.createRef());
+  const inputs = Array(4).fill(0).map((_, i) => React.createRef());
 
   const handleVerificationCodeChange = (index, value) => {
    
@@ -46,7 +46,7 @@ const VerifyScreen = ({route, navigation}: any) => {
     setVerificationCode(newVerificationCode);
   
     // Move focus to the next input if there is a value and the next input exists
-    if (value !== '' && index < 5 && inputs[index + 1]) {
+    if (value !== '' && index < 3 && inputs[index + 1]) {
       inputs[index + 1].current.focus();
     }
   };
@@ -64,7 +64,7 @@ const VerifyScreen = ({route, navigation}: any) => {
 
   const onSubmit =async () => {
 
-    if (numericCode.toString().length === 6) {
+    if (numericCode.toString().length === 4) {
     if (nextPage === 'PasswordReset') {
       
        const  {phone}=route?.params;
@@ -74,6 +74,16 @@ const VerifyScreen = ({route, navigation}: any) => {
         }else{
           setDisappearMessage(result.message); 
         }
+    }else if(nextPage === 'CreateNewPassword'){
+
+      const  {phone}=route?.params;
+      const result= await dispatch(userVerify({phone:phone, code:numericCode,app_type:'provider'})).unwrap();
+         if(result.status){
+           navigation.navigate('CreateNewPassword', {verificationCode: numericCode,phone:phone});
+         }else{
+           setDisappearMessage(result.message); 
+         }
+      
     } else {
       dispatch(userVerify({user_id: user.id, code:numericCode,app_type:'provider'}));
     }

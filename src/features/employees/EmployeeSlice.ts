@@ -123,9 +123,7 @@ const EmployeeSlice = createSlice({
             state.loading = true;
         });
         builder.addCase(getEmployees.fulfilled, (state, action) => {
-            console.log('Fulfilled case111', action.payload);
-
-
+       
             if (action.payload.status) {
                 state.employees = action.payload.data.employees;
             }

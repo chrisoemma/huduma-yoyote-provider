@@ -2,10 +2,8 @@ import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-//import BottomTabNavigator from './BottomTabNavigator';
 import {globalStyles} from '../styles/global';
 import CustomDrawerContent from './CustomDrawerContent';
-import Home from '../features/home/Home';
 import BottomHomeTabNavigator from './BottomHomeTabNaviagtor';
 import { colors } from '../utils/colors';
 import Icon from 'react-native-vector-icons/FontAwesome6';
@@ -56,17 +54,18 @@ const DrawerNavigator=()=>{
   
     headerTitle: () => (
       <Image
-        source={isDarkMode? require('./../../assets/images/logo-white.png'): require('./../../assets/images/logo.png')}
+        source={require('./../../assets/images/logo-white.png')}
         style={globalStyles().horizontalLogo}
       />
     ),
     headerLeft: () => <CustomHeaderToggle />,
     headerTitleAlign: 'center',
     headerStyle: {
-      backgroundColor: colors.primary,
+      backgroundColor: colors.secondary,
+      height:65
     },
     drawerStyle: {
-      backgroundColor: isDarkMode ? colors.black : colors.whiteBackground,
+      backgroundColor: isDarkMode ? colors.blackBg : colors.whiteBackground,
       width:'60%',
     },
   };

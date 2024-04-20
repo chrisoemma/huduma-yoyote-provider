@@ -1,19 +1,12 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
-import { transformDataToDropdownOptions } from '../utils/utilts';
-import { colors } from '../utils/colors';
+import React from 'react';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, Image, TouchableWithoutFeedback } from 'react-native';
 import Pdf from 'react-native-pdf';
+import { useTranslation } from 'react-i18next';
 import { globalStyles } from '../styles/global';
 
-const PreviewDocumentModel = ({ isVisible, onClose,previewType,previewSource }:any) => {
-
-
+const PreviewDocumentModel = ({ isVisible, onClose, previewType, previewSource }) => {
     const { t } = useTranslation();
-
-    const stylesGlobal=globalStyles();
-  
+    const stylesGlobal = globalStyles();
 
     return (
         <Modal
@@ -22,32 +15,31 @@ const PreviewDocumentModel = ({ isVisible, onClose,previewType,previewSource }:a
             visible={isVisible}
             onRequestClose={onClose}
         >
-            <View style={styles.modalContainer}>
-                <View style={styles.modalContent}>
-                    <Text style={styles.modalTitle}>{t('screens:previewFile')}</Text>
-                    <View style={styles.marginDropdown}>
-                    {previewType === 'image/jpeg' && (
-            <Image
-              source={{ uri: previewSource }}
-              style={{ width: '100%', height: '80%' }}
-            />
-          )}
-          {previewType === 'application/pdf' && (
-            <Pdf source={{ uri: previewSource }} style={stylesGlobal.pdf}
-            maxScale={3}
-          />
-           
-          )}
-                    </View>
-                    <View style={{flexDirection:'row',justifyContent:'space-between'}}>
-                   
-                    <TouchableOpacity onPress={onClose}>
-                        <Text style={styles.closeButton}>{t('screens:close')}</Text>
-                    </TouchableOpacity>
-                   
-                    </View>
+            <TouchableWithoutFeedback onPress={onClose}>
+                <View style={styles.modalContainer}>
+                    <TouchableWithoutFeedback>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>{t('screens:previewFile')}</Text>
+                            <View style={styles.marginDropdown}>
+                                {previewType === 'image/jpeg' && (
+                                    <Image
+                                        source={{ uri: previewSource }}
+                                        style={{ width: '100%', height: '80%' }}
+                                    />
+                                )}
+                                {previewType === 'application/pdf' && (
+                                    <Pdf source={{ uri: previewSource }} style={stylesGlobal.pdf} maxScale={3} />
+                                )}
+                            </View>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <TouchableOpacity onPress={onClose}>
+                                    <Text style={styles.closeButton}>{t('screens:close')}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </TouchableWithoutFeedback>
                 </View>
-            </View>
+            </TouchableWithoutFeedback>
         </Modal>
     );
 };

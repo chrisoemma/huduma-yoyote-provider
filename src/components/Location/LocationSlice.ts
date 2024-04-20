@@ -54,12 +54,46 @@ export const getPlacesByWard = createAsyncThunk(
 );
 
 
+//
+
+export const getRequestLastLocation = createAsyncThunk(
+  'locations/getRequestLastLocation',
+  async (id) => {
+    let header: any = await authHeader();
+    const response = await fetch(`${API_URL}/requests/last_location/${id}`, {
+      method: 'GET',
+      headers: header,
+    });
+    return (await response.json()) as any;
+  },
+);
+
+export const postProviderLocation = createAsyncThunk(
+  'locations/postProviderLocation',
+  async ({providerId, data}: any) => {
+      const response = await fetch(`${API_URL}/providers/location_update/${providerId}`, {
+          method: 'POST',
+          headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+      });
+      return (await response.json());
+  },
+);
+
+
 const LocationSlice = createSlice({
   name: 'locations',
   initialState: {
     regions: [],
+    loading:false,
     regionsLoading: false,
     places: [],
+    requestLastLocation:{},
+    providerCoordinates:{},
+    employeeCoordinates:{},
     placesLoading: false,
     wards: [],
     wardsLoading: false,
@@ -72,6 +106,27 @@ const LocationSlice = createSlice({
     },
   },
   extraReducers: builder => {
+
+
+    //last locations
+    builder.addCase(getRequestLastLocation.pending, state => {
+      // console.log('Pending');
+       state.loading = true;
+     });
+     builder.addCase(getRequestLastLocation.fulfilled, (state, action) => {
+     // console.log('Fulfilled case');
+      // console.log(action.payload);
+       if (action.payload.status) {
+         state.requestLastLocation = action.payload.data;
+       }
+       state.loading = false;
+     });
+     builder.addCase(getRequestLastLocation.rejected, (state, action) => {
+       console.log('Rejected');
+       console.log(action.error);
+
+       state.loading = false;
+     });
 
     //get regions
     builder.addCase(getRegions.pending, state => {
@@ -131,7 +186,23 @@ const LocationSlice = createSlice({
       state.placesLoading = false;
     });
 
+     //
 
+     builder.addCase(postProviderLocation.pending, state => {
+      state.loading = true;
+    });
+    builder.addCase(postProviderLocation.fulfilled, (state, action) => {
+
+      if (action.payload.status) {
+        state.providerCoordinates = action.payload.data.provider_location;
+      }
+      state.loading = false;
+    });
+    builder.addCase(postProviderLocation.rejected, (state, action) => {
+      console.log('Rejected');
+      console.log(action.error);
+      state.loading = false;
+    });
   },
 });
 

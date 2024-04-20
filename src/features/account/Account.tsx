@@ -1,8 +1,9 @@
-import { View, Text, SafeAreaView, Image, StyleSheet, Alert, TouchableOpacity, ActivityIndicator, PermissionsAndroid, ToastAndroid } from 'react-native'
+import { View, Text, SafeAreaView, Image, StyleSheet, Alert, TouchableOpacity, ActivityIndicator, PermissionsAndroid, ToastAndroid, ScrollView } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { globalStyles } from '../../styles/global'
 import { colors } from '../../utils/colors'
 import Icon from 'react-native-vector-icons/AntDesign';
+import Iconions from 'react-native-vector-icons/Ionicons';
 import Divider from '../../components/Divider';
 import { breakTextIntoLines, getLocationName, makePhoneCall } from '../../utils/utilts';
 import { useTranslation } from 'react-i18next';
@@ -11,18 +12,23 @@ import { firebase } from '@react-native-firebase/storage';
 import RNFS from 'react-native-fs';
 import { updateProfile, userLogout } from '../auth/userSlice';
 import DocumentPicker, { types } from 'react-native-document-picker'
+import Notification from '../../components/Notification';
 
 const Account = ({ navigation }: any) => {
 
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
-  const { loading, user } = useSelector(
+  const { loading, user,residence } = useSelector(
     (state: RootStateOrAny) => state.user,
   );
 
   const { isDarkMode } = useSelector(
     (state: RootStateOrAny) => state.theme,
+  );
+
+  const { selectedLanguage } = useSelector(
+    (state: RootStateOrAny) => state.language,
   );
 
 
@@ -58,25 +64,31 @@ const Account = ({ navigation }: any) => {
     }, 5000);
   };
 
-
-  const stylesGlobal=globalStyles();
+  const stylesGlobal = globalStyles();
 
   const [locationName, setLocationName] = useState(null);
+  const [workingLocation,setWorkingLocation]=useState(null)
+  
   useEffect(() => {
 
-    const latitudeData = user.provider? user?.provider?.latitude:user.employee.latitude
-    const longitudeData = user.provider? user?.provider?.longitude:user.employee.longitude;
+    const latitudeData = user?.provider ? user?.provider?.latitude : user?.employee?.latitude
+    const longitudeData = user?.provider ? user?.provider?.longitude : user?.employee?.longitude;
 
+    setWorkingLocation({latitude:latitudeData,longitude:longitudeData});
     getLocationName(latitudeData, longitudeData)
       .then((locationName) => {
         setLocationName(locationName);
-        console.log('Location Name:', locationName);
+        
       })
       .catch((error) => {
         console.error('Error:', error);
       });
-  }, [locationName]);
+  }, [user?.provider?.latitude,user?.provider?.longitude,user?.employee?.latitude,user?.employee?.longitude]);
 
+
+
+
+  
   const confirmLogout = () =>
     Alert.alert(`${t('screens:logout')}`, `${t('screens:areYouSureLogout')}`, [
       {
@@ -91,6 +103,9 @@ const Account = ({ navigation }: any) => {
         },
       },
     ]);
+
+
+  
 
   const getPathForFirebaseStorage = async (uri: any) => {
 
@@ -171,55 +186,74 @@ const Account = ({ navigation }: any) => {
     <SafeAreaView
       style={stylesGlobal.scrollBg}
     >
+      <ScrollView contentInsetAdjustmentBehavior="automatic">
       <View style={stylesGlobal.appView}>
 
-        <View style={styles.btnView}>
-          {profile == null ? (<View />) : (
-            <TouchableOpacity
-              onPress={handleSaveProfilePicture}
-              style={styles.picture_save}
-              disabled={loading || uploadingPic} // Disable the button when loading or uploadingPic is true
-            >
-              {loading || uploadingPic ? (
-                // Render loader when loading or uploadingPic is true
-                <View style={{ flexDirection: 'row' }}>
-                  <Text style={{ marginHorizontal: 3, color: isDarkMode ? colors.black : colors.white }}>
-                    {t('screens:uploding')}
+        {(user?.provider || user?.employee) && user.status == 'Pending' ? (<Notification
+          message={`${t('screens:accountPendingActivation')}`}
+          type="info"
+        />) : (<View />)}
+
+        {user.status == 'Active' && user?.provider?.status=='Pending approval' ? (<Notification
+          message={`${t('screens:reregitrationProvider')}`}
+          type="info"
+        />) : (<View />)}
+
+        {user.status == 'In Active' ? (<Notification
+          message={`${t('screens:accountDeactivated')}`}
+          type="danger"
+        />) : (<View />)}
+
+
+        {(user?.provider || user?.employee) && user?.status !== 'In Active' ? (
+          <View style={styles.btnView}>
+            {profile == null ? (<View />) : (
+              <TouchableOpacity
+                onPress={handleSaveProfilePicture}
+                style={styles.picture_save}
+                disabled={loading || uploadingPic} // Disable the button when loading or uploadingPic is true
+              >
+                {loading || uploadingPic ? (
+                  // Render loader when loading or uploadingPic is true
+                  <View style={{ flexDirection: 'row' }}>
+                    <Text style={{ marginHorizontal: 3, color: isDarkMode ? colors.black : colors.white }}>
+                      {t('screens:uploding')}
+                    </Text>
+                    <ActivityIndicator size="small" color={colors.white} />
+                  </View>
+                ) : (
+
+                  <Text style={{
+                    paddingVertical: 3,
+                    paddingHorizontal: 6,
+                    color: colors.white
+                  }}>
+                    {t('screens:updatePicture')}
                   </Text>
-                  <ActivityIndicator size="small" color={colors.white} />
-                </View>
-              ) : (
+                )}
+              </TouchableOpacity>
+            )}
 
-                <Text style={{
-                  paddingVertical: 3,
-                  paddingHorizontal: 6,
-                  color: colors.white
-                }}>
-                  {t('screens:updatePicture')}
-                </Text>
-              )}
+            <TouchableOpacity style={{ marginRight: 10, alignSelf: 'flex-end' }}
+              onPress={() => {
+                if (user.provider)
+                  navigation.navigate('Edit Account', {
+                    provider: user?.provider
+                  })
+                else
+                  navigation.navigate('Edit Account', {
+                    employee: user?.employee
+                  })
+              }}
+            >
+              <Icon
+                name="edit"
+                color={isDarkMode ? colors.white : colors.black}
+                size={25}
+              />
             </TouchableOpacity>
-          )}
-
-          <TouchableOpacity style={{ marginRight: 10, alignSelf: 'flex-end' }}
-            onPress={() => {
-               if(user.provider)
-              navigation.navigate('Edit Account', {
-                provider: user?.provider
-              })
-              else
-              navigation.navigate('Edit Account', {
-                employee: user?.employee
-              })
-            }}
-          >
-            <Icon
-              name="edit"
-              color={isDarkMode ? colors.white : colors.black}
-              size={25}
-            />
-          </TouchableOpacity>
-        </View>
+          </View>
+        ) : (<View />)}
 
         <View style={[stylesGlobal.circle, { backgroundColor: colors.white, marginTop: 15, alignContent: 'center', justifyContent: 'center' }]}>
           <Image
@@ -236,15 +270,45 @@ const Account = ({ navigation }: any) => {
             <Icon
               name="camera"
               size={23}
-              color={isDarkMode ? colors.white : colors.black}
+              color={colors.white }
               style={styles.camera}
             />
           </TouchableOpacity>
         </View>
-        <Text style={{ color: isDarkMode ? colors.white : colors.secondary, fontWeight: 'bold', alignSelf: 'center' }}>{user.name}</Text>
+        <Text style={{ color: isDarkMode ? colors.white : colors.secondary, fontWeight: 'bold', alignSelf: 'center' }}>{user?.name}</Text>
 
-        <View>
-          <TouchableOpacity style={{ flexDirection: 'row', margin: 10 }}
+        <View style={{marginLeft:10}}>
+        
+          {user?.provider ? (
+          <>
+          <Text style={{color: isDarkMode ? colors.white : colors.black,fontWeight:'bold'}}>{t('screens:business')}</Text>
+           <TouchableOpacity style={{ flexDirection: 'row', marginBottom: 10 }}
+             onPress={()=>{}}
+          >
+            <Iconions
+              name="business-sharp"
+              color={isDarkMode ? colors.white : colors.black}
+              size={25}
+            />
+            <Text style={{ paddingHorizontal: 10, color: isDarkMode ? colors.white : colors.alsoGrey }}>{user?.provider?.business_name}</Text>
+          </TouchableOpacity>
+          <Text style={{color: isDarkMode ? colors.white : colors.black,fontWeight:'bold'}}>{t('screens:profession')}</Text>
+          <TouchableOpacity style={{ flexDirection: 'row', marginBottom: 10 }}
+             onPress={()=>{}}
+          >
+            
+            <Icon
+              name="idcard"
+              color={isDarkMode ? colors.white : colors.black}
+              size={25}
+            />
+            <Text style={{ paddingHorizontal: 10, color: isDarkMode ? colors.white : colors.alsoGrey }}>{selectedLanguage =='en'?user?.provider?.designation?.name?.en:user?.provider?.designation?.name?.sw}</Text>
+          </TouchableOpacity>
+          </>) :(<></>)
+
+          }
+          <Text style={{color: isDarkMode ? colors.white : colors.black,fontWeight:'bold'}}>{t('auth:phone')}</Text>
+          <TouchableOpacity style={{ flexDirection: 'row', marginBottom: 10 }}
             onPress={() => makePhoneCall(phoneNumber)}
           >
             <Icon
@@ -254,46 +318,87 @@ const Account = ({ navigation }: any) => {
             />
             <Text style={{ paddingHorizontal: 10, color: isDarkMode ? colors.white : colors.secondary }}>{user.phone}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={{ flexDirection: 'row', marginHorizontal: 10 }}>
+          <Text style={{color: isDarkMode ? colors.white : colors.black,fontWeight:'bold'}}>{t('auth:email')}:</Text>
+          <TouchableOpacity style={{ flexDirection: 'row', marginBottom: 10 }}>
             <Icon
               name="mail"
               color={isDarkMode ? colors.white : colors.black}
               size={25}
             />
-            <Text style={{ paddingLeft: 10, color: isDarkMode ? colors.white : colors.secondary }}>{user.email}</Text>
+            {user?.email==null?(<Text  style={{color: isDarkMode ? colors.white : colors.alsoGrey}}> {t('screens:noEmail')}</Text>):(<Text style={{ paddingLeft: 10, color: isDarkMode ? colors.white : colors.black }}>{user?.email}</Text>)
+            }
           </TouchableOpacity>
-          <TouchableOpacity style={{ flexDirection: 'row', marginHorizontal: 10, marginTop: 5 }}>
+          <Text style={{ color: isDarkMode ? colors.white : colors.black, fontWeight: 'bold' }}>{t('screens:officeLocation')}</Text>
+          <TouchableOpacity style={{ flexDirection: 'row', marginBottom: 10 }}>
             <Icon
               name="enviroment"
               color={isDarkMode ? colors.white : colors.black}
               size={25}
             />
             {
-              locationName == null ? (<View />) : (<Text style={{ paddingLeft: 10, color: isDarkMode ? colors.white : colors.black }}>{breakTextIntoLines(locationName, 20)}</Text>)
+              workingLocation == null ? (<Text style={{ color: isDarkMode ? colors.white : colors.alsoGrey }}> {t('screens:noresidenceData')}</Text>) : (<Text style={{ paddingLeft: 10, color: isDarkMode ? colors.white : colors.black }}>{breakTextIntoLines(locationName, 20)}</Text>)
             }
 
           </TouchableOpacity>
-        </View>
-        {user.provider ? (
-            <TouchableOpacity
-              onPress={() => {
-                navigation.navigate('My Documents', {
-                  provider: user?.provider
-                })
-              }}
-              style={{
-                alignSelf: 'center',
-                marginLeft: '40%',
-                backgroundColor: colors.alsoLightGrey,
 
-              }}>
-              <Text style={{
-                padding: 5,
-                color: colors.black,
-                fontWeight: 'bold'
-              }}>{t('screens:myDocuments')}</Text>
-            </TouchableOpacity>
-          ) : (<View />)}
+          {user?.provider ? (
+            <>
+                      <Text style={{ color: isDarkMode ? colors.white : colors.black, fontWeight: 'bold' }}>{t('screens:residentialLocation')}</Text>
+          <TouchableOpacity style={{ flexDirection: 'row',marginBottom:10}}>
+            <Icon
+              name="enviroment"
+              color={isDarkMode ? colors.white : colors.black}
+              size={25}
+            />
+  {
+   (residence === null || Object.keys(residence || {}).length === 0) ? 
+    // If residence is undefined or its length is less than 1
+    (<Text>{t('screens:noresidenceData')}</Text>) : 
+    // Otherwise, display the residence details
+    (
+      <Text style={{ paddingLeft: 10, color: isDarkMode ? colors.white : colors.black }}>
+        {breakTextIntoLines(
+          `${residence?.region?.region_name}, ${residence?.district?.district_name}, ${residence?.ward?.ward_name}, ${residence?.area?.place_name}`,
+          20
+        )}
+      </Text>
+    )
+}
+
+          </TouchableOpacity>
+               <Text style={{color: isDarkMode ? colors.white : colors.black,fontWeight:'bold'}}>{t('auth:nida')}</Text>
+
+               <TouchableOpacity style={{ flexDirection: 'row' }}
+               >
+                 <Icon
+                   name="infocirlce"
+                   color={isDarkMode ? colors.white : colors.black}
+                   size={25}
+                 />
+                  <Text style={{color: isDarkMode ? colors.white : colors.black }}>{user?.nida}</Text>
+               </TouchableOpacity>
+               </>
+          ):(<></>)}
+        </View>
+        {user?.provider ? (
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate('My Documents', {
+                provider: user?.provider
+              })
+            }}
+            style={{
+              alignSelf:'flex-end',
+              backgroundColor: colors.alsoLightGrey,
+
+            }}>
+            <Text style={{
+              padding: 5,
+              color: colors.black,
+              fontWeight: 'bold'
+            }}>{t('screens:myDocuments')}</Text>
+          </TouchableOpacity>
+        ) : (<View />)}
         <View style={{ marginVertical: 20 }}>
           <Divider />
         </View>
@@ -308,7 +413,7 @@ const Account = ({ navigation }: any) => {
           <Text style={{ paddingLeft: 10, fontWeight: 'bold', color: isDarkMode ? colors.white : colors.secondary }}>{t('screens:changePassword')}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={{ flexDirection: 'row', marginHorizontal: 10, marginTop: 10 }}
+        <TouchableOpacity style={{ flexDirection: 'row', marginHorizontal: 10, marginTop: 10,marginBottom:'30%' }}
           onPress={() => {
             confirmLogout();
           }}
@@ -322,6 +427,7 @@ const Account = ({ navigation }: any) => {
         </TouchableOpacity>
 
       </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }

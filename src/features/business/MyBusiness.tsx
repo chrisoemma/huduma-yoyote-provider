@@ -67,11 +67,13 @@ const MyBusiness = ({navigation }: any) => {
                 />
             </View>
              </View>
+
+               {user.provider && user.status!=='In Active'?(
             <FloatBtn
                     onPress={() => { navigation.navigate('Add Business') }
                     }
                     iconType='add'
-                />
+                />):(<View />)}
         </View>
     )
 }

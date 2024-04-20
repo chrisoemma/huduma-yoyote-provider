@@ -34,11 +34,11 @@ const ForgotPasswordScreen = ({route, navigation}: any) => {
     console.log(user);
   }, [user]);
 
-  useEffect(() => {
-    if (status !== '') {
-      setMessage(status);
-    }
-  }, [status]);
+  // useEffect(() => {
+  //   if (status !== '') {
+  //     setMessage(status);
+  //   }
+  // }, [status]);
 
   const {
     control,

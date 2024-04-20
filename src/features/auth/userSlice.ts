@@ -88,12 +88,11 @@ export const updateProfile = createAsyncThunk(
 );
 
 
-
 export const updateProviderInfo = createAsyncThunk(
   'users/updateProviderInfo',
   async ({data, userType,userId }: any) => {
     try {
-      console.log('provider', userId);
+      
       const response = await fetch(`${API_URL}/users/update_account/${userType}/${userId}`, {
         method: 'PUT',
         headers: {
@@ -135,6 +134,23 @@ export const userRegiter = createAsyncThunk(
   },
 );
 
+
+export const multiRegister = createAsyncThunk(
+  'users/multiRegister',
+  async ({data,userId}) => {
+     
+    const response = await fetch(`${API_URL}/auth/multiaccount_register/${userId}`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    return (await response.json()) as UserData;
+  },
+);
+
 export const userVerify = createAsyncThunk(
   'users/userVerify',
   async (data: PhoneVerificationDTO) => {
@@ -165,10 +181,43 @@ export const forgotPassword = createAsyncThunk(
   },
 );
 
+
+
+export const findNumber = createAsyncThunk(
+  'users/findNumber',
+  async (data: findNumberDTO) => {
+    const response = await fetch(`${API_URL}/auth/find_number`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    return (await response.json()) as any;
+  },
+);
+
 export const resetPassword = createAsyncThunk(
   'users/resetPassword',
   async (data: ResetPasswordDTO) => {
     const response = await fetch(`${API_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    return (await response.json()) as UserData;
+  },
+);
+
+
+export const createAccountPassword = createAsyncThunk(
+  'users/createAccountPassword',
+  async (data: createAccountPasswordDTO) => {
+    const response = await fetch(`${API_URL}/auth/create-account-password`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -221,6 +270,7 @@ const userSlice = createSlice({
   initialState: {
     user: {} as UserData,
     config: {},
+    residence:{},
     loading: false,
     isFirstTimeUser:true,
     status: '',
@@ -244,12 +294,14 @@ const userSlice = createSlice({
       state.loading = true;
     });
     builder.addCase(userLogin.fulfilled, (state, action) => {
-      console.log('Fulfilled case');
-      console.log('payload dataaaa',action.payload.user);
+    //  console.log('Fulfilled case');
+     // console.log('payload dataaaa',action.payload.user);
 
+      
       if (action.payload.status) {
         state.user = action.payload.user as any;
         state.user.token = action.payload.token;
+        state.residence=action.payload.location;
         state.config = action.payload.config;
         AsyncStorage.setItem('token', action.payload.token);
         updateStatus(state, '');
@@ -288,6 +340,37 @@ const userSlice = createSlice({
       }
     });
     builder.addCase(userRegiter.rejected, (state, action) => {
+      console.log('Rejected');
+      console.log(action.error);
+      state.loading = false;
+      updateStatus(state, '');
+    });
+
+
+
+    //multi account 
+
+
+    builder.addCase(multiRegister.pending, state => {
+      console.log('Pending');
+      state.loading = true;
+      updateStatus(state, '');
+    });
+    builder.addCase(multiRegister.fulfilled, (state, action) => {
+
+      state.loading = false;
+      updateStatus(state, '');
+
+      if (action.payload.status) {
+        state.user = action.payload.user as any;
+        state.user.token = action.payload.token;
+        AsyncStorage.setItem('token', action.payload.token);
+        updateStatus(state, '');
+      } else {
+        updateStatus(state, action.payload);
+      }
+    });
+    builder.addCase(multiRegister.rejected, (state, action) => {
       console.log('Rejected');
       console.log(action.error);
       state.loading = false;
@@ -376,6 +459,37 @@ const userSlice = createSlice({
     });
 
 
+
+
+    //create Account Password
+
+    builder.addCase(createAccountPassword.pending, state => {
+      console.log('Pending');
+      state.loading = true;
+      updateStatus(state, '');
+    });
+    builder.addCase(createAccountPassword.fulfilled, (state, action) => {
+      console.log('Fulfilled case');
+      console.log(action.payload);
+
+      state.loading = false;
+      updateStatus(state, '');
+
+      if (action.payload.status) {
+        state.user = action.payload.user as any;
+        updateStatus(state, '');
+      } else {
+        updateStatus(state, action.payload);
+      }
+    });
+    builder.addCase(createAccountPassword.rejected, (state, action) => {
+      console.log('Rejected');
+      console.log(action.error);
+      state.loading = false;
+      updateStatus(state, '');
+    });
+
+
     //Change password
 
     builder.addCase(changePassword.pending, state => {
@@ -410,13 +524,16 @@ const userSlice = createSlice({
       updateStatus(state, '');
     });
     builder.addCase(updateProviderInfo.fulfilled, (state, action) => {
-      console.log('Update Task Fulfilled');
-      console.log('dataaa1234556', action.payload.data)
-
       state.user = {
         ...state.user,
         ...action.payload.data.user,
       };
+
+      state.residence={
+       ...state.residence,
+       ...action.payload.data.location
+      
+      }
 
       // Update token if it's received in the response
       if (action.payload.data.token) {
@@ -460,6 +577,36 @@ const userSlice = createSlice({
     });
     builder.addCase(updateProfile.rejected, (state, action) => {
       console.log('Rejected');
+      state.loading = false;
+      updateStatus(state, '');
+    });
+
+
+
+    //findNumber
+
+    builder.addCase(findNumber.pending, state => {
+      console.log('Pending');
+      state.loading = true;
+      updateStatus(state, '');
+    });
+    builder.addCase(findNumber.fulfilled, (state, action) => {
+      console.log('Fulfilled case');
+      console.log(action.payload);
+
+      state.loading = false;
+      updateStatus(state, '');
+
+      if (action.payload.status) {
+        state.user = action.payload.user;
+        updateStatus(state, '');
+      } else {
+        updateStatus(state, action.payload);
+      }
+    });
+    builder.addCase(findNumber.rejected, (state, action) => {
+      console.log('Rejected');
+      console.log(action.error);
       state.loading = false;
       updateStatus(state, '');
     });

@@ -5,9 +5,10 @@ import {
   Text,
   View,
   TextInput,
-  TouchableOpacity,
-  Image,
   ToastAndroid,
+  ActivityIndicator,
+  Dimensions,
+  Platform,
 } from 'react-native';
 
 
@@ -16,7 +17,6 @@ import { RootStateOrAny, useSelector } from 'react-redux';
 import { globalStyles } from '../../styles/global';
 import PhoneInput from 'react-native-phone-number-input';
 import { colors } from '../../utils/colors';
-import { Container } from '../../components/Container';
 import { BasicView } from '../../components/BasicView';
 import { TextInputField } from '../../components/TextInputField';
 import { useAppDispatch } from '../../app/store';
@@ -26,21 +26,26 @@ import { useTranslation } from 'react-i18next';
 import { updateProviderInfo } from '../auth/userSlice';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { PLACES_API_KEY } from '../../utils/config';
-import { formatErrorMessages, showErrorWithLineBreaks, validateNIDANumber, validateTanzanianPhoneNumber } from '../../utils/utilts';
+import { formatErrorMessages, showErrorWithLineBreaks, transformDataToDropdownOptions, validateNIDANumber, validateTanzanianPhoneNumber } from '../../utils/utilts';
 import Location from '../../components/Location';
 import Modal from 'react-native-modal';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import GooglePlacesInput from '../../components/GooglePlacesInput';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { getProfessions } from '../professionsSlice';
+import ToastMessage from '../../components/ToastMessage';
 
 const EditAccount = ({
   route,
   navigation,
-  accountData
+
 }: any) => {
+
+  const WIDTH = Dimensions.get("window").width;
 
 
   const dispatch = useAppDispatch();
-  const { user, loading, status } = useSelector(
+  const { user, residence, loading, status } = useSelector(
     (state: RootStateOrAny) => state.user,
   );
 
@@ -56,13 +61,21 @@ const EditAccount = ({
     (state: RootStateOrAny) => state.theme,
   );
 
+  const { professions, profesionsLoading } = useSelector(
+    (state: RootStateOrAny) => state.professions,
+  );
+   
+  const { selectedLanguage } = useSelector(
+    (state: RootStateOrAny) => state.language,
+  );
+
   const { provider, employee } = route.params
 
-  const [birthdate, setBirthdate] = useState(new Date());
+  const [birthdate, setBirthdate] = useState(null);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [selectedYear, setSelectedYear] = useState(birthdate.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(birthdate.getMonth() + 1);
-  const [selectedDay, setSelectedDay] = useState(birthdate.getDate());
+  const [selectedYear, setSelectedYear] = useState(birthdate?.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(birthdate?.getMonth() + 1);
+  const [selectedDay, setSelectedDay] = useState(birthdate?.getDate());
   const [nidaError, setNidaError] = useState('');
 
   const [regionValue, setRegionValue] = useState(null);
@@ -70,6 +83,12 @@ const EditAccount = ({
   const [wardValue, setWardValue] = useState(null);
   const [streetValue, setStreetValue] = useState(null);
   const [nidaLoading, setNidaLoading] = useState(false)
+  const [open, setOpen] = useState(false);
+  const [DropDownvalue, setDropDownValue] = useState([])
+  const [designationError, setDesignationError] = useState('')
+  const [workingLocation,setWorkingLocation]=useState(null)
+
+  const [gLocation, setGLocation] = useState({})
   // const [streetInputValue,setStreetInputValue]=useState(null);
 
   const showDatePicker = () => {
@@ -83,13 +102,21 @@ const EditAccount = ({
   const stylesGlobal = globalStyles();
 
   const handleConfirm = (date) => {
+
     setBirthdate(date);
-    setSelectedYear(date.getFullYear());
-    setSelectedMonth(date.getMonth() + 1);
-    setSelectedDay(date.getDate());
+    setSelectedYear(date?.getFullYear());
+    setSelectedMonth(date?.getMonth() + 1);
+    setSelectedDay(date?.getDate());
     hideDatePicker();
   };
 
+    
+  useEffect(() => {
+    if(user?.provider){
+    dispatch(getProfessions({ language: selectedLanguage }));
+  }
+  }, [selectedLanguage])
+   
 
   const selectLocation = (locationSelected: any) => {
     console.log('Location selected ::');
@@ -97,9 +124,13 @@ const EditAccount = ({
     setLocation(locationSelected);
   };
 
+  
   useEffect(() => {
     const cleanedPhone = user?.phone?.replace(/\+/g, '');
+    const latitudeData = user.provider ? parseFloat(user?.provider?.latitude) : parseFloat(user?.employee?.latitude)
+    const longitudeData = user.provider ? parseFloat(user?.provider?.longitude) : parseFloat(user?.employee?.longitude);
 
+    setWorkingLocation({latitude:latitudeData,longitude:longitudeData});
 
     if (user?.provider) {
       setValue('name', provider?.name);
@@ -107,7 +138,18 @@ const EditAccount = ({
       setValue('last_name', provider?.last_name);
       setValue('phone', cleanedPhone);
       setValue('email', user?.email);
-      setValue('nida', user?.provider?.nida);
+      setValue('nida', user?.nida);
+      setValue('business_name', user?.provider.business_name);
+      setGLocation({latitude:latitudeData,longitude:longitudeData})
+
+      const birthdate = user?.birth_date;
+      const parsedDate = birthdate ? new Date(birthdate) : null;
+      const formattedDate = parsedDate ? new Date(parsedDate.toISOString()) : null;
+      setBirthdate(formattedDate);
+
+
+
+      setDropDownValue(JSON.stringify(user?.provider?.designation_id))
     } else {
       setValue('name', user.employee?.name);
       setValue('phone', cleanedPhone);
@@ -116,7 +158,6 @@ const EditAccount = ({
     }
 
   }, [route.params]);
-
 
 
   const finalRegionValue = (value) => {
@@ -157,18 +198,7 @@ const EditAccount = ({
   //   finalInputStreetValue(inputStreetValue || '' )
   // }
 
-  const makeid = (length: any) => {
 
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    let counter = 0;
-    while (counter < length) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-      counter += 1;
-    }
-    return result;
-  }
 
   useEffect(() => {
     if (status !== '') {
@@ -188,7 +218,8 @@ const EditAccount = ({
       name: '',
       first_name: '',
       last_name: '',
-      nida: ''
+      nida: '',
+      business_name: ''
     },
   });
 
@@ -200,66 +231,120 @@ const EditAccount = ({
     }, 5000);
   };
 
-  const onSubmit = async (data: any) => {
-    data.latitude = location.lat;
-    data.longitude = location.lng;
-    data.phone = validateTanzanianPhoneNumber(data.phone);
-    data.birth_date = birthdate;
 
-    // Call the external API for NIDA validation
-    setNidaLoading(true)
-    const nidaValidationResult = await validateNIDANumber(data.nida);
-    setNidaLoading(false)
+  const [toastMessage, setToastMessage] = useState(''); // State for toast message content
+  const [showToast, setShowToast] = useState(false); // State to control visibility of toast message
+
+  // Function to toggle visibility of toast message
+  const toggleToast = () => {
+    setShowToast(!showToast);
+  };
+
+  // Function to show the toast message
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    toggleToast(); 
+    setTimeout(() => {
+      toggleToast(); 
+    }, 5000); 
+  };
 
 
-    if (!nidaValidationResult.obj.error || nidaValidationResult.obj.error.trim() === '') {
-      data.status = 'S.Valid';
-      let userType = '';
-      if (user.provider !==null) {
-        userType = 'provider';
-      } else {
-        userType = 'employee';
-      }
+  const updateProvider = (data: any) => {
+    // Proceed with updating other parts
+    data.status = 'S.Valid';
+    const userType = user.provider !== null ? 'provider' : 'employee';
 
-      dispatch(updateProviderInfo({ data: data, userType: userType, userId: user?.id }))
-        .unwrap()
-        .then(result => {
-          console.log('resultsss', result);
-          if (result.status) {
-            console.log('executed this true block');
-            ToastAndroid.show(`${t('screens:userUpatedSuccessfully')}`, ToastAndroid.LONG);
-            navigation.navigate('Account', {
-              screen: 'Account',
-              message: message
-            });
+    dispatch(updateProviderInfo({ data: data, userType: userType, userId: user?.id }))
+      .unwrap()
+      .then(result => {
+        if (result.status) {
+          ToastAndroid.show(`${t('screens:userUpatedSuccessfully')}`, ToastAndroid.LONG);
+          navigation.navigate('Account', {
+            screen: 'Account',
+            message: message
+          });
+        } else {
+
+          if (result.error) {
+            setDisappearMessage(result.error
+            );
+            setShowToast(true)
+            showToastMessage(t('screens:errorOccured'));
           } else {
-
-            if (result.data) {
-              const errors = result.data.errors;
-              setDisappearMessage(
-                showErrorWithLineBreaks(formatErrorMessages(errors))
-              );
-            } else {
-              setDisappearMessage(result.message);
-            }
-
+            setDisappearMessage(result.message);
           }
-        });
-    } else {
-      setNidaError(t('auth:nidaDoesNotExist'))
-      setNidaLoading(false)
+         
+          // const errors = result.data ? formatErrorMessages(result.data.errors) : result.message;
+          // setDisappearMessage(showErrorWithLineBreaks(errors));
+          //   setShowToast(true)
+          //   showToastMessage(t('screens:errorOccured'));//to be checked
+     
+        }
+      });
+  }
 
+
+
+
+  const onSubmit = async (data: any) => {
+
+
+    if (Object.keys(location).length === 0) {
+
+      data.latitude = user?.provider.latitude;
+      data.longitude = user.provider.longitude;
+    } else {
+      data.latitude = location.lat;
+      data.longitude = location.lng;
+    }
+
+    data.phone = validateTanzanianPhoneNumber(data.phone);
+    if(user?.provider){
+    data.birth_date = birthdate;
+    data.designation_id = DropDownvalue;
+    data.location_id = streetValue
+    }
+    // Check if the NIDA number has changed
+    if (user?.nida === data.nida) {
+      updateProvider(data);
+      return;
+    }
+    setNidaLoading(true);
+    try {
+      const nidaValidationResult = await validateNIDANumber(data.nida);
+      setNidaLoading(false);
+      setShowToast(false)
+      if (!nidaValidationResult.obj.error || nidaValidationResult.obj.error.trim() === '') {
+     
+        updateProvider(data);
+      } else {
+        setNidaError(t('auth:nidaDoesNotExist'));
+        setShowToast(true)
+        showToastMessage(t('screens:errorOccured'));
+      }
+    } catch (error) {
+      console.error('Error validating NIDA:', error);
+      setShowToast(true)
+      showToastMessage(t('screens:errorOccured'));
+      setNidaLoading(false);
+      setNidaError(t('auth:errorValidatingNIDA'));
+
+      
     }
   };
 
 
+
   return (
 
-    <SafeAreaView style={stylesGlobal.scrollBg}>
+    <SafeAreaView style={[stylesGlobal.scrollBg]}>
 
-
+{showToast && <View style={{marginBottom:'20%'}}>
+   <ToastMessage message={toastMessage} onClose={toggleToast} />
+   </View>}
       <ScrollView contentInsetAdjustmentBehavior="automatic">
-
+      
         <View>
           <BasicView style={stylesGlobal.centerView}>
             <Text style={stylesGlobal.errorMessage}>{message}</Text>
@@ -282,6 +367,7 @@ const EditAccount = ({
               }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInputField
+                  placeholderTextColor={colors.alsoGrey}
                   placeholder={t('screens:enterPhone')}
                   onBlur={onBlur}
                   onChangeText={(text) => {
@@ -313,7 +399,7 @@ const EditAccount = ({
             )}
           </BasicView>
 
-          {user?.provider !==null ? (
+          {user?.provider !== null ? (
             <>
               <BasicView>
                 <Text
@@ -331,6 +417,7 @@ const EditAccount = ({
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInputField
+                      placeholderTextColor={colors.alsoGrey}
                       placeholder={t('auth:enterFirstName')}
                       onBlur={onBlur}
                       onChangeText={onChange}
@@ -363,6 +450,7 @@ const EditAccount = ({
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInputField
+                      placeholderTextColor={colors.alsoGrey}
                       placeholder={t('auth:enterLastName')}
                       onBlur={onBlur}
                       onChangeText={onChange}
@@ -397,6 +485,7 @@ const EditAccount = ({
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInputField
+                    placeholderTextColor={colors.alsoGrey}
                     placeholder={t('auth:enterName')}
                     onBlur={onBlur}
                     onChangeText={onChange}
@@ -435,7 +524,8 @@ const EditAccount = ({
               }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInputField
-                  placeholder={t('auth:enterEmail')}
+                  placeholderTextColor={colors.alsoGrey}
+                  placeholder={t('screens:enterEmail')}
                   onBlur={onBlur}
                   keyboardType='email-address'
                   onChangeText={onChange}
@@ -466,7 +556,6 @@ const EditAccount = ({
                 required: true,
                 validate: (value) => {
                   if (value.length !== 20) {
-                    setNidaError(t('auth:nida20numbers'));
                     return false;
                   }
                   setNidaError('');
@@ -475,6 +564,7 @@ const EditAccount = ({
               }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInputField
+                  placeholderTextColor={colors.alsoGrey}
                   placeholder={t('auth:enterNida')}
                   onBlur={onBlur}
                   onChangeText={onChange}
@@ -484,6 +574,12 @@ const EditAccount = ({
               )}
               name="nida"
             />
+            {errors.nida && (
+                
+              <Text style={stylesGlobal.errorMessage}>
+                {t('auth:nidaRequired')}
+              </Text>
+            )}
             {nidaError && (
               <Text style={stylesGlobal.errorMessage}>
                 {nidaError}
@@ -491,52 +587,149 @@ const EditAccount = ({
             )}
           </BasicView>
 
+         {user?.provider ?(
+          <>
           <BasicView style={stylesGlobal.marginTop20}>
-
             <Button onPress={showDatePicker}>
               <ButtonText >{t('screens:selectBirthDate')}</ButtonText>
             </Button>
 
-
             <TextInput
-              value={`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`}
+              value={
+                birthdate ?
+                  `${birthdate.getFullYear()}-${(birthdate.getMonth() + 1).toString().padStart(2, '0')}-${birthdate.getDate().toString().padStart(2, '0')}`
+                  :
+                  t('screens:noBirthdateChoosen')
+              }
               editable={false}
               style={{ color: isDarkMode ? 'white' : 'black', fontSize: 20 }}
             />
-
 
             <Modal isVisible={isDatePickerVisible}>
               <DateTimePickerModal
                 isVisible={isDatePickerVisible}
                 mode="date"
+                maximumDate={new Date()} // Set maximum date to today's date
                 onConfirm={handleConfirm}
                 onCancel={hideDatePicker}
+                {...Platform.select({
+                  android: {
+                    // Android specific props
+                    display: 'calendar',
+                    headerTextIOS: t('screens:selectDate'),
+                  },
+                  ios: {
+                    // iOS specific props
+                    headerText: t('screens:selectDate'),
+                  },
+                })}
               />
             </Modal>
           </BasicView>
 
+
+          <BasicView>
+            <Text
+              style={[
+                stylesGlobal.inputFieldTitle,
+                stylesGlobal.marginTop20,
+              ]}>
+              {t('auth:businessName')}
+            </Text>
+
+            <Controller
+              control={control}
+              rules={{
+                required: true,
+              }}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInputField
+                  placeholderTextColor={colors.alsoGrey}
+                  placeholder={t('auth:enterBusinessName')}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                />
+              )}
+              name="business_name"
+            />
+
+            {errors.first_name && (
+              <Text style={stylesGlobal.errorMessage}>
+                {t('auth:businessNameRequired')}
+              </Text>
+            )}
+          </BasicView>
+
+
+          <BasicView>
+
+            <View
+              style={{
+
+                marginVertical: 30
+              }}
+            >
+              <Text
+                style={[
+                  stylesGlobal.inputFieldTitle,
+                  stylesGlobal.marginTop20,
+                ]}>
+                {t('screens:chooseProfessions')}
+              </Text>
+              {profesionsLoading ? <View style={styles.loading}>
+                <ActivityIndicator size='large' color={colors.primary} />
+              </View> : <></>}
+              <DropDownPicker
+                containerStyle={{
+                  width: WIDTH / 1.1,
+                  marginRight: 10,
+                }}
+                zIndex={100000}
+                placeholder={t(`screens:chooseProfessions`)}
+                listMode="SCROLLVIEW"
+                searchable={true}
+                open={open}
+                value={DropDownvalue}
+                items={transformDataToDropdownOptions(professions)}
+                setOpen={setOpen}
+                setValue={setDropDownValue}
+
+              />
+
+            </View>
+          </BasicView>
+
           <BasicView style={stylesGlobal.marginTop20}>
-            <Text>{t('screens:residentialLocation')}:</Text>
+            <Text style={{
+              color: colors.primary, fontSize: 20
+            }}>{t('screens:residentialLocation')}:</Text>
             <Location
               getRegionValue={getRegionValue}
               getDistrictValue={getDistrictValue}
               getWardValue={getWardValue}
               getStreetValue={getStreetValue}
               // getStreetInput={getStreetInput}
-              initialRegion={null}
-              initialDistrict={null}
-              initialWard={null}
-              initialStreet={null}
+              initialRegion={residence?.region?.region_code}
+              initialDistrict={residence?.district?.district_code}
+              initialWard={residence?.ward?.ward_code}
+              initialStreet={residence?.area?.id}
 
             />
 
           </BasicView>
+          </>):(<></>)}
 
           <BasicView style={stylesGlobal.marginTop20}>
-            <Text>{t('screens:officeLocation')}:</Text>
+            <Text
+              style={{
+                color: colors.primary, fontSize: 20
+              }}
+            >{t('screens:officeLocation')}:</Text>
             <GooglePlacesInput
               setLocation={selectLocation}
-              placeholder="What's your location?"
+              placeholder={t('screens:whatsYourLocation')}
+              defaultValue={workingLocation==null?'':gLocation}
             />
           </BasicView>
 

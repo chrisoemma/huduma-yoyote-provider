@@ -17,7 +17,7 @@ import Icon from 'react-native-vector-icons/Feather';
 
 import { useForm, Controller } from 'react-hook-form';
 import { RootStateOrAny, useSelector } from 'react-redux';
-import { setFirstTime, userRegiter } from './userSlice';
+import { multiRegister, setFirstTime, userLogout, userRegiter } from './userSlice';
 import { globalStyles } from '../../styles/global';
 import { useTogglePasswordVisibility } from '../../hooks/useTogglePasswordVisibility';
 import PhoneInput from 'react-native-phone-number-input';
@@ -34,7 +34,7 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import { getProfessions } from '../professionsSlice';
 import ToastMessage from '../../components/ToastMessage';
 
-const RegisterScreen = ({ route, navigation }: any) => {
+const NewAccount = ({ route, navigation }: any) => {
 
   const dispatch = useAppDispatch();
   const { user, loading, status, isFirstTimeUser } = useSelector(
@@ -44,7 +44,6 @@ const RegisterScreen = ({ route, navigation }: any) => {
   const { professions, profesionsLoading } = useSelector(
     (state: RootStateOrAny) => state.professions,
   );
-
 
 
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -66,7 +65,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
   const [confirmError, setConfirmError] = useState('');
   const [nidaLoading, setNidaLoading] = useState(false)
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState([]);
+  const [value, setProffValue] = useState([]);
   const [designationError, setDesignationError] = useState('')
 
   const WIDTH = Dimensions.get("window").width;
@@ -80,23 +79,45 @@ const RegisterScreen = ({ route, navigation }: any) => {
     }
   }, []);
 
+
+
+
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
       phone: '',
-      password: '',
       first_name: '',
       last_name: '',
       email: '',
       nida: '',
       business_name: '',
-      confirmPassword: '',
     },
   });
 
+
+  useEffect(() => {
+    const cleanedPhone = user?.phone?.replace(/\+/g, '');
+    setValue('phone', cleanedPhone);
+    setValue('email', user?.email);
+    setValue('nida',user?.nida);
+    if(user?.agent){
+    setValue('name', user?.agent?.name); 
+    setValue('first_name', user?.agent.first_name);
+    setValue('last_name', user?.agent.last_name);
+   
+    }else if(user?.client){
+        setValue('name', user?.client?.name); 
+        setValue('first_name', user?.client?.first_name);
+        setValue('last_name', user?.client?.last_name);
+    }else{
+        setValue('name', user?.employee?.name);
+    }
+   
+}, [route.params]);
 
 
   const setDisappearMessage = (message: any) => {
@@ -156,23 +177,31 @@ const RegisterScreen = ({ route, navigation }: any) => {
     }
 
     data.app_type = 'provider';
+    if(user?.agent){
+    data.account_from='agent'
+    }else if(user.client){
+        data.account_from='client'
+    }else{
+        data.account_from='employee' 
+    }
     data.designation_id = value
+
 
     setNidaLoading(true)
     const nidaValidationResult = await validateNIDANumber(data.nida);
     setNidaLoading(false)
 
     setShowToast(false)
+
     if (!nidaValidationResult.obj.error || nidaValidationResult.obj.error.trim() === '') {
 
-      dispatch(userRegiter(data))
+      dispatch(multiRegister({ data, userId: user?.id }))
         .unwrap()
         .then(result => {
           console.log('resultsss', result);
           if (result.status) {
             console.log('excuted this true block')
-            ToastAndroid.show(`${t('auth:userCreatedSuccessfully')}`, ToastAndroid.LONG);
-            navigation.navigate('Verify', { nextPage: 'Verify' });
+            ToastAndroid.show(`${t('screens:userMultiAccountCreated')}`, ToastAndroid.LONG);
           } else {
             if (result.error) {
          
@@ -200,14 +229,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
       setShowToast(true)
       showToastMessage(t('screens:errorOccured'));
     }
-
   };
-
-
-
-
-
-  
 
 
 
@@ -225,13 +247,6 @@ const RegisterScreen = ({ route, navigation }: any) => {
       
       
       <ScrollView contentInsetAdjustmentBehavior="automatic">
-    
-        <View style={stylesGlobal.centerView}>
-          <Image
-            source={isDarkMode ? require('./../../../assets/images/logo-white.png') : require('./../../../assets/images/logo.png')}
-            style={[stylesGlobal.verticalLogo, { height: 100, marginTop: 20 }]}
-          />
-        </View>
         <View>
           <Text style={stylesGlobal.largeHeading}>{t('auth:register')}</Text>
         </View>
@@ -245,38 +260,42 @@ const RegisterScreen = ({ route, navigation }: any) => {
             <Text
               style={[
                 stylesGlobal.inputFieldTitle,
-                stylesGlobal.marginTop10,
+                stylesGlobal.marginTop20,
               ]}>
               {t('auth:phone')}
             </Text>
+
             <Controller
               control={control}
               rules={{
+                minLength: 10,
                 required: true,
               }}
               render={({ field: { onChange, onBlur, value } }) => (
-                <PhoneInput
-                  ref={phoneInput}
-                  placeholder="714 055 666"
-                  defaultValue={value}
-                  defaultCode="TZ"
-                  countryPickerProps={{
-                    countryCodes: ['TZ', 'KE', 'UG', 'RW', 'BI'],
+                <TextInputField
+                 placeholderTextColor={colors.alsoGrey}
+                
+                  onBlur={onBlur}
+                  onChangeText={(text) => {
+                    // Remove any non-numeric characters
+                    const cleanedText = text.replace(/\D/g, '');
+
+
+                    if (cleanedText.startsWith('0') && cleanedText.length <= 10) {
+                      onChange(cleanedText);
+                    } else if (
+                      (cleanedText.startsWith('255') ||
+                        cleanedText.startsWith('+255')) &&
+                      cleanedText.length <= 12
+                    ) {
+                      onChange(cleanedText);
+                    }
                   }}
-                  layout="first"
-                  // onChangeText={}
-                  onChangeFormattedText={text => {
-                    onChange(text);
-                  }}
-                  withDarkTheme
-                  withShadow
-                  autoFocus
-                  containerStyle={stylesGlobal.phoneInputContainer}
-                  textContainerStyle={stylesGlobal.phoneInputTextContainer}
-                  textInputStyle={stylesGlobal.phoneInputField}
-                  textInputProps={{
-                    maxLength: 9,
-                  }}
+                  value={value}
+                  keyboardType="phone-pad"
+                  editable={user?.agent?false:true}
+                  style={user?.agent? styles.disabledTextInput : null}
+
                 />
               )}
               name="phone"
@@ -309,6 +328,8 @@ const RegisterScreen = ({ route, navigation }: any) => {
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
+                  editable={user?.agent?false:true}
+                  style={user?.agent? styles.disabledTextInput : null}
                 />
               )}
               name="first_name"
@@ -342,6 +363,8 @@ const RegisterScreen = ({ route, navigation }: any) => {
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
+                  editable={user?.agent?false:true}
+                  style={user?.agent? styles.disabledTextInput : null}
                 />
               )}
               name="last_name"
@@ -420,7 +443,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
                 value={value}
                 items={transformDataToDropdownOptions(professions)}
                 setOpen={setOpen}
-                setValue={setValue}
+                setValue={setProffValue}
 
               />
               {designationError && (
@@ -461,6 +484,8 @@ const RegisterScreen = ({ route, navigation }: any) => {
                   onChangeText={onChange}
                   value={value}
                   keyboardType='numeric'
+                  editable={user?.agent?false:true}
+                  style={user?.agent? styles.disabledTextInput : null}
                 />
               )}
               name="nida"
@@ -478,96 +503,6 @@ const RegisterScreen = ({ route, navigation }: any) => {
           </BasicView>
 
           <BasicView>
-            <Text
-              style={[
-                stylesGlobal.inputFieldTitle,
-                stylesGlobal.marginTop20,
-              ]}>
-              {t('auth:password')}
-            </Text>
-
-            <View style={stylesGlobal.passwordInputContainer}>
-              <Controller
-                control={control}
-                rules={{
-
-                  required: true,
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={[stylesGlobal.passwordInputField,
-                    { backgroundColor: colors.white, color: colors.black }
-                    ]}
-                    secureTextEntry={passwordVisibility}
-                    placeholder={t('auth:enterPassword')}
-                    placeholderTextColor={colors.alsoGrey}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                  />
-                )}
-                name="password"
-              />
-
-              <TouchableOpacity onPress={handlePasswordVisibility}>
-                <Icon name={rightIcon} size={20} color={colors.grey} />
-              </TouchableOpacity>
-            </View>
-            {errors.password && (
-              <Text style={stylesGlobal.errorMessage}>
-                {t('auth:passwordRequired')}
-              </Text>
-            )}
-          </BasicView>
-
-
-          <BasicView>
-            <Text
-              style={[
-                stylesGlobal.inputFieldTitle,
-                stylesGlobal.marginTop20,
-              ]}>
-              {t('auth:confirmPassword')}
-            </Text>
-
-            <View style={stylesGlobal.passwordInputContainer}>
-              <Controller
-                control={control}
-                rules={{
-                  required: true,
-                  validate: (value) => value === confirmPassword,
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={[stylesGlobal.passwordInputField,
-                    { backgroundColor: colors.white, color: colors.black }
-                    ]}
-                    secureTextEntry={passwordVisibility}
-                    placeholderTextColor={colors.alsoGrey}
-                    placeholder={t('auth:confirmPassword')}
-                    onBlur={onBlur}
-                    onChangeText={(text) => {
-                      setConfirmPassword(text);
-                      onChange(text);
-                    }}
-                    value={value}
-                  />
-                )}
-                name="confirmPassword"
-              />
-              <TouchableOpacity onPress={handlePasswordVisibility}>
-                <Icon name={rightIcon} size={20} color={colors.grey} />
-              </TouchableOpacity>
-            </View>
-            {confirmError && (
-              <Text style={stylesGlobal.errorMessage}>
-                {t('auth:passwordMismatch')}
-              </Text>
-            )}
-          </BasicView>
-
-
-          <BasicView>
             <Button loading={nidaLoading || loading} onPress={handleSubmit(onSubmit)}>
               <ButtonText>{t('auth:register')}</ButtonText>
             </Button>
@@ -575,23 +510,16 @@ const RegisterScreen = ({ route, navigation }: any) => {
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 20, marginBottom: 80 }}>
             <TouchableOpacity
+               disabled={loading}
               onPress={() => {
-                navigation.navigate('Login');
+                dispatch(userLogout());
               }}
               style={[stylesGlobal.marginTop20, stylesGlobal.centerView]}>
               <Text style={stylesGlobal.touchablePlainTextSecondary}>
-                {t('auth:alreadyHaveAccount')}
+                {t('screens:cancelAccount')}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                navigation.navigate('CheckPhoneNumber');
-              }}
-              style={[stylesGlobal.marginTop20, stylesGlobal.centerView]}>
-              <Text style={stylesGlobal.touchablePlainTextSecondary}>
-                {t('auth:haveOtp')}
-              </Text>
-            </TouchableOpacity>
+         
           </View>
         </View>
 
@@ -610,6 +538,9 @@ const styles = StyleSheet.create({
     marginLeft: 50,
     zIndex: 15000,
   },
+  disabledTextInput: {
+    backgroundColor: 'lightgray', 
+  },
 });
 
-export default RegisterScreen;
+export default NewAccount;

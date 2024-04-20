@@ -336,6 +336,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInputField
+                    placeholderTextColor={colors.alsoGrey}
                       placeholder={t('screens:enterSubService')}
                       onBlur={onBlur}
                       onChangeText={onChange}
@@ -371,6 +372,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInputField
+                    placeholderTextColor={colors.alsoGrey}
                       placeholder={t('screens:enterDescription')}
                       onBlur={onBlur}
                       onChangeText={onChange}
@@ -392,15 +394,19 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
                 <Text style={[styles.textStyle, { color: isDarkMode ? colors.white : colors.black }]}>{t('screens:UploadImagesVideosOfService')}</Text>
                 <View style={styles.imageContainer}>
                   <TouchableOpacity onPress={selectImage}>
-                    <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:uploadImage')}</Text>
+                    <Text style={{ color: isDarkMode ? colors.white : colors.blue }}>{t('screens:uploadImage')}</Text>
                   </TouchableOpacity>
 
                   {image == null ? (
-                    <Ionicons name="image" color={isDarkMode ? colors.white : colors.black} size={100} style={{ alignSelf: 'center' }} />
+                    <TouchableOpacity onPress={selectImage}>
+                    <Ionicons name="image" color={isDarkMode ? colors.white : colors.blue} size={100} style={{ alignSelf: 'center' }} />
+                    </TouchableOpacity>
                   ) : (
                     <>
                       {image == null ? (
-                        <Ionicons name="image" color={isDarkMode ? colors.white : colors.black} size={100} style={{ alignSelf: 'center' }} />
+                        <TouchableOpacity onPress={selectImage}>
+                        <Ionicons name="image" color={isDarkMode ? colors.white : colors.blue} size={100} style={{ alignSelf: 'center' }} />
+                        </TouchableOpacity>
                       ) : (
                         <>
                           <Image source={{ uri: image[0].uri }} style={styles.docView} />
@@ -419,10 +425,12 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
 
                 <View style={styles.imageContainer}>
                   <TouchableOpacity onPress={selectVideo}>
-                    <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:uploadVideo')}</Text>
+                    <Text style={{ color: isDarkMode ? colors.white : colors.blue }}>{t('screens:uploadVideo')}</Text>
                   </TouchableOpacity>
                   {video == null ? (
-                    <Ionicons name="videocam-outline" color={isDarkMode ? colors.white : colors.black} size={100} style={{ alignSelf: 'center' }} />
+                     <TouchableOpacity onPress={selectVideo}>
+                    <Ionicons name="videocam-outline" color={isDarkMode ? colors.white : colors.blue} size={100} style={{ alignSelf: 'center' }} />
+                    </TouchableOpacity>
                   ) : (
                     <>
                       <VideoPlayer
