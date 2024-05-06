@@ -161,6 +161,7 @@ const BusinessDetails = ({ route, navigation }: any) => {
       },
     ]);
 
+
   const ServicesOffered = ({ sub_service, provider_sub_service }: any) => {
     if (sub_service) {
 
@@ -172,13 +173,19 @@ const BusinessDetails = ({ route, navigation }: any) => {
             type: 'subService'
           })}
         >
-          <Text style={styles.category}>{sub_service?.provider_sub_list?.name || sub_service.name}</Text>
+         
+          <Text style={styles.category}>
+  {sub_service?.provider_sub_list?.name ? 
+    sub_service?.provider_sub_list?.name :
+    (selectedLanguage === 'en' ? sub_service.name.en : sub_service.name.sw)
+  }
+</Text>
           <View style={styles.descBtnsContainer}>
             <View>
-              <Text style={{ color: colors.alsoGrey }}>{sub_service?.provider_sub_list?.description || sub_service.description}</Text>
+              <Text style={{ color: colors.alsoGrey }}>{sub_service?.provider_sub_list?.description ? sub_service?.provider_sub_list?.description : (selectedLanguage=='en'?sub_service?.description?.en:sub_service?.description?.sw)}</Text>
             </View>
             <View style={styles.btnContainer}>
-            {user.provider && user.status!=='In Active'?(
+            {user?.provider && user.status!=='In Active'?(
               <>
               <TouchableOpacity style={[styles.status, { backgroundColor: colors.dullYellow, marginRight: 10 }]} onPress={() => navigation.navigate('Edit sub service', {
                 sub_service: sub_service,
@@ -262,15 +269,15 @@ const BusinessDetails = ({ route, navigation }: any) => {
                     borderRadius: 10,
                   }}
                 />
-                <Text style={styles.category}>{service.service.name}</Text>
-                <Text style={styles.service}>{service.service.category.name}</Text>
+                <Text style={styles.category}>{selectedLanguage=='en'?service?.service?.name?.en:service?.service?.name?.sw}</Text>
+                <Text style={styles.service}>{selectedLanguage=='en'?service?.service?.category?.name?.en:service?.service?.category?.name?.sw}</Text>
                 <Text style={{ color: colors.alsoGrey }}>
-                  {service.description == null ? service.service.description : service.description}
+                  {service.description == null ? selectedLanguage=='en'? service?.service?.description?.en:service.service.description?.sw : service.description}
                 </Text>
                 <View>
                   {service?.video_url ?
                     <TouchableOpacity style={styles.viewVideo} onPress={toggleVideoModal}>
-                      <Text style={styles.videoText}>Video</Text>
+                      <Text style={styles.videoText}>{t('screens:video')}</Text>
                     </TouchableOpacity>
                     : <></>}
                 </View>
@@ -291,7 +298,7 @@ const BusinessDetails = ({ route, navigation }: any) => {
               >
                 <BottomSheetScrollView style={styles.bottomSheetContentContainer}>
                   {
-                    subservices?.map(sub_service => (
+                    subservices.map(sub_service => (
                       <ServicesOffered key={sub_service.id} sub_service={sub_service} />
                     ))
                   }

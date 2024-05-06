@@ -205,7 +205,14 @@ const Account = ({ navigation }: any) => {
         />) : (<View />)}
 
 
-        {(user?.provider || user?.employee) && user?.status !== 'In Active' ? (
+   {user?.provider?.subscription_status =='Ended' ? (
+   <Notification
+          message={`${t('screens:subscriptionEnded')}`}
+          type="danger"
+        />) : (<View />)}
+
+
+        {((user?.provider || user?.employee) && user?.status !== 'In Active') ? (
           <View style={styles.btnView}>
             {profile == null ? (<View />) : (
               <TouchableOpacity
@@ -234,6 +241,7 @@ const Account = ({ navigation }: any) => {
               </TouchableOpacity>
             )}
 
+          {user?.provider?.subscription_status !=='Ended' ?(
             <TouchableOpacity style={{ marginRight: 10, alignSelf: 'flex-end' }}
               onPress={() => {
                 if (user.provider)
@@ -252,6 +260,7 @@ const Account = ({ navigation }: any) => {
                 size={25}
               />
             </TouchableOpacity>
+          ):(<></>)}
           </View>
         ) : (<View />)}
 
@@ -380,7 +389,7 @@ const Account = ({ navigation }: any) => {
                </>
           ):(<></>)}
         </View>
-        {user?.provider ? (
+        {user?.provider  && user.status !=='In Active'  &&  user?.provider?.subscription_status !=='Ended' ? (
           <TouchableOpacity
             onPress={() => {
               navigation.navigate('My Documents', {
@@ -402,6 +411,7 @@ const Account = ({ navigation }: any) => {
         <View style={{ marginVertical: 20 }}>
           <Divider />
         </View>
+        {user?.status !== 'In Active' ? (
         <TouchableOpacity style={{ flexDirection: 'row', marginHorizontal: 10, marginTop: 5 }}
           onPress={() => { navigation.navigate("Change Password") }}
         >
@@ -412,6 +422,7 @@ const Account = ({ navigation }: any) => {
           />
           <Text style={{ paddingLeft: 10, fontWeight: 'bold', color: isDarkMode ? colors.white : colors.secondary }}>{t('screens:changePassword')}</Text>
         </TouchableOpacity>
+        ):(<></>)}
 
         <TouchableOpacity style={{ flexDirection: 'row', marginHorizontal: 10, marginTop: 10,marginBottom:'30%' }}
           onPress={() => {

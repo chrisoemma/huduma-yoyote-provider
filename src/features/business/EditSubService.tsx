@@ -18,6 +18,8 @@ import VideoPlayer from '../../components/VideoPlayer';
 import { firebase } from '@react-native-firebase/storage';
 import RNFS from 'react-native-fs';
 import { TextAreaInputField } from '../../components/TextAreaInputField';
+import { selectLanguage } from '../../costants/languangeSlice';
+import ToastMessage from '../../components/ToastMessage';
 
 const EditSubService = ({ route, navigation }: any) => {
 
@@ -37,6 +39,8 @@ const EditSubService = ({ route, navigation }: any) => {
   const [uploadingDoc, setUploadingDoc] = useState(false)
   const stylesGlobal = globalStyles();
 
+  const selectedLanguage = useSelector(selectLanguage);
+
   const {
     control,
     setValue,
@@ -51,10 +55,15 @@ const EditSubService = ({ route, navigation }: any) => {
 
   useEffect(() => {
     const setFormValues = (service, type) => {
+        if(type=='subService'){
       const subList = service?.provider_sub_list;
-
-      setValue('name', subList?.name || service.name);
-      setValue('description', subList?.description || service.description);
+      setValue('name', subList?.name? subList?.name : (selectedLanguage=='en'?service?.name?.en:service?.name?.sw));
+      setValue('description', subList?.description ?subList?.description: selectedLanguage=='en'?service.description?.en:service?.description?.sw);
+        }else{
+            setValue('name', providerSubService?.name);
+             setValue('description', providerSubService?.description);
+        }
+        
     };
 
     if (type === 'subService') {
@@ -90,10 +99,23 @@ const EditSubService = ({ route, navigation }: any) => {
 
     setTimeout(() => {
       setMessage('');
-    }, 5000);
+    }, 10000);
+  };
+
+  const [toastMessage, setToastMessage] = useState(''); 
+  const [showToast, setShowToast] = useState(false);
+  const toggleToast = () => {
+    setShowToast(!showToast);
   };
 
 
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    toggleToast(); 
+    setTimeout(() => {
+      toggleToast(); 
+    }, 5000); 
+  };
 
   const removeImage = () => {
     setImage(null)
@@ -185,7 +207,10 @@ const EditSubService = ({ route, navigation }: any) => {
 
       if (data.description==null || data.name == null) {
         setDisappearMessage(`${t('screens:enterNameOrDescription')}`);
-
+        if(!showToast){
+          setShowToast(true)
+          showToastMessage(t('screens:errorOccured'));
+        }
       } else {
         dispatch(updateSubService({ data: data, providerId: user.provider.id, id:idData  }))
           .unwrap()
@@ -197,7 +222,10 @@ const EditSubService = ({ route, navigation }: any) => {
               });
             } else {
               setDisappearMessage(`${t('screens:requestFail')}`);
-              console.log('dont navigate');
+              if(!showToast){
+                setShowToast(true)
+                showToastMessage(t('screens:errorOccured'));
+              }
             }
           })
           .catch(rejectedValueOrSerializedError => {
@@ -281,6 +309,9 @@ const EditSubService = ({ route, navigation }: any) => {
       showsVerticalScrollIndicator={false}
     >
       <View>
+      {showToast && <View style={{marginBottom:'15%'}}>
+   <ToastMessage message={toastMessage} onClose={toggleToast} />
+   </View>}
       <BasicView style={stylesGlobal.centerView}>
           <Text style={stylesGlobal.errorMessage}>{message}</Text>
         </BasicView>
@@ -331,7 +362,6 @@ const EditSubService = ({ route, navigation }: any) => {
           <Controller
             control={control}
             rules={{
-
               required: true,
             }}
             render={({ field: { onChange, onBlur, value } }) => (
@@ -439,7 +469,7 @@ const EditSubService = ({ route, navigation }: any) => {
         </View>
       </View>
 
-      <BasicView>
+      <BasicView style={{marginBottom:'20%'}}>
         <Button loading={uploadingDoc|| loading} onPress={handleSubmit(onSubmit)}>
           <ButtonText>{t('screens:editSubService')}</ButtonText>
         </Button>

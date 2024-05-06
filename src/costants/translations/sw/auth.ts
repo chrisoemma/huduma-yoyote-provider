@@ -55,7 +55,8 @@ export default {
     businessNameRequired:'Jina la Biashara linahitajika',
     changePassword:'Badili Nywila',
     nidaEmptyError:'Namba ya NIDA inahitajika',
-    errorValidatingNIDA:'Tumeshidwa kupata NIDA angalia intaneti yako'
+    errorValidatingNIDA:'Tumeshidwa kupata NIDA angalia intaneti yako',
+    resendOTP:'Tuma tena kodi'
     
 
 }

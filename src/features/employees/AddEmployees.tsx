@@ -47,8 +47,8 @@ const AddEmployees = ({ route, navigation }: any) => {
     defaultValues: {
       name: '',
       phone: '',
-      nida: ''
-    }
+      nida:''   
+     }
   });
 
 
@@ -65,10 +65,11 @@ const AddEmployees = ({ route, navigation }: any) => {
   useEffect(() => {
     const existingEmployee = route.params?.employee;
     if (existingEmployee) {
+      const cleanedPhone = existingEmployee?.phone?.replace(/\+/g, '');
       setIsEditMode(true);
       setEmployee(existingEmployee)
       setValue('name', existingEmployee?.name);
-      setValue('phone', existingEmployee?.phone);
+      setValue('phone', cleanedPhone);
       setValue('nida', existingEmployee?.nida);
 
       navigation.setOptions({
@@ -83,6 +84,8 @@ const AddEmployees = ({ route, navigation }: any) => {
 
 
   const onSubmit = async(data) => {
+
+  
     data.phone = validateTanzanianPhoneNumber(data.phone);
 
     if (isEditMode) {
@@ -96,10 +99,12 @@ const AddEmployees = ({ route, navigation }: any) => {
               screen: 'Employees',
             });
           } else {
-            setDisappearMessage(
-              `${t('screens:requestFail')}`,
-            );
-            console.log('dont navigate');
+            if (result.error) {
+                    setDisappearMessage(result.error
+                    );
+                  } else {
+                    setDisappearMessage(result.message);
+                  }
           }
         })
         .catch(rejectedValueOrSerializedError => {
@@ -108,12 +113,15 @@ const AddEmployees = ({ route, navigation }: any) => {
           console.log(rejectedValueOrSerializedError);
         });
     } else {
-     //  try{
-      // setNidaLoading(true)
-      // const nidaValidationResult = await validateNIDANumber(data.nida);
-      // setNidaLoading(false)
-    //  if (!nidaValidationResult?.obj?.error || nidaValidationResult?.obj?.error?.trim() === '') {
-        dispatch(createEmployee({ data: data, providerId: user.provider.id }))
+      data.provider_id=user?.provider?.id
+
+    
+      setNidaLoading(true)
+      const nidaValidationResult = await validateNIDANumber(data.nida);
+      setNidaLoading(false)
+     if (!nidaValidationResult?.obj?.error || nidaValidationResult?.obj?.error?.trim() === '') {
+       
+    dispatch(createEmployee(data))
           .unwrap()
           .then(result => {
             if (result.status) {
@@ -122,7 +130,7 @@ const AddEmployees = ({ route, navigation }: any) => {
                 screen: 'Employees',
               });
             } else {
-              if (result.errors) {
+              if (result.error) {
          
                 setDisappearMessage(result.error
                 );
@@ -131,24 +139,12 @@ const AddEmployees = ({ route, navigation }: any) => {
               }
             }
           })
-          .catch(rejectedValueOrSerializedError => {
-            // handle error here
-            console.log('error');
-            console.log(rejectedValueOrSerializedError);
-          });
+        
+      } else {
+        setNidaError(t('auth:nidaDoesNotExist'))
+        console.log('NIDA validation failed:', nidaValidationResult.error);
+      }
 
-      // } else {
-      //   setNidaError(t('auth:nidaDoesNotExist'))
-      //   console.log('NIDA validation failed:', nidaValidationResult.error);
-      // }
-
-    // } catch (error) {
-    //   console.error('Error validating NIDA:', error);
-    //   setNidaLoading(false);
-    //   setNidaError(t('auth:errorValidatingNIDA'));
-
-      
-    // }
     }
 
     
@@ -310,7 +306,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
 
   },
-
 
   textStyle: {
     color: colors.black,

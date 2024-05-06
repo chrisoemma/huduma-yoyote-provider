@@ -4,6 +4,7 @@ import { colors } from '../utils/colors'
 import { useSelector,RootStateOrAny } from 'react-redux';
 import { combineSubServices, getStatusBackgroundColor } from '../utils/utilts';
 import { useTranslation } from 'react-i18next';
+import { selectLanguage } from '../costants/languangeSlice';
 
 const width = Dimensions.get('window').width;
 
@@ -18,6 +19,7 @@ const RequestList = ({item,navigation}:any) => {
   };
 
   const { t } = useTranslation();
+  const selectedLanguage = useSelector(selectLanguage);
 
   const request_status = item?.statuses[item?.statuses.length - 1].status;
 
@@ -34,16 +36,18 @@ const RequestList = ({item,navigation}:any) => {
      })}}
     >
        <View>
-        <Text style={{color:isDarkMode?colors.black:colors.primary,fontWeight:'bold'}}>{item?.service?.name}</Text>
+        <Text style={{color:isDarkMode?colors.black:colors.primary,fontWeight:'bold'}}>{selectedLanguage==='en'?item?.service?.name.en:item?.service?.name?.sw}</Text>
         <Text style={{paddingVertical:10,color:isDarkMode?colors.white:colors.darkGrey}}>{item?.client?.name}</Text>
         {subServices.slice(0, maxItemsToShow).map((subService, index) => (
-  <Text style={{ color: isDarkMode ? colors.white : colors.darkGrey }} key={subService.id}>
-    - {subService.provider_sub_list?.name || subService?.sub_service?.name || subService?.provider_sub_service?.name} 
-  </Text>
+    
+     <Text style={{ color: isDarkMode ? colors.white : colors.darkGrey }} key={subService.id}>
+     - {subService.provider_sub_list?.name || selectedLanguage==='en'? subService?.sub_service?.name?.en: subService?.sub_service?.name?.sw || subService?.provider_sub_service?.name} 
+     </Text>
+     
 ))}
-
+     
 {subServices.length > maxItemsToShow && (
-  <Text style={{ color: isDarkMode ? colors.white : colors.darkGrey }}>
+  <Text style={{ color: isDarkMode ? colors.white : colors.darkGrey}}>
     ...
   </Text>
 )}

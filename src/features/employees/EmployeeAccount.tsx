@@ -12,6 +12,7 @@ import { deleteEmployee, getEmployeeRequests } from './EmployeeSlice';
 import { useAppDispatch } from '../../app/store';
 import { BasicView } from '../../components/BasicView';
 import { useSelector } from 'react-redux';
+import { selectLanguage } from '../../costants/languangeSlice';
 
 
 const EmployeeAccount = ({ route, navigation }: any) => {
@@ -62,15 +63,13 @@ const EmployeeAccount = ({ route, navigation }: any) => {
     }, 5000);
   };
 
+  const selectedLanguage = useSelector(selectLanguage);
+
   const ServicesOffered = ({ request }: any) => {
-
-
 
     const request_status = request?.statuses[request?.statuses.length - 1].status;
 
-
     const subServices = combineSubServices(request);
-
 
     const maxItemsToShow = 4;
     return (
@@ -78,11 +77,11 @@ const EmployeeAccount = ({ route, navigation }: any) => {
         key={request?.request_id}
       >
         <View style={styles.descContainer}>
-          <Text style={styles.category}>{request?.service.name}</Text>
-          <View><Text style={{ color: colors.alsoGrey }}>{request?.service?.description}</Text></View>
+          <Text style={styles.category}>{selectedLanguage==='en'?request?.service?.name.en:request?.service?.name?.sw}</Text>
+          <View><Text style={{ color: colors.alsoGrey }}>{selectedLanguage==='en'?request?.service?.description?.en:request?.service?.description?.sw}</Text></View>
           {subServices.slice(0, maxItemsToShow)?.map((subService, index) => (
             <Text style={{ color: isDarkMode ? colors.white : colors.darkGrey }} key={subService.id}>
-              - {subService?.provider_sub_list?.name || subService?.sub_service?.name || subService?.provider_sub_service?.name}
+              - {subService?.provider_sub_list?.name || selectedLanguage==='en'? subService?.sub_service?.name?.en: subService?.sub_service?.name?.sw || subService?.provider_sub_service?.name}
             </Text>
           ))}
         </View>
@@ -186,8 +185,9 @@ const EmployeeAccount = ({ route, navigation }: any) => {
           />
         </View>
         <Text style={{ color: isDarkMode ? colors.white : colors.black, fontWeight: 'bold', alignSelf: 'center' }}>{employee.name}</Text>
-        <View>
-          <TouchableOpacity style={{ flexDirection: 'row', margin: 10 }}
+        <View style={{marginLeft:10}}>
+        <Text style={{color: isDarkMode ? colors.white : colors.black,fontWeight:'bold'}}>{t('auth:phone')}</Text>
+          <TouchableOpacity style={{ flexDirection: 'row', marginBottom: 10 }}
             onPress={() => makePhoneCall(phoneNumber)}
           >
             <Icon
@@ -197,28 +197,22 @@ const EmployeeAccount = ({ route, navigation }: any) => {
             />
             <Text style={{ paddingHorizontal: 10, color: isDarkMode ? colors.white : colors.black }}>{employee.phone}</Text>
           </TouchableOpacity>
-          {/* <TouchableOpacity style={{flexDirection:'row',marginHorizontal:10}}>
-                <Icon    
-                  name="mail"
-                  color={colors.black}
-                  size={25}
-                  />
-                    <Text style={{paddingLeft:10}}>Frank@gmail.com</Text>
-                </TouchableOpacity> */}
-          {/* <TouchableOpacity style={{flexDirection:'row',marginHorizontal:10,marginTop:5}}>
-                <Icon    
-                  name="enviroment"
-                  color={colors.black}
-                  size={25}
-                  />
-                    <Text style={{paddingLeft:10}}>Mwenge,kijitonyama</Text>
-                </TouchableOpacity> */}
+          
+               <Text style={{color: isDarkMode ? colors.white : colors.black,fontWeight:'bold'}}>{t('auth:nida')}</Text>
+
+               <TouchableOpacity style={{ flexDirection: 'row' }}
+               >
+                 <Icon
+                   name="infocirlce"
+                   color={isDarkMode ? colors.white : colors.black}
+                   size={25}
+                 />
+                  <Text style={{color: isDarkMode ? colors.white : colors.black }}>{employee?.nida}</Text>
+               </TouchableOpacity>
+           
         </View>
         <View style={{ marginVertical: 20 }}>
           <Divider />
-          {/* <Text>
-                    Description of the services which I do in all my services provided today in a different angle
-                </Text> */}
         </View>
         <TouchableOpacity style={styles.status} onPress={handlePresentModalPress}>
           <Text style={{ color: colors.white }}>{t('screens:requests')}</Text>
@@ -238,7 +232,7 @@ const EmployeeAccount = ({ route, navigation }: any) => {
                 {
                   employee_requests?.map(request => (
 
-                    <ServicesOffered request={request} />
+                    <ServicesOffered request={request}  />
 
                   ))
                 }

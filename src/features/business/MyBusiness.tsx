@@ -7,11 +7,14 @@ import { useSelector,RootStateOrAny } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch } from '../../app/store';
 import { getBusinesses } from './BusinessSlice';
+import { selectLanguage } from '../../costants/languangeSlice';
 
 const MyBusiness = ({navigation }: any) => {
 
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
+
+    const selectedLanguage = useSelector(selectLanguage);
 
     const stylesGlobal = globalStyles();
 
@@ -46,9 +49,9 @@ const MyBusiness = ({navigation }: any) => {
                     }}
                 />
                 <View style={styles.textContainer}>
-                    <Text style={styles.categoryService}>{item?.service?.name}</Text>
-                    <Text style={styles.subservice}>{item?.service?.category?.name}</Text>
-                    <Text style={styles.desc}>{item?.description==null?item?.service.description:item?.description}</Text>
+                    <Text style={styles.categoryService}>{selectedLanguage=='en'?item?.service?.name?.en:item?.service?.name?.sw}</Text>
+                    <Text style={styles.subservice}>{selectedLanguage=='en'? item?.service?.category?.name?.en:item?.service?.category?.name?.sw}</Text>
+                    <Text style={styles.desc}>{item?.description==null?selectedLanguage=='en'? item?.service.description?.en:item?.service.description?.sw:item?.description}</Text>
                 </View>
 
             </TouchableOpacity>

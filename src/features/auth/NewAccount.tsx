@@ -186,7 +186,36 @@ const NewAccount = ({ route, navigation }: any) => {
     }
     data.designation_id = value
 
+       if(user?.agent || user?.employee){
+           
+        dispatch(multiRegister({ data, userId: user?.id }))
+        .unwrap()
+        .then(result => {
+          console.log('resultsss', result);
+          if (result.status) {
+            console.log('excuted this true block')
+            ToastAndroid.show(`${t('screens:userMultiAccountCreated')}`, ToastAndroid.LONG);
+          } else {
+            if (result.error) {
+         
+              setDisappearMessage(result.error
+              );
+              setShowToast(true)
+              showToastMessage(t('screens:errorOccured'));
+            } else {
+              setDisappearMessage(result.message);
+            }
+          }
 
+          console.log('result');
+          console.log(result);
+        })
+        .catch(rejectedValueOrSerializedError => {
+          // handle error here
+          console.log('error');
+          console.log(rejectedValueOrSerializedError);
+        });
+       }else{
     setNidaLoading(true)
     const nidaValidationResult = await validateNIDANumber(data.nida);
     setNidaLoading(false)
@@ -229,6 +258,8 @@ const NewAccount = ({ route, navigation }: any) => {
       setShowToast(true)
       showToastMessage(t('screens:errorOccured'));
     }
+
+  }
   };
 
 

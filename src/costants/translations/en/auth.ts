@@ -57,7 +57,8 @@ export default{
     businessNameRequired:'Business Name Required',
     changePassword:'Change Password',
     nidaEmptyError:'NIDA Number is required',
-    errorValidatingNIDA:'Could not get NIDA check network'
+    errorValidatingNIDA:'Could not get NIDA check network',
+    resendOTP:'resend OTP'
 
    
 }

@@ -18,6 +18,7 @@ import { getBusinesses } from '../business/BusinessSlice'
 import FloatBtn from '../../components/FloatBtn'
 import { PieChart } from 'react-native-chart-kit';
 import { getProviderRequestVsSubservice } from './ChartSlice'
+import { selectLanguage } from '../../costants/languangeSlice'
 
 
 const Home = ({ navigation }: any) => {
@@ -31,6 +32,7 @@ const Home = ({ navigation }: any) => {
     const { isDarkMode } = useSelector(
         (state: RootStateOrAny) => state.theme,
     );
+    const selectedLanguage = useSelector(selectLanguage);
 
     const dispatch = useAppDispatch();
     const [refreshing, setRefreshing] = useState(false);
@@ -54,6 +56,10 @@ const Home = ({ navigation }: any) => {
 
     const statusBarColor = colors.primary
 
+
+    console.log('providerServiceRequests',providerServiceRequests);
+
+
     useEffect(() => {
         dispatch(getActiveRequests(user?.provider?.id));
         dispatch(getBusinesses({ providerId: user?.provider?.id }))
@@ -73,7 +79,7 @@ const Home = ({ navigation }: any) => {
     }, []);
 
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-    const [sheetTitle, setSheetTitle] = useState('');
+    const [sheetTitle, setSheetTitle] = useState('Total requests');
 
     // variables
     const snapPoints = useMemo(() => ['25%', '70%'], []);
@@ -81,7 +87,6 @@ const Home = ({ navigation }: any) => {
     // callbacks
     const handlePresentModalPress = (title: any) => useCallback(() => {
         setSheetTitle(title)
-        console.log('shittitle', title);
         bottomSheetModalRef.current?.present();
     }, []);
     const handleSheetChanges = useCallback((index: number) => {
@@ -91,8 +96,13 @@ const Home = ({ navigation }: any) => {
 
     const stylesGlobal = globalStyles();
 
-    const labels = providerServiceRequests?.map(entry => entry.sub_service_name);
+    const labels = providerServiceRequests?.map(entry => {
+        const serviceName = JSON.parse(entry.sub_service_name); // Parse the JSON string
+        return selectedLanguage === 'en' ? serviceName?.en : serviceName?.sw;
+      });
     const dataset = providerServiceRequests?.map(entry => entry.request_count);
+
+
 
     const getRandomColor = () => {
         const baseColors = ['#82D0D4'];
@@ -167,13 +177,13 @@ const Home = ({ navigation }: any) => {
                                 mainTitle={t('screens:totalRequests')}
                                 number={activeRequests?.length || 0}
                                 onPress={handlePresentModalPress(`${t('screens:totalRequests')}`)}
-                                color={colors.primary}
+                                color={colors.secondary}
                             />
                             <Databoard
                                 mainTitle={t('screens:business')}
                                 number={businesses?.length || 0}
                                 onPress={handlePresentModalPress(`${t('screens:business')}`)}
-                                color={colors.primary}
+                                color={colors.secondary}
                             />
 
                         </View>
@@ -223,8 +233,9 @@ const Home = ({ navigation }: any) => {
                                                 request: item
                                             })
                                         }}
+                                        key={item.id}
                                     >
-                                        <Text style={{ color: colors.primary }}>{item.service.name}</Text>
+                                        <Text style={{ color: colors.primary }}>{selectedLanguage=='en' ?item?.service?.name?.en:item?.service?.name?.sw}</Text>
                                         <Text style={{ paddingVertical: 10, color: colors.black }}>{item.client.name}</Text>
                                         <View style={{ marginRight: '35%', color: colors.alsoGrey }}><Text >{item.request_time}</Text></View>
                                     </TouchableOpacity>
@@ -236,9 +247,10 @@ const Home = ({ navigation }: any) => {
                                         onPress={() => navigation.navigate('Business Details', {
                                             service: item
                                         })}
+                                        key={item.id}
                                     >
-                                        <Text style={styles.categoryService}>{item?.service?.name}</Text>
-                                        <Text style={styles.subservice}>{item?.service?.category?.name}</Text>
+                                        <Text style={styles.categoryService}>{selectedLanguage=='en' ?item?.service?.name?.en:item?.service?.name?.sw}</Text>
+                                        <Text style={styles.subservice}>{selectedLanguage=='en' ?item?.service?.category?.name?.en:item?.service?.category?.name?.sw}</Text>
                                     </TouchableOpacity>
                                 ))
                             )}

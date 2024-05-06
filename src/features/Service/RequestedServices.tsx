@@ -23,7 +23,9 @@ import { getEmployees } from '../employees/EmployeeSlice';
 import Notification from '../../components/Notification';
 import { getClientLastLocation } from '../account/AccountSlice';
 import { getRequestLastLocation } from '../../components/Location/LocationSlice';
-
+import { selectLanguage } from '../../costants/languangeSlice';
+import PusherOnlineListener from '../../components/PusherOnlineListener';
+import IconOnline from 'react-native-vector-icons/Ionicons'; 
 
 const RequestedServices = ({ navigation, route }: any) => {
 
@@ -44,7 +46,7 @@ const RequestedServices = ({ navigation, route }: any) => {
         (state: RootStateOrAny) => state.providers,
     );
 
-    const { user } = useSelector(
+    const { user,isOnline } = useSelector(
         (state: RootStateOrAny) => state.user,
     );
 
@@ -121,11 +123,13 @@ const RequestedServices = ({ navigation, route }: any) => {
     const PhoneNumber = `${request?.client?.user.phone}`;
 
 
-    React.useLayoutEffect(() => {
-        if (request && request.service) {
-            navigation.setOptions({ title: request.service.name });
-        }
-    }, [navigation, request]);
+    // React.useLayoutEffect(() => {
+    //     if (request && request.service) {
+    //         navigation.setOptions({ title: request.service.name });
+    //     }
+    // }, [navigation, request]);
+
+    const selectedLanguage = useSelector(selectLanguage);
 
     const { t } = useTranslation();
 
@@ -250,6 +254,7 @@ const RequestedServices = ({ navigation, route }: any) => {
 
     return (
         <>
+        <PusherOnlineListener remoteUserId={request?.client?.user_id} />
             <View
                 style={[stylesGlobal.scrollBg, { flex: 1 }]}
             >
@@ -283,7 +288,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                         <View style={{ flexDirection: 'row' }}>
                             <View>
                                 <Text style={{ marginVertical: 5, color: isDarkMode ? colors.white : colors.black }}>{request?.client?.name}</Text>
-                                <Text style={{ marginVertical: 5, color: colors.secondary }}>{request?.service?.name}</Text>
+                                <Text style={{ marginVertical: 5, color: colors.secondary }}>{selectedLanguage=='en'? request?.service?.name?.en :request?.service?.name?.sw}</Text>
                             </View>
                             <TouchableOpacity style={{
                                 flexDirection: 'row',
@@ -304,7 +309,10 @@ const RequestedServices = ({ navigation, route }: any) => {
                                 }}>{PhoneNumber}</Text>
                             </TouchableOpacity>
                         </View>
-                        <Text>{request?.service?.description}</Text>
+                        <View style={styles.divOnline}>
+                        <IconOnline name={isOnline ? 'checkmark-circle' : 'close-circle'} size={24} color={isOnline ? 'green' :colors.darkGrey} />
+                        <Text style={styles.text}>{isOnline ? 'Online' : 'Offline'}</Text>
+                        </View>
 
                         <View style={[stylesGlobal.chooseServiceBtn, { justifyContent: 'space-between',marginBottom:50 }]}>
                             <TouchableOpacity style={[stylesGlobal.otherBtn, { backgroundColor: getStatusBackgroundColor(request_status) }]}>
@@ -365,7 +373,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                     </BottomSheetModalProvider>
 
                 </GestureHandlerRootView>
-                <View style={[styles.bottomDiv, { backgroundColor: isDarkMode ? colors.black : colors.white, height: 100 }]}>
+                <View style={[styles.bottomDiv, { backgroundColor: isDarkMode ? colors.black : colors.white }]}>
 
                     {request_status == 'Comfirmed' ? (
                         <TouchableOpacity
@@ -373,7 +381,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                             style={{
                                 backgroundColor: colors.successGreen, borderRadius: 20,
                                 justifyContent: 'center',
-                                padding: 20
+                                padding: 10
                             }}>
                             <Text style={{ color: colors.white }}>{t('screens:complete')}</Text>
                         </TouchableOpacity>
@@ -446,6 +454,14 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: 'bold'
     },
+    divOnline: {
+        flexDirection: 'row',
+        alignItems: 'center',
+      },
+    text: {
+        marginLeft: 5,
+        fontSize: 16,
+      },
     mapContainer: {
         flex: 1,
         marginBottom: '10%',

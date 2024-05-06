@@ -116,6 +116,7 @@ import { colors } from '../utils/colors';
     errorMessage: {
       color: colors.dangerRed,
       fontFamily: 'Prompt-Regular',
+      
     },
     separator: {
       borderWidth: 0.4,

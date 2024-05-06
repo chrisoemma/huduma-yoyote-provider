@@ -36,7 +36,7 @@ const Navigation = () => {
 
   useEffect(() => {
     let watchId;
-
+ 
     const initializeLocationTracking = async () => {
       watchId = await startLocationTracking();
     };
@@ -54,6 +54,7 @@ const Navigation = () => {
 
   useEffect(() => {
     let userType;
+    if(user?.provider || user?.employee){
     const requestLocationPermission = async () => {
       try {
         if(user?.provider){
@@ -105,7 +106,7 @@ const Navigation = () => {
       }
     };
 
-    if(user?.provider || user?.employee){
+   
     requestLocationPermission();
   }
 

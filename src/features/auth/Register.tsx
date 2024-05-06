@@ -108,23 +108,19 @@ const RegisterScreen = ({ route, navigation }: any) => {
   };
 
 
-  const [toastMessage, setToastMessage] = useState(''); // State for toast message content
-  const [showToast, setShowToast] = useState(false); // State to control visibility of toast message
-
-  // Function to toggle visibility of toast message
+  const [toastMessage, setToastMessage] = useState(''); 
+  const [showToast, setShowToast] = useState(false);
   const toggleToast = () => {
     setShowToast(!showToast);
   };
 
 
-
-  // Function to show the toast message
   const showToastMessage = (message) => {
     setToastMessage(message);
-    toggleToast(); // Show the toast message
+    toggleToast(); 
     setTimeout(() => {
-      toggleToast(); // Hide the toast message after a delay
-    }, 5000); // Adjust duration as per your requirement
+      toggleToast(); 
+    }, 5000); 
   };
 
 

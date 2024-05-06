@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppDispatch } from '../../app/store';
 import { useSelector, RootStateOrAny } from 'react-redux';
 import { getCategories } from '../category/CategorySlice';
-import { transformDataToDropdownOptions } from '../../utils/utilts';
+import { transformDataToDropdownOptions, transformDataToDropdownOptionsLanguage } from '../../utils/utilts';
 import { getServicesByCategory } from '../Service/ServiceSlice';
 import { getSubserviceByService, clearSubServiceByService } from '../subservices/SubservicesSlice';
 import { createBusiness, updateBusiness } from './BusinessSlice';
@@ -27,6 +27,8 @@ import { TextInputField } from '../../components/TextInputField';
 import { firebase } from '@react-native-firebase/storage';
 import RNFS from 'react-native-fs';
 import VideoPlayer from '../../components/VideoPlayer';
+import { selectLanguage } from '../../costants/languangeSlice';
+import ToastMessage from '../../components/ToastMessage';
 
 
 const AddBusiness = ({ route, navigation }: any) => {
@@ -38,7 +40,11 @@ const AddBusiness = ({ route, navigation }: any) => {
   const [value, setCategoryValue] = useState(null);
   const [ServiceValue, setServiceValue] = useState(null);
 
+
+
+
   const [checkedSubServices, setCheckedSubServices] = useState([]);
+  const selectedLanguage = useSelector(selectLanguage);
 
   const [open, setOpen] = useState(false);
 
@@ -144,8 +150,8 @@ const AddBusiness = ({ route, navigation }: any) => {
 
 
   const [uploadingDoc, setUploadingDoc] = useState(false)
-  const [items, setItems] = useState(transformDataToDropdownOptions(categories));
-  const [ServiceItems, setServiceItems] = useState(transformDataToDropdownOptions(servicesByCategory));
+  const [items, setItems] = useState(transformDataToDropdownOptionsLanguage(categories,selectedLanguage));
+  const [ServiceItems, setServiceItems] = useState(transformDataToDropdownOptionsLanguage(servicesByCategory,selectedLanguage));
   const [subs, setSubs] = useState(subServiceByService)
 
   const { isDarkMode } = useSelector(
@@ -180,7 +186,7 @@ const AddBusiness = ({ route, navigation }: any) => {
   }
 
   const ServiceItemsMemoized = useMemo(() => {
-    return transformDataToDropdownOptions(servicesByCategory);
+    return transformDataToDropdownOptionsLanguage(servicesByCategory,selectedLanguage)
   }, [servicesByCategory]);
 
   const [video, setVideo] = useState(null);
@@ -192,7 +198,23 @@ const AddBusiness = ({ route, navigation }: any) => {
 
     setTimeout(() => {
       setMessage('');
-    }, 5000);
+    }, 10000);
+  };
+
+
+  const [toastMessage, setToastMessage] = useState(''); 
+  const [showToast, setShowToast] = useState(false);
+  const toggleToast = () => {
+    setShowToast(!showToast);
+  };
+
+
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    toggleToast(); 
+    setTimeout(() => {
+      toggleToast(); 
+    }, 5000); 
   };
 
 
@@ -240,26 +262,32 @@ const AddBusiness = ({ route, navigation }: any) => {
     data.service_id = ServiceValue;
     data.sub_services = checkedSubServices;
 
-    let uploadCounter = 0;
 
-
-
+    let mediaUploadHandled = false;
     const handleUploadFinish = () => {
-      uploadCounter++;
 
+      if (!mediaUploadHandled) {
+        mediaUploadHandled = true;
+    
       if (value == null || ServiceValue == null || checkedSubServices.length < 1) {
 
         setDisappearMessage(`${t('screens:chooseCategoryServiceSubService')}`);
+        if(!showToast){
+          setShowToast(true)
+          showToastMessage(t('screens:errorOccured'));
+        }
 
       } else {
-        if (isEditMode && data.img_url == null) {
-          data.img_url = existingBusiness?.img_url || existingBusiness?.images[0].img_url
+        if (isEditMode && data?.img_url == null) {
+         
+          data.img_url = existingBusiness?.img_url?existingBusiness?.img_url : existingBusiness?.service?.images[0]?.img_url
+          console.log('Edit mode',data.img_url);
         }
 
-        if (isEditMode && data.video_url == null) {
-          data.video_url = existingBusiness?.video_url || null
+        if (isEditMode && data?.video_url == null) {
+          data.video_url = existingBusiness?.video_url ? existingBusiness?.video_url : null
         }
-        if (uploadCounter === 2) {
+       
           dispatch(isEditMode ? updateBusiness({ data, businessId: existingBusiness.id }) : createBusiness(data))
             .unwrap()
             .then(result => {
@@ -269,15 +297,33 @@ const AddBusiness = ({ route, navigation }: any) => {
                   screen: 'My Businesses',
                 });
               } else {
-                setDisappearMessage(`${t('screens:requestFail')}`);
-                console.log('dont navigate');
+
+                if (result.error) {
+         
+                  setDisappearMessage(result.error
+                  );
+             
+                  if(!showToast){
+                    setShowToast(true)
+                    showToastMessage(t('screens:errorOccured'));
+                  }
+                
+                } else {
+                  setDisappearMessage(`${t('screens:requestFail')}`);
+                  if(!showToast){
+                    setShowToast(true)
+                    showToastMessage(t('screens:errorOccured'));
+                  }
+                }
+            
               }
             }).catch(rejectedValueOrSerializedError => {
               console.log('error');
               console.log(rejectedValueOrSerializedError);
             });
-        }
+     
       }
+    }
     };
 
     const uploadFileAndHandleFinish = async (file, storagePath) => {
@@ -333,7 +379,7 @@ const AddBusiness = ({ route, navigation }: any) => {
       }
     };
 
-    uploadCounter = 0;
+   
 
     if (image !== null) {
       await uploadFileAndHandleFinish(image, 'businesses/images/');
@@ -349,13 +395,15 @@ const AddBusiness = ({ route, navigation }: any) => {
 
   const stylesGlobal = globalStyles();
 
-
-
   return (
     <SafeAreaView style={stylesGlobal.scrollBg}>
+      {showToast && <View style={{marginBottom:'15%'}}>
+   <ToastMessage message={toastMessage} onClose={toggleToast} />
+   </View>}
       <ScrollView style={stylesGlobal.appView} showsVerticalScrollIndicator={false}>
+    
         <BasicView style={stylesGlobal.centerView}>
-          <Text style={stylesGlobal.errorMessage}>{message}</Text>
+          <Text style={[stylesGlobal.errorMessage,{fontSize:17,marginBottom:10}]}>{message}</Text>
         </BasicView>
         <View style={styles.marginDropdown}>
           <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:category')}</Text>
@@ -393,14 +441,14 @@ const AddBusiness = ({ route, navigation }: any) => {
         <View style={styles.checkBoxContainer}>
           <Text style={[styles.textStyle, { color: isDarkMode ? 'white' : 'black' }]}>{t('screens:pleaseChooseSubServiceYouOffer')}</Text>
           {
-            subs.map(subservice => (
+            subs?.map(subservice => (
               <BouncyCheckbox
                 key={subservice.id}
                 size={25}
                 fillColor={colors.secondary}
                 style={{ marginTop: 5 }}
                 unfillColor="#FFFFFF"
-                text={subservice.name}
+                text={selectedLanguage=='en'?subservice?.name?.en:subservice?.name?.sw}
                 iconStyle={{ borderColor: "red" }}
                 innerIconStyle={{ borderWidth: 2 }}
                 textStyle={{ fontFamily: "JosefinSans-Regular" }}
@@ -520,7 +568,7 @@ const AddBusiness = ({ route, navigation }: any) => {
             )}
 
           </View>
-          <BasicView>
+          <BasicView style={{marginBottom:'20%'}}>
             <Button loading={loading || uploadingDoc} onPress={handleSubmit(onSubmit)}>
               <ButtonText>{isEditMode ? `${t('screens:editBusiness')}` : `${t('screens:addBusiness')}`}</ButtonText>
             </Button>

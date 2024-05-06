@@ -60,6 +60,22 @@ export const userLogin = createAsyncThunk(
 );
 
 
+export const resendOTP = createAsyncThunk(
+  'users/resendOTP',
+  async (data: PhoneVerificationDTO) => {
+    const response = await fetch(`${API_URL}/auth/resendOTP`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    return (await response.json()) as UserData;
+  },
+);
+
+
 export const updateProfile = createAsyncThunk(
   'users/updateProfile',
   async ({ data, userId }: any) => {
@@ -85,6 +101,22 @@ export const updateProfile = createAsyncThunk(
       throw error; // Rethrow the error to be caught by Redux Toolkit
     }
   }
+);
+
+
+export const postUserDeviceToken = createAsyncThunk(
+  'users/postUserDeviceToken',
+  async ({ userId, deviceToken }: { userId: string, deviceToken: string }) => {
+    const response = await fetch(`${API_URL}/users/device_token/${userId}`, {
+      method: 'PUT',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ deviceToken }),
+    });
+    return response.json();
+  },
 );
 
 
@@ -230,6 +262,22 @@ export const createAccountPassword = createAsyncThunk(
 );
 
 
+export const postUserOnlineStatus = createAsyncThunk(
+  'users/postUserOnlineStatus',
+  async ({userId, data}: any) => {
+      const response = await fetch(`${API_URL}/users/update_user_online_status/${userId}`, {
+          method: 'PUT',
+          headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+      });
+      return (await response.json());
+  },
+);
+
+
 export const changePassword = createAsyncThunk(
   'users/changePassword',
   async ({ data, userId }: any) => {
@@ -272,6 +320,8 @@ const userSlice = createSlice({
     config: {},
     residence:{},
     loading: false,
+    isOnline: false,
+    deviceToken:'',
     isFirstTimeUser:true,
     status: '',
   },
@@ -285,6 +335,16 @@ const userSlice = createSlice({
     setFirstTime: (state, action) => {
       state.isFirstTimeUser = action.payload;
     },
+    setUserOnlineStatus: (state, action) => {
+      state.isOnline = action.payload;
+    },
+    setUserAccountStatus:(state,action)=>{
+      state.user.status=action.payload.userStatus
+      state.user.provider.status=action.payload.modalStatus
+    },
+    setUserSubcriptionStatus:(state,action)=>{
+      state.user.provider.subscription_status=action.payload
+    }
   },
   extraReducers: builder => {
     //LOGIN
@@ -318,6 +378,23 @@ const userSlice = createSlice({
       state.loading = false;
     });
 
+
+        //DevicToken
+        builder.addCase(postUserDeviceToken.pending, state => {
+          state.loading = true;
+        });
+        builder.addCase(postUserDeviceToken.fulfilled, (state, action) => {
+          if (action.payload.status) {
+            state.deviceToken = action.payload.data.token;
+          }
+          state.loading = false;
+        });
+        builder.addCase(postUserDeviceToken.rejected, (state, action) => {
+          console.log('Rejected');
+          console.log(action.error);
+          state.loading = false;
+        })
+
     //REGISTER
     builder.addCase(userRegiter.pending, state => {
       console.log('Pending');
@@ -347,6 +424,26 @@ const userSlice = createSlice({
     });
 
 
+
+        //RESEND OTP
+        builder.addCase(resendOTP.pending, state => {
+          state.loading = true;
+          updateStatus(state, '');
+        });
+        builder.addCase(resendOTP.fulfilled, (state, action) => {
+           
+          if (action.payload.status) {
+            updateStatus(state, '');
+          } else {
+            updateStatus(state, '');
+          }
+          state.loading = false;
+          
+        });
+        builder.addCase(resendOTP.rejected, (state, action) => {
+          updateStatus(state, '');
+          state.loading = false;
+        });
 
     //multi account 
 
@@ -582,6 +679,22 @@ const userSlice = createSlice({
     });
 
 
+    builder.addCase(postUserOnlineStatus.pending, state => {
+      state.loading = true;
+    });
+    builder.addCase(postUserOnlineStatus.fulfilled, (state, action) => {
+  
+      if (action.payload.status) {
+        state.isOnline = action.payload.data.isOnline;
+      }
+      state.loading = false;
+    });
+    builder.addCase(postUserOnlineStatus.rejected, (state, action) => {
+      console.log('Rejected');
+      state.loading = false;
+    });
+
+
 
     //findNumber
 
@@ -614,6 +727,6 @@ const userSlice = createSlice({
   },
 });
 
-export const { userLogout, clearMessage,setFirstTime } = userSlice.actions;
+export const { userLogout, clearMessage,setFirstTime,setUserOnlineStatus,setUserAccountStatus,setUserSubcriptionStatus } = userSlice.actions;
 
 export default userSlice.reducer;

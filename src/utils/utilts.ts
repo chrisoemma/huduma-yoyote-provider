@@ -91,6 +91,19 @@ export const transformDataToDropdownOptions=(data:any)=> {
 }
 
 
+export const transformDataToDropdownOptionsLanguage = (data, selectedLanguage) => {
+  if (!data || !Array.isArray(data)) {
+    return [];
+  }
+
+  return data.map(item => ({
+    label: selectedLanguage == 'en' ? item.name.en : item.name.sw,
+    value: item.id.toString(),
+  }));
+};
+
+
+
 export const formatNumber = (number, decPlaces, decSep, thouSep) => {
   (decPlaces = isNaN((decPlaces = Math.abs(decPlaces))) ? 2 : decPlaces),
     (decSep = typeof decSep === 'undefined' ? '.' : decSep);
@@ -168,9 +181,8 @@ export const getLocationName = async (latitude, longitude) => {
 
 export function breakTextIntoLines(text, maxLength) {
   if (text?.length <= maxLength) {
-    return text; // No need to break into lines if it's within the maxLength
+    return text; 
   }
-
   const chunks = [];
   while (text?.length > 0) {
     chunks.push(text?.substring(0, maxLength));

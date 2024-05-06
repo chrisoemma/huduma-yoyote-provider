@@ -75,7 +75,7 @@ const DrawerNavigator=()=>{
     <Drawer.Navigator
       initialRouteName="Dashboard"
       screenOptions={drawerNavOptions}
-      drawerContent={props => <CustomDrawerContent {...props}  isDarkMode={isDarkMode } />}>
+      drawerContent={props => <CustomDrawerContent {...props}  isDarkMode={isDarkMode }  />}>
       <Drawer.Screen name="Home" component={BottomHomeTabNavigator} />
     </Drawer.Navigator>
   );

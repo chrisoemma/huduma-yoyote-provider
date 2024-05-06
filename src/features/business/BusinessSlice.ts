@@ -59,6 +59,7 @@ export const getBusinesses = createAsyncThunk(
       return (await response.json()) 
     },
   );
+  
   export const updateBusiness = createAsyncThunk(
     'businesses/updateBusiness',
     async ({ data, businessId }: any) => {
@@ -249,12 +250,13 @@ export const getBusinesses = createAsyncThunk(
 
       if (action.payload.status) {
           state.business = { ...action.payload.data.business };
+          state.businesses=[...state.businesses,{...action.payload.data.business}]
           updateStatus(state, '');
       } else {
           updateStatus(state, action.payload.status);
       }
 
-      state.businesses.push(state.business);
+      state.loading = false;
 
     });
     builder.addCase(createBusiness.rejected, (state, action) => {
@@ -279,12 +281,12 @@ export const getBusinesses = createAsyncThunk(
 
       if (action.payload.status) {
           state.document = { ...action.payload.data.document };
+          state.documents = [...state.documents, { ...state.document }];
           updateStatus(state, '');
       } else {
           updateStatus(state, action.payload.status);
       }
-
-      state.documents.push(state.document);
+      state.loading = false;
 
     });
     builder.addCase(createDocument.rejected, (state, action) => {
@@ -305,11 +307,11 @@ export const getBusinesses = createAsyncThunk(
 
     builder.addCase(deleteDocument.fulfilled, (state, action) => {
 
-          
+      if (action.payload.status) {
       const deletedDocumentId = action.payload.data.document.id;
           
       state.documents = state.documents.filter((document) => document.id !== deletedDocumentId);
-
+      }
       state.loading = false;
       updateStatus(state, '');
     });
@@ -330,10 +332,12 @@ export const getBusinesses = createAsyncThunk(
       });
   
       builder.addCase(deleteBusiness.fulfilled, (state, action) => {
+
+        if (action.payload.status) {
         const deletedBusinessId = action.payload.data.business.id;
             
         state.businesses = state.businesses.filter((business) => business.id !== deletedBusinessId);
-
+        }
         state.loading = false;
         updateStatus(state, '');
       });
@@ -351,21 +355,19 @@ export const getBusinesses = createAsyncThunk(
     });
 
     builder.addCase(updateBusiness.fulfilled, (state, action) => {
-        console.log('Update Task Fulfilled');
-      
+     
+      if (action.payload.status) { 
         const updatedBusiness = action.payload.data.business;
-
         const businessIndex = state.businesses.findIndex((business) => business.id === updatedBusiness.id);
-        console.log('businessindex', businessIndex);
-        if (businessIndex !== -1) {
-            // Update the task in the array immutably
-           
+          
+        if (businessIndex !== -1) {      
             state.businesses = [
                 ...state.businesses.slice(0, businessIndex),
                 updatedBusiness,
                 ...state.businesses.slice(businessIndex + 1),
             ];
         }
+      }
         state.loading = false;
         updateStatus(state, '');
     });

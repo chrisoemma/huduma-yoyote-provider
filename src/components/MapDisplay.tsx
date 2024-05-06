@@ -23,15 +23,23 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
 
    
   const [distance, setDistance] = useState(null);
-  const [clientLocation, setClientLocation] = useState({latitude:parseFloat(clientLastLocation?.latitude), longitude: parseFloat(clientLastLocation?.longitude) });
   const [providerLocation, setServiceProvidersLocation] = useState(null);
-
+  const [clientLocation, setClientLocation]=useState(null);
   const [previousProviderLocation, setPreviousProviderLocation] = useState(null);
 
   const mapViewRef = useRef(null);
 
   const STATUS_ACTIVE = ['Requested', 'Accepted', 'Comfirmed'];
   const STATUS_PAST=['Cancelled', 'Rejected', 'Completed'];
+
+
+  useEffect(() => {
+    if (clientLastLocation) {
+      setClientLocation({latitude:parseFloat(clientLastLocation?.latitude),
+         longitude: parseFloat(clientLastLocation?.longitude) });
+    }
+  }, [clientLastLocation]);
+
 
   useEffect(() => {
     if (providerLocation) {
@@ -89,7 +97,7 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
 
   useEffect(() => {
     if (clientLocation && providerLocation) {
-      const calculatedDistance = calculateDistance(clientLocation.latitude, clientLocation.longitude, providerLocation.latitude, providerLocation.longitude);
+      const calculatedDistance = calculateDistance(clientLocation?.latitude, clientLocation?.longitude, providerLocation?.latitude, providerLocation?.longitude);
       setDistance(calculatedDistance);
     }
   }, [clientLocation, providerLocation]);
@@ -263,10 +271,10 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
   }, [clientLocation, providerLocation]);
 
 
-  const centerLat = (providerLocation?.latitude + clientLocation.latitude) / 2;
-  const centerLng = (providerLocation?.longitude + clientLocation.longitude) / 2;
+  const centerLat = (providerLocation?.latitude + clientLocation?.latitude) / 2;
+  const centerLng = (providerLocation?.longitude + clientLocation?.longitude) / 2;
 
-  const zoomLevel = 0.05;
+  const zoomLevel = 0.02;
 
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371; // Earth's radius in kilometers
@@ -300,9 +308,6 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
 
 
 
-
-  
-
   return (
 <View style={styles.container}>
       {providerLocation && clientLocation && (
@@ -312,8 +317,8 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
           region={{
             latitude:centerLat,
             longitude:centerLng,
-            latitudeDelta: 0.2,
-            longitudeDelta: 0.2 * (Dimensions.get('window').width / Dimensions.get('window').height),
+            latitudeDelta: zoomLevel,
+            longitudeDelta: zoomLevel * (Dimensions.get('window').width / Dimensions.get('window').height),
           }}
           customMapStyle={customMapStyle}
         >
@@ -339,7 +344,7 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
           />
         </MapView>
       )}
-      {!providerLocation && <Text>{t('screens:loading')}...</Text>}
+      {!providerLocation &&  clientLocation && <Text>{t('screens:loading')}...</Text>}
       {distance && <Text style={styles.distanceText}>{t('screens:distance')}: {distance} km</Text>}
     </View>
   );

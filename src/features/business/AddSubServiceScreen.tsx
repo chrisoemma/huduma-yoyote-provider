@@ -17,6 +17,8 @@ import { useTranslation } from 'react-i18next';
 import VideoPlayer from '../../components/VideoPlayer';
 import { firebase } from '@react-native-firebase/storage';
 import RNFS from 'react-native-fs';
+import { selectLanguage } from '../../costants/languangeSlice';
+import ToastMessage from '../../components/ToastMessage';
 
 const AddSubServiceScreen = ({ route, navigation }: any) => {
 
@@ -34,6 +36,8 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
   const [message, setMessage] = useState(null);
   const [uploadingDoc, setUploadingDoc] = useState(false)
 
+  const selectedLanguage = useSelector(selectLanguage);
+
   const [activeTab, setActiveTab] = useState('addNew');
   const toggleTab = () => {
     setActiveTab(activeTab === 'addNew' ? 'addFromList' : 'addNew');
@@ -48,9 +52,8 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
     // console.log('checked1l',checkedSubServices)
     if (subServiceByService) {
       const ids = sub_services?.map(subService => subService?.id);
-      console.log('checked1l', checkedSubServices)
       setCheckedSubServices(ids)
-      console.log('checked1222', checkedSubServices)
+      
     }
   }, [subServiceByService]);
 
@@ -94,10 +97,23 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
 
     setTimeout(() => {
       setMessage('');
-    }, 5000);
+    }, 10000);
+  };
+
+  const [toastMessage, setToastMessage] = useState(''); 
+  const [showToast, setShowToast] = useState(false);
+  const toggleToast = () => {
+    setShowToast(!showToast);
   };
 
 
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    toggleToast(); 
+    setTimeout(() => {
+      toggleToast(); 
+    }, 10000); 
+  };
 
   const removeImage = () => {
     setImage(null)
@@ -160,6 +176,16 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
     data.business_id = business?.id;
     data.sub_services = checkedSubServices;
 
+
+    if (image == null) {
+      setDisappearMessage(`${t('screens:UploadImagesVideosOfService')}`);
+      if(!showToast){
+        setShowToast(true)
+        showToastMessage(t('screens:errorOccured'));
+      }
+      return
+    }
+
     let mediaUploadHandled = false;
 
     const handleUploadFinish = () => {
@@ -168,6 +194,10 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
         mediaUploadHandled = true;
       if (checkedSubServices.length < 1 || data.name == null) {
         setDisappearMessage(`${t('screens:chooseSubserviceOrEnterName')}`);
+        if(!showToast){
+          setShowToast(true)
+          showToastMessage(t('screens:errorOccured'));
+        }
 
       } else {
         dispatch(createSubService({ data: data, providerId: user.provider.id, businessId: business.id }))
@@ -179,8 +209,22 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
                 screen: 'My Businesses',
               });
             } else {
-              setDisappearMessage(`${t('screens:requestFail')}`);
-              console.log('dont navigate');
+              if (result.error) {
+                  setDisappearMessage(result.error
+                  );
+                
+                  if(!showToast){
+                    setShowToast(true)
+                    showToastMessage(t('screens:errorOccured'));
+                  }
+                
+                } else {
+                  setDisappearMessage(`${t('screens:requestFail')}`);
+                  if(!showToast){
+                    setShowToast(true)
+                    showToastMessage(t('screens:errorOccured'));
+                  }
+                }
             }
           })
           .catch(rejectedValueOrSerializedError => {
@@ -278,8 +322,11 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
           </Text>
 
         </TouchableOpacity>
-        <BasicView style={stylesGlobal.centerView}>
-          <Text style={stylesGlobal.errorMessage}>{message}</Text>
+        {showToast && 
+           <ToastMessage message={toastMessage} onClose={toggleToast} />
+   }
+        <BasicView style={[stylesGlobal.centerView,{marginVertical:10}]}>
+          <Text style={[stylesGlobal.errorMessage,{fontSize:17}]}>{message}</Text>
         </BasicView>
         {
           activeTab === 'addFromList' ? (
@@ -295,7 +342,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
                     fillColor={colors.secondary}
                     style={{ marginTop: 5 }}
                     unfillColor="#FFFFFF"
-                    text={subservice.name}
+                    text={selectedLanguage=='en'?subservice?.name?.en:subservice?.name?.sw}
                     iconStyle={{ borderColor: "red" }}
                     innerIconStyle={{ borderWidth: 2 }}
                     textStyle={{ fontFamily: "JosefinSans-Regular", color: isDarkMode ? colors.white : colors.alsoGrey }}
@@ -449,7 +496,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
             </View>
           )}
 
-        <BasicView>
+        <BasicView style={{marginBottom:'20%'}}>
           <Button loading={uploadingDoc || loading} onPress={handleSubmit(onSubmit)}>
             <ButtonText>{t('screens:addSubService')}</ButtonText>
           </Button>

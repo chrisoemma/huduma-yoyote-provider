@@ -6,6 +6,7 @@ import { colors } from '../../utils/colors';
 import { useSelector, RootStateOrAny } from 'react-redux';
 import VideoPlayer from '../../components/VideoPlayer';
 import { useTranslation } from 'react-i18next';
+import { selectLanguage } from '../../costants/languangeSlice';
 
 const ViewSubService = ({ route, navigation }: any) => {
 
@@ -19,10 +20,11 @@ const ViewSubService = ({ route, navigation }: any) => {
 
   const { t } = useTranslation();
 
+  const selectedLanguage = useSelector(selectLanguage);
+
   const toggleVideoModal = () => {
     setVideoModalVisible(!isVideoModalVisible);
   };
-
 
   return (
     <ScrollView style={stylesGlobal.scrollBg}>
@@ -41,12 +43,12 @@ const ViewSubService = ({ route, navigation }: any) => {
                 }}
               />
               <View style={styles.textContainer}>
-                <Text style={styles.subText}>{sub_service?.provider_sub_list?.name || sub_service.name}</Text>
-                <Text style={[styles.desc, { color: isDarkMode ? colors.white : colors.alsoGrey }]}>{sub_service?.provider_sub_list?.description || sub_service.description}</Text>
+                <Text style={styles.subText}>{sub_service?.provider_sub_list?.name || selectedLanguage=='en'? sub_service?.name?.en:sub_service?.name?.sw}</Text>
+                <Text style={[styles.desc, { color: isDarkMode ? colors.white : colors.alsoGrey }]}>{sub_service?.provider_sub_list?.description || selectedLanguage=='en'? sub_service?.description?.en:sub_service?.description?.sw}</Text>
               </View>
               {sub_service?.assets[0]?.video_url !== null || sub_service?.default_images[0]?.video_url !== null ? (
                 <TouchableOpacity style={styles.viewVideo} onPress={toggleVideoModal}>
-                  <Text style={styles.videoText}>Video</Text>
+                  <Text style={styles.videoText}>{t('screens:video')}</Text>
                 </TouchableOpacity>) : (<></>)
               }
             </>
@@ -66,12 +68,12 @@ const ViewSubService = ({ route, navigation }: any) => {
                 }}
               />
               <View style={styles.textContainer}>
-                <Text style={styles.subText}>{providerSubService?.provider_sub_list?.name || providerSubService.name}</Text>
-                <Text style={[styles.desc, { color: isDarkMode ? colors.white : colors.alsoGrey }]}>{providerSubService.description}</Text>
+                <Text style={styles.subText}>{providerSubService?.provider_sub_list?.name || providerSubService?.name}</Text>
+                <Text style={[styles.desc, { color: isDarkMode ? colors.white : colors.alsoGrey }]}>{providerSubService?.description}</Text>
               </View>
               {providerSubService?.assets[0].video_url !== null ? (
                 <TouchableOpacity style={styles.viewVideo} onPress={toggleVideoModal}>
-                  <Text style={styles.videoText}>Video</Text>
+                  <Text style={styles.videoText}>{t('screens:video')}</Text>
                 </TouchableOpacity>
               ) : (<></>)
               }

@@ -8,6 +8,7 @@ import { useSelector, RootStateOrAny } from 'react-redux';
 import { useAppDispatch } from '../../app/store';
 import { getSubscriptions } from './SubscriptionSlice';
 import { formatDate } from '../../utils/utilts';
+import { useTranslation } from 'react-i18next';
 
 const Subscriptions = () => {
 
@@ -23,14 +24,14 @@ const Subscriptions = () => {
   const dispatch = useAppDispatch();
   const [selectedPackage, setSelectedPackage] = useState(null);
 
-  const handlePackageSelect = (subPackage) => {
-  
+  const handlePackageSelect = (subPackage,type) => {
+
     setSelectedPackage(subPackage);
-    
+
     if (subscriptions?.subscription?.status === 'Active') {
       const newSubscriptionAmount = (subPackage.package.amount * subPackage.duration) - (subPackage.amount * subPackage.duration);
       let amountToPay = 0;
-      
+
 
       if (subscriptions?.subscription?.is_trial) {
         amountToPay = newSubscriptionAmount;
@@ -38,28 +39,29 @@ const Subscriptions = () => {
 
         const currentDate = new Date();
         const endDate = new Date(subscriptions.subscription.end_date);
-        
+
         const numberOfDaysRemaining = Math.ceil((endDate - currentDate) / (1000 * 60 * 60 * 24)); // Calculate remaining days
+
+        const amountRemainingPreviousSubscription = (numberOfDaysRemaining / (subscriptions?.subscription?.discount?.duration * 30)) + subPackage?.amount * subPackage?.duration;
         
-        const amountRemainingPreviousSubscription = (numberOfDaysRemaining / (subscriptions?.subscription?.discount?.duration*30)) + subPackage?.amount*subPackage?.duration;
-        // console.log('amount remaning',(amountRemainingPreviousSubscription));
 
         amountToPay = newSubscriptionAmount - amountRemainingPreviousSubscription;
       }
-  
-      amountToPay = Math.max(0, amountToPay); 
-  
-      //console.log('Amount to pay:', amountToPay);
+
+      amountToPay = Math.max(0, amountToPay);
+
     }
   };
-  
+
 
   if (user.provider) {
     useEffect(() => {
       dispatch(getSubscriptions({ providerId: user.provider.id }));
     }, [])
+    
   }
 
+  const { t } = useTranslation();
   const stylesGlobal = globalStyles();
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -69,7 +71,7 @@ const Subscriptions = () => {
           {subscriptions?.subscription ? (
             <View style={styles.activePackage}>
               <Text style={styles.textActive}>
-                {subscriptions?.subscription ? (subscriptions?.subscription?.status == 'Active' || subscriptions?.subscription?.status == 'Expired') ? 'Active subscription' : 'Expired Subscription' : ''}
+                {subscriptions?.subscription ? (subscriptions?.subscription?.status == 'Active' || subscriptions?.subscription?.status == 'Expired') ? t('screens:activeSubscription') : t('screens:expiredSubscriptions'): ''}
               </Text>
 
               <TouchableOpacity style={styles.subpackage} disabled={subscriptions?.subscription?.is_trial || subscriptions?.subscription?.status == 'Expired'}>
@@ -90,7 +92,7 @@ const Subscriptions = () => {
                   {subscriptions?.subscription?.is_trial ? (
                     <>
                       <Text style={styles.priceText}>{subscriptions?.subscription?.package?.amount}</Text>
-                      <Text style={styles.freeTrial}>Trial:Free</Text>
+                      <Text style={styles.freeTrial}>{t('screens:trialFree')}</Text>
                     </>
                   ) : (
                     <>
@@ -99,12 +101,12 @@ const Subscriptions = () => {
                           <Text style={styles.realPrice}>
                             {subscriptions?.subscription?.package.amount - subscriptions?.subscription?.discount?.amount}
                           </Text>
-                          <Text style={styles.freeTrial}>Duration: {subscriptions?.subscription?.discount?.duration}</Text>
+                          <Text style={styles.freeTrial}>{t('screens:duration')}: {subscriptions?.subscription?.discount?.duration}</Text>
                         </View>
                       ) : (
                         <View>
-                          <Text style={styles.realPrice}>Price: {subscriptions?.subscription?.package?.amount}</Text>
-                          <Text style={styles.freeTrial}>Duration: 1</Text>
+                          <Text style={styles.realPrice}>{t('screens:price')}: {subscriptions?.subscription?.package?.amount}</Text>
+                          <Text style={styles.freeTrial}>{t('screens:duration')}: 1</Text>
                         </View>
                       )}
                     </>
@@ -112,18 +114,22 @@ const Subscriptions = () => {
                 </View>
 
                 <View style={styles.dates}>
-                  <Text style={styles.textDate}>Start: {formatDate(subscriptions?.subscription?.start_date)}</Text>
-                  <Text style={styles.textDate}>End: {formatDate(subscriptions?.subscription?.end_date)}</Text>
+                  <Text style={styles.textDate}>{t('screens:start')}: {formatDate(subscriptions?.subscription?.start_date)}</Text>
+                  <Text style={styles.textDate}>{t('screens:end')}: {formatDate(subscriptions?.subscription?.end_date)}</Text>
                 </View>
+                {subscriptions?.subscription?.is_trial ? (
+                  <></>
+                ) : (<TouchableOpacity style={[styles.upgrade, { backgroundColor: colors.black }]}>
+                  <Text style={[styles.textUpgrade, { color: 'white' }]}>{t('screens:renew')}</Text>
+                </TouchableOpacity>)}
               </TouchableOpacity>
             </View>
           ) : (
             <></>
           )}
 
-          {/* Upgrade Subscription */}
           <View style={{ marginTop: 20, marginBottom: 10 }}>
-            <Text style={styles.textActive}>Upgrade Subscription</Text>
+            <Text style={styles.textActive}>{t('screens:subscriptionOptions')}</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {subscriptions?.provider_packages ? (
                 <>
@@ -132,18 +138,17 @@ const Subscriptions = () => {
                       style={[
                         styles.upPackage,
                         selectedPackage?.id === subPackage.id && { backgroundColor: 'white' },
-                        subscriptions?.subscription?.discount_id === subPackage.id ||
-                        (subscriptions?.subscription?.status == 'Active' && subscriptions?.subscription?.discount?.duration >= subPackage.duration)
-                          ? { opacity: 0.5 }
+                        (subscriptions?.subscription?.discount_id === subPackage.id && selectedPackage?.id !== subPackage.id)
+                          ? { backgroundColor: colors.gray, opacity: 0.5 } // Apply opacity for disabled package
                           : null,
                       ]}
                       key={subPackage.id}
                       onPress={() =>
-                        !(subscriptions?.subscription?.discount_id === subPackage.id ||
-                        (subscriptions?.subscription?.status == 'Active' && subscriptions?.subscription?.discount?.duration >= subPackage.duration))
-                          ? handlePackageSelect(subPackage)
+                        !(subscriptions?.subscription?.discount_id === subPackage.id)
+                          ? handlePackageSelect(subPackage,'New')
                           : null
                       }
+                      disabled={subscriptions?.subscription?.discount_id === subPackage.id}
                     >
                       <View style={styles.firstBlock}>
                         <View>
@@ -169,7 +174,7 @@ const Subscriptions = () => {
                             { color: selectedPackage?.id === subPackage.id ? 'black' : colors.white },
                           ]}
                         >
-                          Actual: {subPackage?.package.amount * subPackage.duration}
+                          {t('screens:actual')}: {subPackage?.package.amount * subPackage.duration}
                         </Text>
                         <Text
                           style={[
@@ -177,16 +182,16 @@ const Subscriptions = () => {
                             { color: selectedPackage?.id === subPackage.id ? 'black' : colors.white },
                           ]}
                         >
-                          Price: {subPackage?.package.amount * subPackage.duration - subPackage.amount * subPackage.duration}
+                          {t('screens:price')}: {subPackage?.package.amount * subPackage.duration - subPackage.amount * subPackage.duration}
                         </Text>
                         <Text
                           style={[styles.freeTrial, { color: selectedPackage?.id === subPackage.id ? 'black' : colors.white }]}
                         >
-                          Duration: {subPackage.duration}
+                         {t('screens:duration')}: {subPackage.duration}
                         </Text>
                       </View>
                       <TouchableOpacity style={styles.upgrade}>
-                        <Text style={[styles.textUpgrade, { color: 'black' }]}>UPGRADE</Text>
+                        <Text style={[styles.textUpgrade, { color: 'black' }]}>{t('select')}</Text>
                       </TouchableOpacity>
                     </TouchableOpacity>
                   ))}
@@ -194,6 +199,7 @@ const Subscriptions = () => {
               ) : (
                 <></>
               )}
+
             </View>
           </View>
         </ScrollView>
@@ -206,7 +212,6 @@ const styles = StyleSheet.create({
 
   subpackage: {
     alignSelf: 'center',
-    height: 200,
     width: '50%',
     backgroundColor: colors.white,
     borderRadius: 25,

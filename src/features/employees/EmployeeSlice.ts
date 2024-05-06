@@ -34,20 +34,21 @@ function updateStatus(state: any, status: any) {
 }
 
 
+
 export const createEmployee = createAsyncThunk(
     'employees/createEmployee',
-    async ({ data, providerId }: any) => {
-        const response = await fetch(`${API_URL}/employees/store_employee/${providerId}`, {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        });
-        return (await response.json());
+    async (data) => {
+        const response = await fetch(`${API_URL}/employees/store_employee`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      return (await response.json()) 
     },
-);
+  );
 
 export const deleteEmployee = createAsyncThunk(
     'employees/deleteEmployee',
@@ -137,23 +138,22 @@ const EmployeeSlice = createSlice({
         //ADD Employee
 
         builder.addCase(createEmployee.pending, state => {
-            console.log('Pending');
+            console.log('Pending2222222');
             state.loading = true;
             updateStatus(state, '');
         });
         builder.addCase(createEmployee.fulfilled, (state, action) => {
-
-            state.loading = false;
-            updateStatus(state, '');
-
+                   console.log('fullddududu')
             if (action.payload.status) {
                 state.employee = { ...action.payload.data.employee };
-                updateStatus(state, '');
-            } else {
+                state.employees=[...state.employees,{...action.payload.data.employee}]
                 updateStatus(state, action.payload.status);
+               
+            } else {
+                updateStatus(state, '');
             }
 
-            state.employees.push(state.employee);
+            state.loading = false;
         });
         builder.addCase(createEmployee.rejected, (state, action) => {
             console.log('Rejected');
@@ -195,23 +195,30 @@ const EmployeeSlice = createSlice({
         builder.addCase(updateEmployee.fulfilled, (state, action) => {
             console.log('Update Task Fulfilled');
 
+             if(action.payload.status){
             const updatedEmployee = action.payload.data.employee;
 
             const employeeIndex = state.employees.findIndex((employee) => employee.id === updatedEmployee.id);
-            console.log('employeeindex', employeeIndex);
+            
             if (employeeIndex !== -1) {
-                // Update the task in the array immutably
+               
                 state.employees = [
                     ...state.employees.slice(0, employeeIndex),
                     updatedEmployee,
                     ...state.employees.slice(employeeIndex + 1),
                 ];
             }
-
+            
+        }
             state.loading = false;
             updateStatus(state, '');
         });
 
+        builder.addCase(updateEmployee.rejected, (state) => {
+            console.log('Update Rejected');
+            state.loading = true;
+            updateStatus(state, '');
+        });
 
         //employees sub services 
 

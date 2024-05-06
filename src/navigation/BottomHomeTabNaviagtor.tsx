@@ -101,7 +101,7 @@ const tabNavScreenOptions = ({ route }: any) => ({
       },
     ];
   
-    if ((user?.provider || user?.employee) && user?.status !== 'Active' || user?.provider?.status=='Pending approval' ) {
+    if ((user?.provider || user?.employee) && user?.status !== 'Active' || user?.provider?.status=='Pending approval' || user?.provider?.subscription_status !=='Active') {
      
       return screens.filter(screen => screen.name !== 'Home' && screen.name !== 'Requests');
     }

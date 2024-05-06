@@ -16,6 +16,13 @@ import ChangePassword from "../features/auth/ChangePassword";
 import EditSubService from "../features/business/EditSubService";
 import ViewSubService from "../features/business/ViewSubService";
 import Subscriptions from "../features/subscriptions/Subscriptions";
+import { useEffect, useRef, useState } from "react";
+import { postUserDeviceToken, postUserOnlineStatus } from "../features/auth/userSlice";
+import { useAppDispatch } from "../app/store";
+import messaging from '@react-native-firebase/messaging';
+import FCMMessageHandler from "../components/FCMMessageHandler";
+import { useSelector } from "react-redux";
+import { AppState } from "react-native";
 
 
 
@@ -24,18 +31,80 @@ const AppStack = () => {
   const { t } = useTranslation();
 
   const Stack = createNativeStackNavigator();
-  const screenOptions = {
-    headerShown: false,
-  };
+  const dispatch = useAppDispatch();
 
+  const screenOptions = {
+      headerShown: false,
+    };
+
+    const { user} = useSelector((state: RootStateOrAny) => state.user);
+    const appState = useRef(AppState.currentState);
+    const [appStateVisible, setAppStateVisible] = useState(appState.current);
+
+
+    useEffect(() => {
+      const requestPermission = async () => {
+        try {
+          await messaging().requestPermission();
+          retrieveDeviceToken();
+        } catch (error) {
+          console.log('Permission denied:', error);
+        }
+      };
+      const retrieveDeviceToken = async () => {
+     
+        try {           
+          const token = await messaging().getToken();
+          console.log('Device Token:', token);
+      
+          dispatch(postUserDeviceToken({userId:user?.id,deviceToken:token}))
+        } catch (error) {
+          console.log('Error retrieving device token:', error);
+        }
+      };
+      requestPermission();
+    }, []);
+    
+    useEffect(() => {
+      let data={
+        isOnline:false
+      }
+      const handleAppStateChange = (nextAppState) => {
+      
+        appState.current = nextAppState;
+        setAppStateVisible(appState.current);
+        console.log('AppState', appState.current);
+        if (appState.current === 'active') {
+          console.log('App has come to the foreground!');
+          if (user) {
+               data.isOnline=true
+            dispatch(postUserOnlineStatus({ userId: user?.id, data }));
+          
+          }
+        }
+        if (appState.current === 'background') {
+          console.log('App has gone to the background!');
+          if (user) {
+            data.isOnline=false
+            dispatch(postUserOnlineStatus({ userId: user?.id, data }));
+          
+          }
+        }
+      };
+  
+      const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+  
+      return () => {
+        appStateSubscription.remove();
+      };
+    }, [dispatch]);
   return (
+    <>
+    <FCMMessageHandler />
     <Stack.Navigator initialRouteName="Home">
       <Stack.Screen name="Home" component={DrawerNavigator}
         options={{ headerShown: false }}
       />
-
-      
-
       <Stack.Screen name="Requested services"
         component={RequestedServices}
         options={{ title: t('navigate:requestedServices') }}
@@ -107,7 +176,7 @@ const AppStack = () => {
           />
 
     </Stack.Navigator>
-
+    </>
   );
 };
 
