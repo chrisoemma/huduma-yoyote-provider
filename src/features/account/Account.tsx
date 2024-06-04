@@ -68,6 +68,9 @@ const Account = ({ navigation }: any) => {
 
   const [locationName, setLocationName] = useState(null);
   const [workingLocation,setWorkingLocation]=useState(null)
+
+
+  console.log('usersss',user);
   
   useEffect(() => {
 

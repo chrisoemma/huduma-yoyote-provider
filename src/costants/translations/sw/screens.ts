@@ -156,6 +156,26 @@ current: 'Sasa',
 previous: 'Za nyuma',
 
 profession: 'Kazi',
-noEmail: 'Hakuna Barua pepe'
+noEmail: 'Hakuna Barua pepe',
+pleaseSelectPaymentMethod:'Tafadhali changua njia ya kulipa',
+pay:'Lipa',
+amountToPay:'Kiasi utakacholipa',
+duration:'Kipindi',
+freeTrial:'Usajili wa bure',
+amount:'Kiasi',
+price:'Bei',
+actual:'Bei halisi',
+renew:'Ongeza usajili',
+select:'Chagua',
+start:'Anza',
+end:'Mwisho',
+pleaseEnterMobileNetworkPhoneNumber:'Tafadhali jaza namba ya simu',
+invalidNumberFormat:'Namba sio sahihi',
+
+termsText: "Kwa kujisajili, unakubali",
+termsLink: "Sheria na Masharti yetu,",
+termsContinueText: "unakubali",
+privacyPolicyLink: "Sera ya Faragha",
+continuePrivacyPolicy: "Na unathibitisha kuwa una zaidi ya miaka 18. Tunaweza kutuma matangazo yanayohusiana na huduma zetu - unaweza kujiondoa wakati wowote kwenye mipangilio."
 
 };

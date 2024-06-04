@@ -23,6 +23,7 @@ import messaging from '@react-native-firebase/messaging';
 import FCMMessageHandler from "../components/FCMMessageHandler";
 import { useSelector } from "react-redux";
 import { AppState } from "react-native";
+import PackagePayments from "../features/payments/PackagePayments";
 
 
 
@@ -113,6 +114,11 @@ const AppStack = () => {
       <Stack.Screen name="Edit sub service"
         component={EditSubService}
         options={{ title: t('navigate:editSubService') }}
+      />
+
+      <Stack.Screen name="Package Payments"
+        component={PackagePayments}
+        options={{ title: t('navigate:packagePayment') }}
       />
        <Stack.Screen name="View sub service"
         component={ViewSubService}

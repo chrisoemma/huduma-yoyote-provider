@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Dimensions,
   StyleSheet,
+  Linking,
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Feather';
@@ -96,7 +97,6 @@ const RegisterScreen = ({ route, navigation }: any) => {
       confirmPassword: '',
     },
   });
-
 
 
   const setDisappearMessage = (message: any) => {
@@ -198,12 +198,6 @@ const RegisterScreen = ({ route, navigation }: any) => {
     }
 
   };
-
-
-
-
-
-  
 
 
 
@@ -436,7 +430,6 @@ const RegisterScreen = ({ route, navigation }: any) => {
               {t('auth:nida')}
             </Text>
 
-
             <Controller
               control={control}
               rules={{
@@ -589,6 +582,21 @@ const RegisterScreen = ({ route, navigation }: any) => {
               </Text>
             </TouchableOpacity>
           </View>
+
+          <View style={styles.TermsConditions}>
+            <Text style={stylesGlobal.touchablePlainTextSecondary}>
+              {t('screens:termsText')}{' '}
+              <TouchableOpacity onPress={() => Linking.openURL('https://your-terms-url.com')}>
+                <Text style={styles.linkText}>{t('screens:termsLink')}</Text>
+              </TouchableOpacity>
+              {` ${t('screens:termsContinueText')} `}
+              <TouchableOpacity onPress={() => Linking.openURL('https://your-privacy-policy-url.com')}>
+                <Text style={styles.linkText}>{t('screens:privacyPolicyLink')}</Text>
+              </TouchableOpacity>
+              {` ${t('screens:continuePrivacyPolicy')} `}
+            </Text>
+          </View>
+
         </View>
 
       </ScrollView>
@@ -605,6 +613,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: 50,
     zIndex: 15000,
+  },
+  TermsConditions: {
+    marginTop: '10%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 10,
+    marginBottom:'3%'
+  },
+  linkText: {
+    color: colors.secondary,
+    textDecorationLine: 'underline',
+    fontWeight:'bold',
   },
 });
 

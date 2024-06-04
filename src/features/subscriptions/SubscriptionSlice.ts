@@ -17,6 +17,20 @@ export const getSubscriptions = createAsyncThunk(
   );
 
 
+  export const paySubscription = createAsyncThunk(
+    'subscriptions/paySubscription',
+    async ({providerId}:any) => {
+   
+      let header: any = await authHeader();
+      const response = await fetch(`${API_URL}/subscriptions/provider/mobile_subscription/${providerId}`, {
+        method: 'POST',
+        headers: header,
+      });
+      return (await response.json()) as any;
+    },
+  );
+
+
 
 
 

@@ -10,7 +10,7 @@ import { getSubscriptions } from './SubscriptionSlice';
 import { formatDate } from '../../utils/utilts';
 import { useTranslation } from 'react-i18next';
 
-const Subscriptions = () => {
+const Subscriptions = ({navigation}:any) => {
 
 
   const { loading, subscriptions } = useSelector(
@@ -24,34 +24,34 @@ const Subscriptions = () => {
   const dispatch = useAppDispatch();
   const [selectedPackage, setSelectedPackage] = useState(null);
 
-  const handlePackageSelect = (subPackage,type) => {
+  const handlePackageSelect = (packageId,type,packageName,amount) => {
+      
+    const formattedPackageName = packageName.toUpperCase();
 
-    setSelectedPackage(subPackage);
+    Alert.alert(
+      'Confirm Action',
+      `Are you sure you want to ${type} the ${formattedPackageName} package?`,
+      [
+          {
+              text: 'Cancel',
+              style: 'cancel',
+          },
+          {
+              text: 'Confirm',
+              onPress: () => {
 
-    if (subscriptions?.subscription?.status === 'Active') {
-      const newSubscriptionAmount = (subPackage.package.amount * subPackage.duration) - (subPackage.amount * subPackage.duration);
-      let amountToPay = 0;
-
-
-      if (subscriptions?.subscription?.is_trial) {
-        amountToPay = newSubscriptionAmount;
-      } else {
-
-        const currentDate = new Date();
-        const endDate = new Date(subscriptions.subscription.end_date);
-
-        const numberOfDaysRemaining = Math.ceil((endDate - currentDate) / (1000 * 60 * 60 * 24)); // Calculate remaining days
-
-        const amountRemainingPreviousSubscription = (numberOfDaysRemaining / (subscriptions?.subscription?.discount?.duration * 30)) + subPackage?.amount * subPackage?.duration;
-        
-
-        amountToPay = newSubscriptionAmount - amountRemainingPreviousSubscription;
-      }
-
-      amountToPay = Math.max(0, amountToPay);
-
-    }
-  };
+                              navigation.navigate('Package Payments', {
+                                  packageId: packageId,
+                                  type:type,
+                                  amount:amount
+                              });
+                         
+              },
+          },
+      ]
+  );
+};
+   
 
 
   if (user.provider) {
@@ -63,6 +63,7 @@ const Subscriptions = () => {
 
   const { t } = useTranslation();
   const stylesGlobal = globalStyles();
+  
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <LinearGradient colors={['#259CA2', '#ba34eb']} style={{ flex: 1 }}>
@@ -119,7 +120,11 @@ const Subscriptions = () => {
                 </View>
                 {subscriptions?.subscription?.is_trial ? (
                   <></>
-                ) : (<TouchableOpacity style={[styles.upgrade, { backgroundColor: colors.black }]}>
+                ) : (<TouchableOpacity style={[styles.upgrade, { backgroundColor: colors.black }]}
+                    onPress={()=>handlePackageSelect(subscriptions?.subscription?.discount.id,'renew',subscriptions?.subscription?.is_trial
+                    ? subscriptions?.subscription.package.name
+                    : subscriptions?.subscription.discount.name,(subscriptions?.subscription?.package.amount - subscriptions?.subscription?.discount?.amount))}
+                >
                   <Text style={[styles.textUpgrade, { color: 'white' }]}>{t('screens:renew')}</Text>
                 </TouchableOpacity>)}
               </TouchableOpacity>
@@ -139,13 +144,13 @@ const Subscriptions = () => {
                         styles.upPackage,
                         selectedPackage?.id === subPackage.id && { backgroundColor: 'white' },
                         (subscriptions?.subscription?.discount_id === subPackage.id && selectedPackage?.id !== subPackage.id)
-                          ? { backgroundColor: colors.gray, opacity: 0.5 } // Apply opacity for disabled package
+                          ? { backgroundColor: colors.gray, opacity: 0.5 } 
                           : null,
                       ]}
                       key={subPackage.id}
                       onPress={() =>
                         !(subscriptions?.subscription?.discount_id === subPackage.id)
-                          ? handlePackageSelect(subPackage,'New')
+                          ? handlePackageSelect(subPackage?.id,'select',subPackage?.name,(subPackage?.package.amount * subPackage.duration - subPackage.amount * subPackage.duration))
                           : null
                       }
                       disabled={subscriptions?.subscription?.discount_id === subPackage.id}
@@ -190,8 +195,10 @@ const Subscriptions = () => {
                          {t('screens:duration')}: {subPackage.duration}
                         </Text>
                       </View>
-                      <TouchableOpacity style={styles.upgrade}>
-                        <Text style={[styles.textUpgrade, { color: 'black' }]}>{t('select')}</Text>
+                      <TouchableOpacity style={styles.upgrade}
+                       onPress={()=>handlePackageSelect(subPackage?.id,'select',subPackage?.name,(subPackage?.package.amount * subPackage.duration - subPackage.amount * subPackage.duration))}
+                      >
+                        <Text style={[styles.textUpgrade, { color: 'black' }]}>{t('screens:select')}</Text>
                       </TouchableOpacity>
                     </TouchableOpacity>
                   ))}
@@ -199,7 +206,6 @@ const Subscriptions = () => {
               ) : (
                 <></>
               )}
-
             </View>
           </View>
         </ScrollView>

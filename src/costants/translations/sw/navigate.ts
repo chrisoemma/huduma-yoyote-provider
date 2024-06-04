@@ -20,5 +20,6 @@ export default {
     changePassword:'Badilisha Nywila',
     editSubService:'Hariri Huduma',
     viewSubService:'Tazama Huduma',
-    subscriptions:'Vifurushi vya usajili'
+    subscriptions:'Vifurushi vya usajili',
+    packagePayment:'Malipo ya kifurushi'
   };

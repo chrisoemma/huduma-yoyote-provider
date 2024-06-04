@@ -198,9 +198,6 @@ const RequestedServices = ({ navigation, route }: any) => {
         data.provider_latitude=providerLocation?.latitude
         data.provider_longitude=providerLocation?.longitude
 
-
-        
-
         Alert.alert(
             'Confirm Action',
             `Are you sure you want to ${requestType} this request?`,
@@ -315,9 +312,9 @@ const RequestedServices = ({ navigation, route }: any) => {
                         </View>
 
                         <View style={[stylesGlobal.chooseServiceBtn, { justifyContent: 'space-between',marginBottom:50 }]}>
-                            <TouchableOpacity style={[stylesGlobal.otherBtn, { backgroundColor: getStatusBackgroundColor(request_status) }]}>
+                            <View style={[stylesGlobal.otherBtn, { backgroundColor: getStatusBackgroundColor(request_status) }]}>
                                 <Text style={{ color: colors.white }}>{getStatusTranslation(request_status)}</Text>
-                            </TouchableOpacity>
+                            </View>
                            
                            
                             <TouchableOpacity style={[stylesGlobal.chooseBtn,]}
