@@ -28,6 +28,7 @@ import languangeSlice from '../costants/languangeSlice';
 import ChartSlice from '../features/home/ChartSlice';
 import professionsSlice from '../features/professionsSlice';
 import SubscriptionSlice from '../features/subscriptions/SubscriptionSlice';
+import FeebackTemplateSlice from '../features/feedbackTemplate/FeebackTemplateSlice';
 
 
 const reducers = combineReducers({
@@ -46,7 +47,8 @@ const reducers = combineReducers({
   language:languangeSlice,
   charts:ChartSlice,
   professions:professionsSlice,
-  subscriptions:SubscriptionSlice
+  subscriptions:SubscriptionSlice,
+  feebackTemplate:FeebackTemplateSlice
 });
 
 const persistConfig = {

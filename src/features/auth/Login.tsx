@@ -18,11 +18,11 @@ import {globalStyles} from '../../styles/global';
 import { useTogglePasswordVisibility } from '../../hooks/useTogglePasswordVisibility';
 import PhoneInput from 'react-native-phone-number-input';
 import { colors } from '../../utils/colors';
-import { Container } from '../../components/Container';
 import { BasicView } from '../../components/BasicView';
 import Button from '../../components/Button';
 import { ButtonText } from '../../components/ButtonText';
 import { useTranslation } from 'react-i18next';
+import messaging from '@react-native-firebase/messaging';
 
 const LoginScreen = ({ route, navigation }: any) => {
 
@@ -44,6 +44,22 @@ const LoginScreen = ({ route, navigation }: any) => {
   const phoneInput = useRef<PhoneInput>(null);
 
   const [message, setMessage] = useState('');
+  const [deviceToken, setDeviceToken] = useState('');
+
+  useEffect(() => {
+    const retrieveDeviceToken = async () => {
+      try {
+   
+        const token = await messaging().getToken();
+        console.log('new token',token);
+        setDeviceToken(token);
+      } catch (error) {
+        console.log('Error retrieving device token:', error);
+      }
+    };
+
+    retrieveDeviceToken();
+  }, []);
 
   useEffect(() => {
     console.log(user);
@@ -72,6 +88,7 @@ const LoginScreen = ({ route, navigation }: any) => {
 
     try {
      data.app_type='provider';
+     data.deviceToken = deviceToken;
     const result = await dispatch(userLogin(data)).unwrap(); 
 
     if (result.status) {

@@ -85,12 +85,12 @@ const Navigation = () => {
             
             },
             error => {
-              console.error(error);
-              Alert.alert(
-                'Error',
-                'Failed to fetch your location. Please make sure location services are enabled.',
-                [{ text: 'OK' }]
-              );
+              // console.error(error);
+              // Alert.alert(
+              //   'We could not get your location',
+              //   'Failed to fetch your location. Please make sure location services are enabled.',
+              //   [{ text: 'OK' }]
+              // );
             },
             { enableHighAccuracy: true, timeout: 30000, maximumAge: 60000,distanceFilter: 1000 }
           );
@@ -147,9 +147,9 @@ const Navigation = () => {
     ...DarkTheme,
     colors: {
       ...DarkTheme.colors,
-      background: colors.blackBg,
+      background: colors.blackBackground,
       text: colors.white,
-      inputText:colors.blackBg
+      inputText:colors.blackBackground
     },
   };
 

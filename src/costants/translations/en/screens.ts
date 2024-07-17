@@ -148,7 +148,7 @@ export default {
   distance: 'Distance',
   loading: 'Loading',
   requestUpdatedSuccessfully: 'Request updated successfully',
-  noresidenceData: 'Residence area unavailable',
+  noresidenceData:'Make sure you have entered residence location. we need for account validation',
   noworkingAreaData: 'Workig area unavailable',
   current: 'Current',
   previous: 'Previous',
@@ -174,6 +174,8 @@ export default {
   termsLink: 'Terms & Conditions,',
   termsContinueText: 'acknowledge our',
   privacyPolicyLink: 'Privacy Policy',
-  continuePrivacyPolicy: 'And confirm that you are over 18. We many send promotions related to our services-you can unsubscribe anytime in settings'
-
+  continuePrivacyPolicy: 'And confirm that you are over 18. We many send promotions related to our services-you can unsubscribe anytime in settings',
+  rejectRequest:'Reject request',
+    deleteNotAllowed:'Delete not allowed',
+  approvedDocumentCannotBeDeleted:'This document can not be deleted'
 };

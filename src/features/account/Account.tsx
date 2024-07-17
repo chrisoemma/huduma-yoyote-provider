@@ -192,7 +192,7 @@ const Account = ({ navigation }: any) => {
       <ScrollView contentInsetAdjustmentBehavior="automatic">
       <View style={stylesGlobal.appView}>
 
-        {(user?.provider || user?.employee) && user.status == 'Pending' ? (<Notification
+        {(user?.provider || user?.employee) && user?.provider?.status == 'Pending approval' ? (<Notification
           message={`${t('screens:accountPendingActivation')}`}
           type="info"
         />) : (<View />)}
@@ -202,7 +202,7 @@ const Account = ({ navigation }: any) => {
           type="info"
         />) : (<View />)}
 
-        {user.status == 'In Active' ? (<Notification
+        {user?.provider?.status  == 'Deactivated' ? (<Notification
           message={`${t('screens:accountDeactivated')}`}
           type="danger"
         />) : (<View />)}
@@ -364,9 +364,9 @@ const Account = ({ navigation }: any) => {
             />
   {
    (residence === null || Object.keys(residence || {}).length === 0) ? 
-    // If residence is undefined or its length is less than 1
-    (<Text>{t('screens:noresidenceData')}</Text>) : 
-    // Otherwise, display the residence details
+ 
+    (<Text style={{color:colors.dangerRed}}>{t('screens:noresidenceData')}</Text>) : 
+ 
     (
       <Text style={{ paddingLeft: 10, color: isDarkMode ? colors.white : colors.black }}>
         {breakTextIntoLines(
@@ -392,7 +392,7 @@ const Account = ({ navigation }: any) => {
                </>
           ):(<></>)}
         </View>
-        {user?.provider  && user.status !=='In Active'  &&  user?.provider?.subscription_status !=='Ended' ? (
+        {user?.provider  && user.provider?.status !=='Deactivated' &&  user?.provider?.subscription_status !=='Ended' ? (
           <TouchableOpacity
             onPress={() => {
               navigation.navigate('My Documents', {

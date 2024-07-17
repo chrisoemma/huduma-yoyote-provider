@@ -13,7 +13,7 @@ import { extractEventName } from '../utils/utilts';
 
 const PusherOnlineListener = ({remoteUserId}:any) => {
 
-  console.log('remote user',remoteUserId);
+ // console.log('remote user',remoteUserId);
 
   const dispatch = useDispatch();
   const { user } = useSelector((state:RootStateOrAny) => state.user);

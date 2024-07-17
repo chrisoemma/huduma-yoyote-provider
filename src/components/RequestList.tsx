@@ -36,7 +36,7 @@ const RequestList = ({item,navigation}:any) => {
      })}}
     >
        <View>
-        <Text style={{color:isDarkMode?colors.black:colors.primary,fontWeight:'bold'}}>{selectedLanguage==='en'?item?.service?.name.en:item?.service?.name?.sw}</Text>
+        <Text style={{color:isDarkMode?colors.white:colors.primary,fontWeight:'bold'}}>{selectedLanguage==='en'?item?.service?.name.en:item?.service?.name?.sw}</Text>
         <Text style={{paddingVertical:10,color:isDarkMode?colors.white:colors.darkGrey}}>{item?.client?.name}</Text>
         {subServices.slice(0, maxItemsToShow).map((subService, index) => (
     

@@ -150,7 +150,7 @@ clientIsHere:'Mteja yuko apa',
 distance:'Umbali',
 loading:'Inatafuta',
 requestUpdatedSuccessfully:'Ombi limefanikiwa',
-noresidenceData:'Hakuna taarifa za makazi',
+noresidenceData: 'Hakikisha umejaza eneo la makazi ili kuhakikiwa',
 noworkingAreaData:'Eneo la kazi halijajazwa',
 current: 'Sasa',
 previous: 'Za nyuma',
@@ -176,6 +176,8 @@ termsText: "Kwa kujisajili, unakubali",
 termsLink: "Sheria na Masharti yetu,",
 termsContinueText: "unakubali",
 privacyPolicyLink: "Sera ya Faragha",
-continuePrivacyPolicy: "Na unathibitisha kuwa una zaidi ya miaka 18. Tunaweza kutuma matangazo yanayohusiana na huduma zetu - unaweza kujiondoa wakati wowote kwenye mipangilio."
-
+continuePrivacyPolicy: "Na unathibitisha kuwa una zaidi ya miaka 18. Tunaweza kutuma matangazo yanayohusiana na huduma zetu - unaweza kujiondoa wakati wowote kwenye mipangilio.",
+ rejectRequest:'Kataa Ombi',
+deleteNotAllowed: 'Kufuta hairuhusiwi',
+approvedDocumentCannotBeDeleted: 'Hati hii haiwezi kufutwa'
 };

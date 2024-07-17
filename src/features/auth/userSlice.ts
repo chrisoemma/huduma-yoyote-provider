@@ -338,13 +338,41 @@ const userSlice = createSlice({
     setUserOnlineStatus: (state, action) => {
       state.isOnline = action.payload;
     },
-    setUserAccountStatus:(state,action)=>{
-      state.user.status=action.payload.userStatus
-      state.user.provider.status=action.payload.modalStatus
-    },
+    // setUserAccountStatus:(state,action)=>{
+    //   state.user.status=action.payload.userStatus
+    //   state.user.provider.status=action.payload.modalStatus
+    // },
     setUserSubcriptionStatus:(state,action)=>{
       state.user.provider.subscription_status=action.payload
-    }
+    },
+
+    logoutOtherDevice(state:any){
+      logout(state);
+    },
+    setUserChanges: (state, action) => {
+      if (Object.keys(action.payload).length > 0) {
+        state.user = {
+          ...state.user,
+          ...action.payload,
+        };
+      }
+    },
+
+    changeNidaStatus: (state, action) => {
+      const latestStatus = state?.user?.provider.nida_statuses[state?.user?.provider?.nida_statuses?.length - 1];
+      if (latestStatus) {
+        latestStatus.status = action.payload;
+      }
+    },
+
+    updateProviderChanges: (state, action) => {
+      if (Object.keys(action.payload).length > 0) {
+        state.user.provider = {
+          ...state.user.provider,
+          ...action.payload,
+        };
+      }
+    },
   },
   extraReducers: builder => {
     //LOGIN
@@ -574,6 +602,8 @@ const userSlice = createSlice({
 
       if (action.payload.status) {
         state.user = action.payload.user as any;
+        state.user.token = action.payload.token;
+        AsyncStorage.setItem('token', action.payload.token);
         updateStatus(state, '');
       } else {
         updateStatus(state, action.payload);
@@ -625,7 +655,6 @@ const userSlice = createSlice({
         ...state.user,
         ...action.payload.data.user,
       };
-
       state.residence={
        ...state.residence,
        ...action.payload.data.location
@@ -727,6 +756,6 @@ const userSlice = createSlice({
   },
 });
 
-export const { userLogout, clearMessage,setFirstTime,setUserOnlineStatus,setUserAccountStatus,setUserSubcriptionStatus } = userSlice.actions;
+export const { userLogout,changeNidaStatus,logoutOtherDevice,setUserChanges,updateProviderChanges, clearMessage,setFirstTime,setUserOnlineStatus,setUserAccountStatus,setUserSubcriptionStatus } = userSlice.actions;
 
 export default userSlice.reducer;

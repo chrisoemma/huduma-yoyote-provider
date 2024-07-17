@@ -325,6 +325,7 @@ const NewAccount = ({ route, navigation }: any) => {
                   value={value}
                   keyboardType="phone-pad"
                   editable={user?.agent?false:true}
+                
                   style={user?.agent? styles.disabledTextInput : null}
 
                 />

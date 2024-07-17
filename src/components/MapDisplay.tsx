@@ -1,42 +1,55 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, PermissionsAndroid } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import { View, Text, StyleSheet, Dimensions, PermissionsAndroid, Image } from 'react-native';
+import MapView, { AnimatedRegion, Marker, Polyline } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import MapViewDirections from 'react-native-maps-directions';
 import { colors } from '../utils/colors';
 import {
   Pusher,
-  PusherMember,
-  PusherChannel,
   PusherEvent,
   PusherAuthorizerResult
 } from '@pusher/pusher-websocket-react-native';
 import { postProviderLocation } from './Location/LocationSlice';
 import { useAppDispatch } from '../app/store';
-import { useSelector,RootStateOrAny } from 'react-redux';
+import { useSelector, RootStateOrAny } from 'react-redux';
 import { API_URL, GOOGLE_MAPS_API_KEY } from '../utils/config';
 import { useTranslation } from 'react-i18next';
 import { extractEventName } from '../utils/utilts';
 
 
-const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,requestLastLocation }: any) => {
+const MapDisplay = ({ onLocationUpdate, client, clientLastLocation, requestStatus, requestLastLocation }: any) => {
 
-   
+
   const [distance, setDistance] = useState(null);
   const [providerLocation, setServiceProvidersLocation] = useState(null);
-  const [clientLocation, setClientLocation]=useState(null);
+  const [clientLocation, setClientLocation] = useState(null);
   const [previousProviderLocation, setPreviousProviderLocation] = useState(null);
+  const [previousLocation, setPreviousLocation] = useState(null);
+  const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
+
+  const markerRef = useRef(null);
+  const [isMoving, setIsMoving] = useState(false);
 
   const mapViewRef = useRef(null);
 
   const STATUS_ACTIVE = ['Requested', 'Accepted', 'Comfirmed'];
-  const STATUS_PAST=['Cancelled', 'Rejected', 'Completed'];
+  const STATUS_PAST = ['Cancelled', 'Rejected', 'Completed'];
+
+  const debounce = (func, delay) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), delay);
+    };
+  };
 
 
   useEffect(() => {
     if (clientLastLocation) {
-      setClientLocation({latitude:parseFloat(clientLastLocation?.latitude),
-         longitude: parseFloat(clientLastLocation?.longitude) });
+      setClientLocation({
+        latitude: parseFloat(clientLastLocation?.latitude),
+        longitude: parseFloat(clientLastLocation?.longitude)
+      });
     }
   }, [clientLastLocation]);
 
@@ -48,33 +61,59 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
   }, [providerLocation]);
 
 
-  const animateProviderMovement = (fromLocation, toLocation) => {
-    // Animate the movement from previous location to current location
-    // You can use MapView's animateCamera function to smoothly move the camera
-    mapViewRef?.current.animateCamera(
-      {
-        center: {
-          latitude: (fromLocation.latitude + toLocation.latitude) / 2,
-          longitude: (fromLocation.longitude + toLocation.longitude) / 2,
-        },
-        pitch: 45,
-        heading: 90,
-        altitude: 300, // Adjust the altitude as needed
-        zoom: mapViewRef.current.getCamera().zoom, // Maintain current zoom level
-      },
-      { duration: 1000 } // Adjust the duration of animation as needed
-    );
-  };
+  const debouncedUpdateLocation = debounce((newLocation, animatedCoordinate) => {
+    // Animate the marker to the new provider location
+    animatedCoordinate.timing({
+      latitude: newLocation.latitude,
+      longitude: newLocation.longitude,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  }, 300);
 
 
   useEffect(() => {
-    if (requestStatus=='Comfirmed' && providerLocation) {
-      // Animate movement only when provider location updates
-      if (previousProviderLocation) {
-        animateProviderMovement(previousProviderLocation, providerLocation);
-      }
+    if (providerLocation) {
+      const newLocation = {
+        latitude: providerLocation?.latitude,
+        longitude: providerLocation?.longitude,
+      };
+      debouncedUpdateLocation(newLocation, animatedCoordinate);
     }
-  }, [requestStatus, providerLocation]);
+  }, [providerLocation]);
+
+
+  // useEffect(() => {
+  //   if (providerLocation) {
+  //     const newLocation = {
+  //       latitude: providerLocation?.latitude,
+  //       longitude: providerLocation?.longitude
+  //     };
+
+  //     const updateLocation = debounce(() => {
+  
+  //       setServiceProvidersLocation(newLocation);
+  //       // Animate the marker to the new provider location
+  //       animatedCoordinate.timing({
+  //         latitude: newLocation.latitude,
+  //         longitude: newLocation.longitude,
+  //         duration: 500,
+  //         useNativeDriver: false,
+  //       }).start();
+  //     }, 300); 
+  //     updateLocation();
+  //   }
+  // }, [providerLocation]);
+
+
+  const animatedCoordinate = useRef(
+    new AnimatedRegion({
+      latitude: providerLocation?.latitude || 0,
+      longitude: providerLocation?.longitude || 0,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    })
+  ).current;
 
 
 
@@ -102,16 +141,16 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
     }
   }, [clientLocation, providerLocation]);
 
- 
+
 
   useEffect(() => {
-    // Only run Pusher setup when requestStatus is included in STATUS_ACTIVE
+
     if (STATUS_ACTIVE.includes(requestStatus)) {
       const setupPusher = async () => {
         const headers = {
           'Authorization': `Bearer ${user.token}`,
         };
-  
+
         try {
           await pusher.init({
             apiKey: "70f571d3d3621db1c3d0",
@@ -145,7 +184,7 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
               }
             },
           });
-  
+
           const channel = pusher.subscribe({
             channelName: `private-client-location-updates-user-${client.user_id}`,
             onSubscriptionSucceeded: (data: any) => {
@@ -165,34 +204,34 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
               }
             },
           });
-  
+
           await pusher.connect();
-  
+
         } catch (e) {
           console.log(`ERROR: ${e}`);
         }
       };
-  
+
       console.log('running pusher');
       setupPusher();
-  
+
       return () => {
         pusher.unsubscribe({ channelName: `private-client-location-updates-user-${client.user_id}` });
       };
     }
   }, [requestStatus]);
-  
+
 
 
   const { user } = useSelector(
     (state: RootStateOrAny) => state.user,
-);
+  );
 
   const dispatch = useAppDispatch();
 
-  let data={
-    provider_latitude:providerLocation?.latitude,
-    provider_longitude:providerLocation?.longitude
+  let data = {
+    provider_latitude: providerLocation?.latitude,
+    provider_longitude: providerLocation?.longitude
   }
 
 
@@ -200,7 +239,7 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
     // Only run the location tracking when requestStatus is included in STATUS_ACTIVE
     if (STATUS_ACTIVE.includes(requestStatus)) {
       let watchId;
-  
+
       const requestLocationPermission = async () => {
         try {
           const granted = await PermissionsAndroid.request(
@@ -213,7 +252,7 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
               buttonPositive: 'OK',
             }
           );
-  
+
           if (granted === PermissionsAndroid.RESULTS.GRANTED) {
             watchId = Geolocation.watchPosition(
               position => {
@@ -221,14 +260,47 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
                   latitude: position.coords.latitude,
                   longitude: position.coords.longitude,
                 });
-  
+
                 const data = {
                   provider_latitude: position.coords.latitude,
                   provider_longitude: position.coords.longitude,
                 };
-  
+
+
+
                 if (position.coords) {
-                  dispatch(postProviderLocation({ providerId: user?.provider.id, data }));
+                  dispatch(postProviderLocation({ providerId: user?.employee? user?.employee?.id:user?.provider.id, data }));
+                }
+
+                const newLatitude = position?.coords?.latitude;
+                const newLongitude = position?.coords?.longitude;
+                const newLocation = { latitude: newLatitude, longitude: newLongitude };
+
+
+                setLastUpdateTime(Date.now());
+                if (previousLocation) {
+                  const distance = calculateDistance(
+                    previousLocation?.latitude,
+                    previousLocation?.longitude,
+                    newLatitude,
+                    newLongitude
+                  );
+
+                  // Set isMoving based on distance threshold
+                  setIsMoving(distance > 0.01); // Adjust the threshold as needed
+                }
+
+                // Update locations
+                setPreviousLocation(newLocation);
+
+                if (requestStatus === 'Comfirmed') {
+                  animatedCoordinate.timing({
+                    latitude: newLatitude,
+                    longitude: newLongitude,
+                    duration: 500,
+                    useNativeDriver: false,
+                  }).start();
+                  
                 }
               },
               error => console.error(error),
@@ -244,9 +316,9 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
           console.error(error);
         }
       };
-  
+
       requestLocationPermission();
-  
+
       return () => {
         Geolocation.clearWatch(watchId);
       };
@@ -255,16 +327,16 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
 
   useEffect(() => {
 
-    if(STATUS_ACTIVE.includes(requestStatus)){
-   const sendLocationToServer = () => {
-    dispatch(postProviderLocation({ providerId: user?.provider.id, data }));
-   };
-   
-   const intervalId = setInterval(sendLocationToServer, 15000);
-   return () => clearInterval(intervalId);
-   }
-  
- }, [dispatch, user?.provider?.id,requestStatus]);
+    if (STATUS_ACTIVE.includes(requestStatus)) {
+      const sendLocationToServer = () => {
+        dispatch(postProviderLocation({ providerId: user.provider? user?.provider.id:user?.employee.id, data }));
+      };
+
+      const intervalId = setInterval(sendLocationToServer, 15000);
+      return () => clearInterval(intervalId);
+    }
+
+  }, [dispatch, user?.provider?.id, requestStatus]);
 
   useEffect(() => {
     onLocationUpdate(providerLocation, clientLocation);
@@ -294,7 +366,7 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
 
   const customMapStyle = [
     {
-     
+
       "featureType": "road",
       "elementType": "geometry",
       "stylers": [
@@ -307,27 +379,59 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
   ];
 
 
+  useEffect(() => {
+    if (clientLocation && providerLocation) {
+      const bounds = {
+        latitude: (clientLocation?.latitude + providerLocation?.latitude) / 2,
+        longitude: (clientLocation?.longitude + providerLocation?.longitude) / 2,
+        latitudeDelta: Math.abs(clientLocation?.latitude - providerLocation?.latitude) * 1.5,
+        longitudeDelta: Math.abs(clientLocation?.longitude - providerLocation?.longitude) * 1.5,
+      };
+      mapViewRef?.current?.fitToCoordinates([clientLocation, providerLocation], {
+        edgePadding: { top: 100, right: 50, bottom: 50, left: 50 },
+        animated: true,
+      });
+    }
+  }, [clientLocation, providerLocation]);
+
+  const shouldUpdateDirections = (oldLocation, newLocation) => {
+    if (!oldLocation || !newLocation) return true;
+    const distance = calculateDistance(
+      oldLocation.latitude,
+      oldLocation.longitude,
+      newLocation.latitude,
+      newLocation.longitude
+    );
+    return distance > 0.05; // Update threshold
+  };
 
   return (
-<View style={styles.container}>
+    <View style={styles.container}>
       {providerLocation && clientLocation && (
         <MapView
           ref={mapViewRef}
           style={styles.map}
-          region={{
-            latitude:centerLat,
-            longitude:centerLng,
+          initialRegion={{
+            latitude: centerLat,
+            longitude: centerLng,
             latitudeDelta: zoomLevel,
             longitudeDelta: zoomLevel * (Dimensions.get('window').width / Dimensions.get('window').height),
           }}
           customMapStyle={customMapStyle}
         >
-          <Marker
-            coordinate={providerLocation}
+
+
+          <Marker.Animated
+            ref={markerRef}
+            coordinate={animatedCoordinate}
             title={t(`screens:yourLocation`)}
-            description={t(`screens:yourHere`)}
-            pinColor={colors.secondary}
-          />
+            description={STATUS_ACTIVE.includes(requestStatus) ? t(`screens:providerIsHere`) : t(`screens:providerLastLocation`)}
+            pinColor={colors.primary}
+          >
+            <Image source={isMoving ? require('../../assets/images/personmove.png') : require('../../assets/images/personstanding.png')} style={{ width: 20, height: 20 }} />
+          </Marker.Animated>
+
+
           <Marker
             coordinate={clientLocation}
             title={`${client.name}`}
@@ -340,11 +444,23 @@ const MapDisplay = ({ onLocationUpdate,client,clientLastLocation,requestStatus,r
             apikey={GOOGLE_MAPS_API_KEY}
             strokeWidth={3}
             strokeColor={colors.secondary}
-           
+            onReady={(result) => {
+             if (shouldUpdateDirections(previousLocation, providerLocation)) {
+                //  setRouteCoordinates(result.coordinates);
+                mapViewRef.current.fitToCoordinates(result.coordinates, {
+                  edgePadding: {
+                    top: 100,
+                    right: 50,
+                    bottom: 50,
+                    left: 50,
+                  },
+                });
+            }
+            }}
           />
         </MapView>
       )}
-      {!providerLocation &&  clientLocation && <Text>{t('screens:loading')}...</Text>}
+      {!providerLocation && clientLocation && <Text>{t('screens:loading')}...</Text>}
       {distance && <Text style={styles.distanceText}>{t('screens:distance')}: {distance} km</Text>}
     </View>
   );
@@ -359,7 +475,7 @@ const styles = StyleSheet.create({
     height: Dimensions.get('window').height,
   },
   distanceText: {
-    color:colors.black,
+    color: colors.black,
     position: 'absolute',
     bottom: 10,
     backgroundColor: 'white',

@@ -34,6 +34,7 @@ import { colors } from '../../utils/colors';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { getProfessions } from '../professionsSlice';
 import ToastMessage from '../../components/ToastMessage';
+import messaging from '@react-native-firebase/messaging';
 
 const RegisterScreen = ({ route, navigation }: any) => {
 
@@ -69,6 +70,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState([]);
   const [designationError, setDesignationError] = useState('')
+  const [deviceToken, setDeviceToken] = useState('');
 
   const WIDTH = Dimensions.get("window").width;
 
@@ -97,6 +99,21 @@ const RegisterScreen = ({ route, navigation }: any) => {
       confirmPassword: '',
     },
   });
+
+
+  useEffect(() => {
+    const retrieveDeviceToken = async () => {
+      try {
+        const token = await messaging().getToken();
+        console.log('new token', token);
+        setDeviceToken(token);
+      } catch (error) {
+        console.log('Error retrieving device token:', error);
+      }
+    };
+
+    retrieveDeviceToken();
+  }, []);
 
 
   const setDisappearMessage = (message: any) => {
@@ -152,7 +169,8 @@ const RegisterScreen = ({ route, navigation }: any) => {
     }
 
     data.app_type = 'provider';
-    data.designation_id = value
+    data.designation_id = value;
+    data.deviceToken = deviceToken; 
 
     setNidaLoading(true)
     const nidaValidationResult = await validateNIDANumber(data.nida);

@@ -57,7 +57,7 @@ const Home = ({ navigation }: any) => {
     const statusBarColor = colors.primary
 
 
-    console.log('providerServiceRequests',providerServiceRequests);
+   // console.log('providerServiceRequests',providerServiceRequests);
 
 
     useEffect(() => {
@@ -65,7 +65,6 @@ const Home = ({ navigation }: any) => {
         dispatch(getBusinesses({ providerId: user?.provider?.id }))
         dispatch(getProviderRequestVsSubservice({ providerId: user?.provider?.id }))
     }, [dispatch])
-
 
     const callGetDashboard = React.useCallback(() => {
 

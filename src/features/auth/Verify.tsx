@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
-import { useForm, Controller } from 'react-hook-form';
 import { RootStateOrAny, useSelector } from 'react-redux';
 import { globalStyles } from '../../styles/global';
 
@@ -97,7 +95,7 @@ const VerifyScreen = ({ route, navigation }: any) => {
   const resendLink = async () => {
     const { phone } = route?.params;
     const data = {
-      phone: phone
+      phone: user?.phone?user?.phone:phone
     }
     const result = await dispatch(resendOTP(data)).unwrap();
     if (result.status) {

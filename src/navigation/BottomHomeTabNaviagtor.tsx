@@ -77,6 +77,7 @@ const tabNavScreenOptions = ({ route }: any) => ({
   },
   tabBarActiveTintColor: colors.secondary,
   tabBarInactiveTintColor:isDarkMode?colors.white:colors.blackBg,
+  
 });
 
 
@@ -100,8 +101,12 @@ const tabNavScreenOptions = ({ route }: any) => ({
         options: { tabBarLabel: t('navigate:account') },
       },
     ];
+
+    if (user?.employee &&  user?.employee?.status == 'Active') {
+      return screens;
+    }
   
-    if ((user?.provider || user?.employee) && user?.status !== 'Active' || user?.provider?.status=='Pending approval' || user?.provider?.subscription_status !=='Active') {
+    if ((user?.provider) && user?.provider?.status !== 'Active' || user?.provider?.subscription_status !=='Active') {
      
       return screens.filter(screen => screen.name !== 'Home' && screen.name !== 'Requests');
     }

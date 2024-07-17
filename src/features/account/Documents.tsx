@@ -186,8 +186,18 @@ const Documents = () => {
 
 
 
-  const removeDocument = (id) =>
-  Alert.alert(`${t('screens:deleteDocument')}`, `${t('screens:areYouWantToDelete')}`, [
+  const removeDocument = (id,status) =>{
+ 
+    if (status ==='Approved') {
+      Alert.alert(t('screens:deleteNotAllowed'), t('screens:approvedDocumentCannotBeDeleted'), [
+        { text: t('screens:ok'), onPress: () => console.log('Approved document delete prevented') }
+      ]);
+      return;
+    }
+ 
+ 
+ 
+    Alert.alert(`${t('screens:deleteDocument')}`, `${t('screens:areYouWantToDelete')}`, [
     {
       text: `${t('screens:cancel')}`,
       onPress: () => console.log('Cancel task delete'),
@@ -220,6 +230,7 @@ const Documents = () => {
       },
     },
   ]);
+}
 
 
   const handleDocumentUpload = async (value, doc, text, valueType) => {
@@ -374,51 +385,55 @@ const Documents = () => {
             <View style={styles.dottedLine}></View>
           </TouchableOpacity>
           <View style={styles.listView}>
-            <Text style={{
-              color: isDarkMode ?colors.white : colors.black,
-              fontWeight: 'bold',
-              textTransform:'uppercase',
-              paddingBottom:10
-            }}>{t('screens:uploadedDocuments')}</Text>
-            {
-              documents?.map(document => (
-                <View style={styles.documentItem}
-                  key={document?.id}
-                >
-                  <View>
-                    <Icon
-                      name="folder"
-                      size={25}
-                      color={colors.secondary}
-                    />
-                  </View>
-                  <View>
-                    <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{breakTextIntoLines(document?.doc_format, 30)}{' '} ({document?.working_document?.doc_name})</Text>
-                    <Text style={{color:getStatusBackgroundColor(document?.status)}}>{getStatusTranslation(document?.status)}</Text>
-                  </View>
-                  <TouchableOpacity>
-                    <Menu>
-                      <MenuTrigger>
-                        <Icon
-                          name="ellipsis-horizontal-sharp"
-                          size={25}
-                          color={isDarkMode ? colors.white : colors.black}
-                        />
-                      </MenuTrigger>
-                      <MenuOptions>
-                        <MenuOption onSelect={() => handleDocumentPreview(document?.doc_type, document?.doc_url)} >
-                          <Text style={{ color: colors.black }}>{t('screens:preview')}</Text>
-                        </MenuOption>
-                        <MenuOption onSelect={()=>removeDocument(document?.id)} >
-                          <Text style={{ color: 'red' }}>{t('screens:delete')}</Text>
-                        </MenuOption>
-                      </MenuOptions>
-                    </Menu>
-                  </TouchableOpacity>
-                </View>
-              ))
-            }
-          </View>
+  <Text style={{
+    color: isDarkMode ? colors.white : colors.black,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    paddingBottom: 10
+  }}>{t('screens:uploadedDocuments')}</Text>
+  {
+    documents?.map(document => (
+      <View style={styles.documentItem}
+        key={document?.id}
+      >
+        <Icon
+          name="folder"
+          size={25}
+          color={colors.secondary}
+          style={styles.icon}
+        />
+        <View style={styles.textContainer}>
+          <Text style={{ color: isDarkMode ? colors.white : colors.black }}>
+            {breakTextIntoLines(document?.doc_format, 30)}{' '} ({document?.working_document?.doc_name})
+          </Text>
+          <Text style={{ color: getStatusBackgroundColor(document?.status) }}>
+            {getStatusTranslation(document?.status)}
+          </Text>
+        </View>
+        <TouchableOpacity>
+          <Menu>
+            <MenuTrigger>
+              <Icon
+                name="ellipsis-horizontal-sharp"
+                size={25}
+                color={isDarkMode ? colors.white : colors.black}
+                style={styles.icon}
+              />
+            </MenuTrigger>
+            <MenuOptions>
+              <MenuOption onSelect={() => handleDocumentPreview(document?.doc_type, document?.doc_url)}>
+                <Text style={{ color: colors.black }}>{t('screens:preview')}</Text>
+              </MenuOption>
+              <MenuOption onSelect={() => removeDocument(document?.id, document?.status)}>
+                <Text style={{ color: 'red' }}>{t('screens:delete')}</Text>
+              </MenuOption>
+            </MenuOptions>
+          </Menu>
+        </TouchableOpacity>
+      </View>
+    ))
+  }
+</View>
           <PreviewDocumentModel
             isVisible={isModalVisible}
             onClose={togglePreviewModal}
@@ -516,8 +531,17 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: '#888',
     paddingVertical: 10,
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  icon: {
+    marginHorizontal: 10
+  },
+  textContainer: {
+    flex: 1,
+    marginHorizontal: 10
   }
+
 });
 
 export default Documents

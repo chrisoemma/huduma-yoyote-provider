@@ -24,8 +24,6 @@ import Button from '../../components/Button';
 import { ButtonText } from '../../components/ButtonText';
 import { useTranslation } from 'react-i18next';
 import { updateProviderInfo } from '../auth/userSlice';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import { PLACES_API_KEY } from '../../utils/config';
 import { formatErrorMessages, showErrorWithLineBreaks, transformDataToDropdownOptions, validateNIDANumber, validateTanzanianPhoneNumber } from '../../utils/utilts';
 import Location from '../../components/Location';
 import Modal from 'react-native-modal';
@@ -82,7 +80,8 @@ const EditAccount = ({
   const [districtValue, setDistrictValue] = useState(null);
   const [wardValue, setWardValue] = useState(null);
   const [streetValue, setStreetValue] = useState(null);
-  const [nidaLoading, setNidaLoading] = useState(false)
+  //const [nidaLoading, setNidaLoading] = useState(false)
+
   const [open, setOpen] = useState(false);
   const [DropDownvalue, setDropDownValue] = useState([])
   const [designationError, setDesignationError] = useState('')
@@ -160,6 +159,9 @@ const EditAccount = ({
   }, [route.params]);
 
 
+  const lastNidaStatus=user?.provider?.nida_statuses[user?.provider?.nida_statuses?.length-1]?.status;
+
+
   const finalRegionValue = (value) => {
     setRegionValue(value)
   }
@@ -175,8 +177,6 @@ const EditAccount = ({
   const finalStreetValue = (value) => {
     setStreetValue(value)
   }
-
-
 
   const getRegionValue = (regionValue) => {
     if (regionValue !== null) {
@@ -252,7 +252,7 @@ const EditAccount = ({
 
   const updateProvider = (data: any) => {
     // Proceed with updating other parts
-    data.status = 'S.Valid';
+   // data.status = 'S.Valid';
     const userType = user.provider !== null ? 'provider' : 'employee';
 
     dispatch(updateProviderInfo({ data: data, userType: userType, userId: user?.id }))
@@ -265,7 +265,6 @@ const EditAccount = ({
             message: message
           });
         } else {
-
           if (result.error) {
             setDisappearMessage(result.error
             );
@@ -310,27 +309,25 @@ const EditAccount = ({
       updateProvider(data);
       return;
     }
-    setNidaLoading(true);
+    //setNidaLoading(true);
     try {
-      const nidaValidationResult = await validateNIDANumber(data.nida);
-      setNidaLoading(false);
+     // const nidaValidationResult = await validateNIDANumber(data.nida);
+     // setNidaLoading(false);
       setShowToast(false)
-      if (!nidaValidationResult.obj.error || nidaValidationResult.obj.error.trim() === '') {
+      //if (!nidaValidationResult.obj.error || nidaValidationResult.obj.error.trim() === '') {
      
         updateProvider(data);
-      } else {
-        setNidaError(t('auth:nidaDoesNotExist'));
-        setShowToast(true)
-        showToastMessage(t('screens:errorOccured'));
-      }
+      // } else {
+      //   setNidaError(t('auth:nidaDoesNotExist'));
+      //   setShowToast(true)
+      //   showToastMessage(t('screens:errorOccured'));
+      // }
     } catch (error) {
-      console.error('Error validating NIDA:', error);
+     // console.error('Error validating NIDA:', error);
       setShowToast(true)
       showToastMessage(t('screens:errorOccured'));
-      setNidaLoading(false);
-      setNidaError(t('auth:errorValidatingNIDA'));
-
-      
+      // setNidaLoading(false);
+      // setNidaError(t('auth:errorValidatingNIDA'));
     }
   };
 
@@ -387,6 +384,7 @@ const EditAccount = ({
                   }}
                   value={value}
                   keyboardType="phone-pad"
+                  editable={!user?.phone_verified_at}
 
                 />
               )}
@@ -570,6 +568,7 @@ const EditAccount = ({
                   onChangeText={onChange}
                   value={value}
                   keyboardType='numeric'
+                  editable={lastNidaStatus=='A.Valid'?false:true}
                 />
               )}
               name="nida"
@@ -687,7 +686,7 @@ const EditAccount = ({
                 }}
                 zIndex={100000}
                 placeholder={t(`screens:chooseProfessions`)}
-                listMode="SCROLLVIEW"
+                listMode="MODAL"
                 searchable={true}
                 open={open}
                 value={DropDownvalue}
@@ -709,7 +708,6 @@ const EditAccount = ({
               getDistrictValue={getDistrictValue}
               getWardValue={getWardValue}
               getStreetValue={getStreetValue}
-              // getStreetInput={getStreetInput}
               initialRegion={residence?.region?.region_code}
               initialDistrict={residence?.district?.district_code}
               initialWard={residence?.ward?.ward_code}

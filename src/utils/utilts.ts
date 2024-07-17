@@ -382,3 +382,11 @@ export const calculateDistance = (coord1, coord2) => {
   const distance = earthRadius * c; // Distance in meters
   return distance;
 };
+
+export const extractRatingData = (data) => {
+  return data?.map(item => ({
+    id: item?.id,
+    reason: item?.reason, 
+    rating_scale: item?.rating_scale,
+  }));
+};

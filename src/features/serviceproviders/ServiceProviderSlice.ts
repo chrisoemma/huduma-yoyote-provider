@@ -70,6 +70,14 @@ export const getBestProviders = createAsyncThunk(
       clearMessage(state: any) {
         state.status = null;
       },
+      setProviderChanges: (state, action) => {
+        if (Object.keys(action.payload).length > 0) {
+          state.bestProviders = {
+            ...state.bestProviders,
+            ...action.payload,
+          };
+        }
+      },
     },
     extraReducers: builder => {
  
@@ -159,6 +167,6 @@ export const getBestProviders = createAsyncThunk(
     },
   });
   
-  export const { clearMessage } = ServiceProviderSlice.actions;
+  export const { clearMessage,setProviderChanges } = ServiceProviderSlice.actions;
   
   export default ServiceProviderSlice.reducer;

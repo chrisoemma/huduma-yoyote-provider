@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import ContentServiceList from '../../components/ContentServiceList';
 import MapDisplay from '../../components/MapDisplay';
 import Icon from 'react-native-vector-icons/AntDesign';
-import { combineSubServices, getStatusBackgroundColor, makePhoneCall } from '../../utils/utilts';
+import { combineSubServices, extractRatingData, getStatusBackgroundColor, makePhoneCall } from '../../utils/utilts';
 import { useSelector, RootStateOrAny } from 'react-redux';
 import { useAppDispatch } from '../../app/store';
 import { getProviderSubServices } from '../serviceproviders/ServiceProviderSlice';
@@ -26,6 +26,8 @@ import { getRequestLastLocation } from '../../components/Location/LocationSlice'
 import { selectLanguage } from '../../costants/languangeSlice';
 import PusherOnlineListener from '../../components/PusherOnlineListener';
 import IconOnline from 'react-native-vector-icons/Ionicons'; 
+import RejectModal from '../../components/RejectModal';
+import { getRejectTemplate } from '../feedbackTemplate/FeebackTemplateSlice';
 
 const RequestedServices = ({ navigation, route }: any) => {
 
@@ -35,11 +37,17 @@ const RequestedServices = ({ navigation, route }: any) => {
     const [userLocation, setUserLocation] = useState(null);
     const [providerLocation, setProviderLocation] = useState(null);
     const [selectedEmployee, setSelectedEmployee] = useState(null)
+    const [isCancelModalVisible, setCancelModalVisible] = useState(false);
 
     const handleLocationUpdate = useCallback((userLocation, providerLocation) => {
         setUserLocation(userLocation);
         setProviderLocation(providerLocation);
     }, []);
+
+
+    const {   rejectTemplate } = useSelector(
+        (state: RootStateOrAny) => state.feebackTemplate,
+    );
 
 
     const { loading, providerSubServices, subServices } = useSelector(
@@ -76,13 +84,56 @@ const RequestedServices = ({ navigation, route }: any) => {
         dispatch(getRequestLastLocation(request?.id));
      }, [])
 
-
-
+     const toggleModalReject = () => {
+        if(rejectTemplate?.length<1){
+           dispatch(getRejectTemplate());
+       }
+       setCancelModalVisible(!isCancelModalVisible)
+   };
 
     if (user.provider) {
         useEffect(() => {
             dispatch(getEmployees({ providerId: user.provider.id }));
         }, [])
+
+    }
+
+
+
+    const  confirmReject=({selectedIds}:any)=>{
+   
+        data.status = 'Rejected';
+        data.client_latitude=userLocation?.latitude
+        data.client_longitude=userLocation?.longitude
+        data.provider_latitude=providerLocation?.latitude
+        data.provider_longitude=providerLocation?.longitude
+        data.templateIds=selectedIds;
+        toggleModalReject();
+
+
+  
+        dispatch(updateRequestStatus({ data: data, requestId:request?.id }))
+            .unwrap()
+            .then(result => {
+                if (result.status) {
+                    ToastAndroid.show(`${t('screens:requestUpdatedSuccessfully')}`, ToastAndroid.SHORT);
+                    navigation.navigate('Requests', {
+                        screen: 'Requests',
+                    });
+                } else {
+                    setDisappearMessage(
+                        `${t('screens:requestFail')}`,
+                    );
+                    console.log('dont navigate');
+                }
+            })
+            .catch(rejectedValueOrSerializedError => {
+                // handle error here
+                console.log('error');
+                console.log(rejectedValueOrSerializedError);
+            });
+       
+
 
     }
 
@@ -120,7 +171,7 @@ const RequestedServices = ({ navigation, route }: any) => {
 
     const [selectedSubservice, setSelectedSubservice] = useState([]);
 
-    const PhoneNumber = `${request?.client?.user.phone}`;
+    const PhoneNumber = `${request?.client?.phone}`;
 
 
     // React.useLayoutEffect(() => {
@@ -163,8 +214,6 @@ const RequestedServices = ({ navigation, route }: any) => {
         data.employee = selectedEmployee;
         // Do something with the selected employee, e.g., update state
         setSelectedEmployee(selectedEmployee);
-
-
         dispatch(transferRequest({ data: data, requestId: request?.id }))
             .unwrap()
             .then((result) => {
@@ -253,14 +302,13 @@ const RequestedServices = ({ navigation, route }: any) => {
         <>
         <PusherOnlineListener remoteUserId={request?.client?.user_id} />
             <View
-                style={[stylesGlobal.scrollBg, { flex: 1 }]}
+                 style={stylesGlobal.scrollBg}
             >
-
-                <GestureHandlerRootView style={{ flex: 0.9, margin: 10 }}>
+               <GestureHandlerRootView style={{ flex: 1, margin: 10 }}>
 
                     <View >
                         <View style={[stylesGlobal.circle, { backgroundColor: colors.white, alignContent: 'center', justifyContent: 'center' }]}>
-                            {request?.client?.profile_img.startsWith("https://") ?
+                            {request?.client?.profile_img?.startsWith("https://") ?
                                 <Image
                                     source={{ uri: request?.client?.profile_img }}
                                     style={{
@@ -413,7 +461,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                onPress={() => updateRequest(request?.id, 'Reject')}
+                                onPress={() => toggleModalReject()}
                                 style={{
                                     backgroundColor: colors.dangerRed, borderRadius: 20,
                                     justifyContent: 'center',
@@ -426,6 +474,14 @@ const RequestedServices = ({ navigation, route }: any) => {
 
                 </View>
             </View>
+
+            <RejectModal
+                rejectData={extractRatingData(rejectTemplate)}
+                cancel={toggleModalReject}
+                visible={isCancelModalVisible}
+                confirmReject={confirmReject}
+            />
+       
             <EmployeeListModal
                 isVisible={isEmployeeListVisible}
                 onClose={toggleEmployeeListModal}

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import messaging from '@react-native-firebase/messaging';
 import { useSelector, RootStateOrAny } from 'react-redux';
-import { setUserAccountStatus, setUserSubcriptionStatus } from '../features/auth/userSlice';
+import { logoutOtherDevice, changeNidaStatus, setUserChanges, setUserSubcriptionStatus, updateProviderChanges } from '../features/auth/userSlice';
 import { useAppDispatch } from '../app/store';
 import { setRequestStatus } from '../features/requests/RequestSlice';
 import { setServiceApproval } from '../features/subservices/SubservicesSlice';
@@ -28,18 +28,28 @@ const FCMMessageHandler = () => {
   const handleRemoteMessage = remoteMessage => {
     const { data,notification } = remoteMessage;
 
-     console.log('datatatatata',data);
+  //   console.log('datatatatata',data);
 
     if (data && data.type) {
       const type = data.type;
       // Perform actions based on the type
       switch (type) {
-        case 'user_status_changed':
-          dispatch(setUserAccountStatus(data));
+        case 'account_changed':
+        const userChanges = data.userChanges ? JSON.parse(data.userChanges) : {};
+        const providerChanges = data.providerChanges ? JSON.parse(data.providerChanges) : {};
+        dispatch(setUserChanges(userChanges));
+      //  dispatch(setProviderChanges(providerChanges));
+        dispatch(updateProviderChanges(providerChanges))
           break;
+          case 'logout_device':
+            dispatch(logoutOtherDevice());
+            break;
         case 'request_status_changed':
              dispatch(setRequestStatus(data.request))
           break;
+          case 'nida_status_chaged':
+            dispatch(changeNidaStatus(data.nidaStatus))
+            break;
         case 'service_approval':
           dispatch(setServiceApproval(data.providerSubService))
           break;

@@ -59,7 +59,8 @@ const CustomDrawerContent = (props: any) => {
 
 
 
-  const phoneNumber = '+255714055666';
+  const phoneNumber='+255684335955';
+  
   let drawerItems = [];
 
   if (user.provider && user.status == 'Active' && user?.provider?.status == 'Active' && user?.provider?.subscription_status =='Active') {
@@ -71,7 +72,7 @@ const CustomDrawerContent = (props: any) => {
         language: 'home',
         screen: 'Home',
         options: {
-          screen: 'BottomHomeTabNavigator',
+          screen: 'Home',
         },
       },
       {
@@ -98,7 +99,7 @@ const CustomDrawerContent = (props: any) => {
 
     ]
 
-  } else if ((user.provider && user.status !== 'Active') && user?.provider?.status == 'Pending approval') {
+  } else if ((user.provider) && user?.provider?.status == 'Pending approval') {
 
     drawerItems = [
       {
@@ -118,7 +119,7 @@ const CustomDrawerContent = (props: any) => {
       },
 
     ]
-  } else if (user?.employee && user.status == 'Active') {
+  } else if (user?.employee && user?.employee?.status == 'Active') {
 
     drawerItems = [
       {
@@ -127,7 +128,7 @@ const CustomDrawerContent = (props: any) => {
         language: 'home',
         screen: 'Home',
         options: {
-          screen: 'BottomHomeTabNavigator',
+          screen: 'Home',
         },
       },
 
@@ -179,15 +180,7 @@ const CustomDrawerContent = (props: any) => {
             height: 60,
           }}
         />
-        <View>
-          <Text style={{
-            marginTop: 10,
-            color: colors.white,
-            fontWeight: 'bold'
-          }}>
-            Espe Service
-          </Text>
-        </View>
+ 
       </DrawerHeader>
 
       <DrawerRowsContainer>

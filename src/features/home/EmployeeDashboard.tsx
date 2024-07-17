@@ -17,6 +17,7 @@ import { getEmployeeActiveRequests, getEmployeePastRequests } from '../requests/
 import { useSelector, RootStateOrAny } from 'react-redux'
 import { getEmployeeTranferRequests } from './ChartSlice'
 import { PieChart } from 'react-native-chart-kit'
+import { selectLanguage } from '../../costants/languangeSlice'
 
 
 const EmployeeDashboard = ({ navigation }: any) => {
@@ -40,6 +41,8 @@ const EmployeeDashboard = ({ navigation }: any) => {
     const { employeeTranferedRequests } = useSelector(
         (state: RootStateOrAny) => state.charts,
     );
+
+    const selectedLanguage = useSelector(selectLanguage);
 
 
     useEffect(() => {
@@ -78,7 +81,11 @@ const EmployeeDashboard = ({ navigation }: any) => {
 
     const stylesGlobal = globalStyles();
 
-    const labels = employeeTranferedRequests?.map(entry => entry.sub_service_name);
+
+    const labels = employeeTranferedRequests?.map(entry => {
+        const serviceName = JSON.parse(entry.sub_service_name); // Parse the JSON string
+        return selectedLanguage === 'en' ? serviceName?.en : serviceName?.sw;
+      });
     const dataset = employeeTranferedRequests?.map(entry => entry.request_count);
 
     const getRandomColor = () => {
@@ -194,9 +201,9 @@ const EmployeeDashboard = ({ navigation }: any) => {
                                             })
                                         }}
                                     >
-                                        <Text style={{ color: colors.primary }}>{item.service.name}</Text>
+                                          <Text style={{ color: colors.primary }}>{selectedLanguage=='en' ?item?.service?.name?.en:item?.service?.name?.sw}</Text>
                                         <Text style={{ paddingVertical: 10, color: colors.black }}>{item.client.name}</Text>
-                                        <View style={{ marginRight: '35%' }}><Text >{item.request_time}</Text></View>
+                                        <View style={{ marginRight: '35%', color: colors.alsoGrey }}><Text >{item.request_time}</Text></View>
                                     </TouchableOpacity>
                                 ))
 
@@ -209,9 +216,9 @@ const EmployeeDashboard = ({ navigation }: any) => {
                                         })
                                     }}
                                 >
-                                    <Text style={{ color: colors.primary }}>{item.service.name}</Text>
-                                    <Text style={{ paddingVertical: 10, color: colors.black }}>{item.client.name}</Text>
-                                    <View style={{ marginRight: '35%' }}><Text >{item.request_time}</Text></View>
+                                     <Text style={{ color: colors.primary }}>{selectedLanguage=='en' ?item?.service?.name?.en:item?.service?.name?.sw}</Text>
+                                        <Text style={{ paddingVertical: 10, color: colors.black }}>{item.client.name}</Text>
+                                        <View style={{ marginRight: '35%', color: colors.alsoGrey }}><Text >{item.request_time}</Text></View>
                                 </TouchableOpacity>
                                 ))
                             )}
