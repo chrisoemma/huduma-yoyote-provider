@@ -25,7 +25,7 @@ import { getClientLastLocation } from '../account/AccountSlice';
 import { getRequestLastLocation } from '../../components/Location/LocationSlice';
 import { selectLanguage } from '../../costants/languangeSlice';
 import PusherOnlineListener from '../../components/PusherOnlineListener';
-import IconOnline from 'react-native-vector-icons/Ionicons'; 
+import IconOnline from 'react-native-vector-icons/Ionicons';
 import RejectModal from '../../components/RejectModal';
 import { getRejectTemplate } from '../feedbackTemplate/FeebackTemplateSlice';
 
@@ -45,7 +45,7 @@ const RequestedServices = ({ navigation, route }: any) => {
     }, []);
 
 
-    const {   rejectTemplate } = useSelector(
+    const { rejectTemplate } = useSelector(
         (state: RootStateOrAny) => state.feebackTemplate,
     );
 
@@ -54,7 +54,7 @@ const RequestedServices = ({ navigation, route }: any) => {
         (state: RootStateOrAny) => state.providers,
     );
 
-    const { user,isOnline } = useSelector(
+    const { user, isOnline } = useSelector(
         (state: RootStateOrAny) => state.user,
     );
 
@@ -65,7 +65,7 @@ const RequestedServices = ({ navigation, route }: any) => {
 
     const { clientLastLocation } = useSelector(
         (state: RootStateOrAny) => state.account,
-      );
+    );
 
     const { employees } = useSelector(
         (state: RootStateOrAny) => state.employees,
@@ -75,21 +75,25 @@ const RequestedServices = ({ navigation, route }: any) => {
         return t(`screens:${status}`);
     };
 
+    const [contextData, setContext] = useState('');
 
     useEffect(() => {
         dispatch(getClientLastLocation(request?.client?.id));
-     }, [])
+    }, [])
 
-     useEffect(() => {
+    useEffect(() => {
         dispatch(getRequestLastLocation(request?.id));
-     }, [])
+    }, [])
 
-     const toggleModalReject = () => {
-        if(rejectTemplate?.length<1){
-           dispatch(getRejectTemplate());
-       }
-       setCancelModalVisible(!isCancelModalVisible)
-   };
+    const toggleModalReject = (context) => {
+
+        if (context !== contextData) {
+            console.log('context123',context);
+            setContext(context);
+            dispatch(getRejectTemplate(context));
+        }
+        setCancelModalVisible(!isCancelModalVisible)
+    };
 
     if (user.provider) {
         useEffect(() => {
@@ -100,19 +104,20 @@ const RequestedServices = ({ navigation, route }: any) => {
 
 
 
-    const  confirmReject=({selectedIds}:any)=>{
-   
+    const confirmReject = ({ selectedIds }: any) => {
+
         data.status = 'Rejected';
-        data.client_latitude=userLocation?.latitude
-        data.client_longitude=userLocation?.longitude
-        data.provider_latitude=providerLocation?.latitude
-        data.provider_longitude=providerLocation?.longitude
-        data.templateIds=selectedIds;
-        toggleModalReject();
+        data.client_latitude = userLocation?.latitude
+        data.client_longitude = userLocation?.longitude
+        data.provider_latitude = providerLocation?.latitude
+        data.provider_longitude = providerLocation?.longitude
+        data.templateIds = selectedIds;
+        data.context = contextData;
+        toggleModalReject(contextData);
 
 
-  
-        dispatch(updateRequestStatus({ data: data, requestId:request?.id }))
+
+        dispatch(updateRequestStatus({ data: data, requestId: request?.id }))
             .unwrap()
             .then(result => {
                 if (result.status) {
@@ -132,7 +137,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                 console.log('error');
                 console.log(rejectedValueOrSerializedError);
             });
-       
+
 
 
     }
@@ -197,10 +202,10 @@ const RequestedServices = ({ navigation, route }: any) => {
 
     let data = {
         status: '',
-        client_latitude:'',
-        client_longitude:'',
-        provider_latitude:'',
-        provider_longitude:''
+        client_latitude: '',
+        client_longitude: '',
+        provider_latitude: '',
+        provider_longitude: ''
 
     }
 
@@ -239,13 +244,13 @@ const RequestedServices = ({ navigation, route }: any) => {
 
     const updateRequest = (id, requestType) => {
 
-        console.log('providerLocation',providerLocation)
-        console.log('client location',userLocation)
-        
-        data.client_latitude=userLocation?.latitude
-        data.client_longitude=userLocation?.longitude
-        data.provider_latitude=providerLocation?.latitude
-        data.provider_longitude=providerLocation?.longitude
+        console.log('providerLocation', providerLocation)
+        console.log('client location', userLocation)
+
+        data.client_latitude = userLocation?.latitude
+        data.client_longitude = userLocation?.longitude
+        data.provider_latitude = providerLocation?.latitude
+        data.provider_longitude = providerLocation?.longitude
 
         Alert.alert(
             'Confirm Action',
@@ -265,8 +270,6 @@ const RequestedServices = ({ navigation, route }: any) => {
                         } else if (requestType === 'Complete') {
                             data.status = 'Completed';
                         }
-
-                      
 
                         dispatch(updateRequestStatus({ data: data, requestId: id }))
                             .unwrap()
@@ -300,11 +303,11 @@ const RequestedServices = ({ navigation, route }: any) => {
 
     return (
         <>
-        <PusherOnlineListener remoteUserId={request?.client?.user_id} />
+            <PusherOnlineListener remoteUserId={request?.client?.user_id} />
             <View
-                 style={stylesGlobal.scrollBg}
+                style={stylesGlobal.scrollBg}
             >
-               <GestureHandlerRootView style={{ flex: 1, margin: 10 }}>
+                <GestureHandlerRootView style={{ flex: 1, margin: 10 }}>
 
                     <View >
                         <View style={[stylesGlobal.circle, { backgroundColor: colors.white, alignContent: 'center', justifyContent: 'center' }]}>
@@ -333,7 +336,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                         <View style={{ flexDirection: 'row' }}>
                             <View>
                                 <Text style={{ marginVertical: 5, color: isDarkMode ? colors.white : colors.black }}>{request?.client?.name}</Text>
-                                <Text style={{ marginVertical: 5, color: colors.secondary }}>{selectedLanguage=='en'? request?.service?.name?.en :request?.service?.name?.sw}</Text>
+                                <Text style={{ marginVertical: 5, color: colors.secondary }}>{selectedLanguage == 'en' ? request?.service?.name?.en : request?.service?.name?.sw}</Text>
                             </View>
                             <TouchableOpacity style={{
                                 flexDirection: 'row',
@@ -355,22 +358,22 @@ const RequestedServices = ({ navigation, route }: any) => {
                             </TouchableOpacity>
                         </View>
                         <View style={styles.divOnline}>
-                        <IconOnline name={isOnline ? 'checkmark-circle' : 'close-circle'} size={24} color={isOnline ? 'green' :colors.darkGrey} />
-                        <Text style={styles.text}>{isOnline ? 'Online' : 'Offline'}</Text>
+                            <IconOnline name={isOnline ? 'checkmark-circle' : 'close-circle'} size={24} color={isOnline ? 'green' : colors.darkGrey} />
+                            <Text style={styles.text}>{isOnline ? 'Online' : 'Offline'}</Text>
                         </View>
 
-                        <View style={[stylesGlobal.chooseServiceBtn, { justifyContent: 'space-between',marginBottom:50 }]}>
+                        <View style={[stylesGlobal.chooseServiceBtn, { justifyContent: 'space-between', marginBottom: 50 }]}>
                             <View style={[stylesGlobal.otherBtn, { backgroundColor: getStatusBackgroundColor(request_status) }]}>
                                 <Text style={{ color: colors.white }}>{getStatusTranslation(request_status)}</Text>
                             </View>
-                           
-                           
+
+
                             <TouchableOpacity style={[stylesGlobal.chooseBtn,]}
                                 onPress={() => handlePresentModalPress('Services')}
                             >
                                 <Text style={{ color: colors.white }}>{t('navigate:requestedServices')}</Text>
                             </TouchableOpacity>
-                               
+
                         </View>
                         {user.provider && request?.is_transferred ? (
                             <Notification message={`${t('screens:requestTransferToEmployee')} ${request?.transfer[0]?.employee?.name}`} type="info" />
@@ -421,29 +424,52 @@ const RequestedServices = ({ navigation, route }: any) => {
                 <View style={[styles.bottomDiv, { backgroundColor: isDarkMode ? colors.black : colors.white }]}>
 
                     {request_status == 'Comfirmed' ? (
-                        <TouchableOpacity
-                            onPress={() => updateRequest(request?.id, 'Complete')}
-                            style={{
-                                backgroundColor: colors.successGreen, borderRadius: 20,
-                                justifyContent: 'center',
-                                padding: 10
-                            }}>
-                            <Text style={{ color: colors.white }}>{t('screens:complete')}</Text>
-                        </TouchableOpacity>
+                        <>
+                            <TouchableOpacity
+                                onPress={() => updateRequest(request?.id, 'Complete')}
+                                style={{
+                                    backgroundColor: colors.successGreen, borderRadius: 20,
+                                    justifyContent: 'center',
+                                    padding: 10
+                                }}>
+                                <Text style={{ color: colors.white }}>{t('screens:complete')}</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => toggleModalReject('After')}
+                                style={{
+                                    backgroundColor: colors.dangerRed, borderRadius: 20,
+                                    justifyContent: 'center',
+                                    padding: 20
+                                }}>
+                                <Text style={{ color: colors.white }}>{t('screens:reject')}</Text>
+                            </TouchableOpacity>
+                        </>
 
                     ) : <></>}
 
                     {!request?.is_transferred && user.provider && request_status == 'Comfirmed' ? (
+                        <>
+                            <TouchableOpacity
+                                onPress={toggleEmployeeListModal}
+                                style={{
+                                    backgroundColor: colors.primary, borderRadius: 20,
+                                    justifyContent: 'center',
+                                    padding: 20
+                                }}>
+                                <Text style={{ color: colors.white }}>{t('screens:transfer')}</Text>
+                            </TouchableOpacity>
 
-                        <TouchableOpacity
-                            onPress={toggleEmployeeListModal}
-                            style={{
-                                backgroundColor: colors.primary, borderRadius: 20,
-                                justifyContent: 'center',
-                                padding: 20
-                            }}>
-                            <Text style={{ color: colors.white }}>{t('screens:transfer')}</Text>
-                        </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => toggleModalReject('Opening')}
+                                style={{
+                                    backgroundColor: colors.dangerRed, borderRadius: 20,
+                                    justifyContent: 'center',
+                                    padding: 20
+                                }}>
+                                <Text style={{ color: colors.white }}>{t('screens:reject')}</Text>
+                            </TouchableOpacity>
+                        </>
 
                     ) : (<></>)
                     }
@@ -461,7 +487,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                onPress={() => toggleModalReject()}
+                                onPress={() => toggleModalReject('Opening')}
                                 style={{
                                     backgroundColor: colors.dangerRed, borderRadius: 20,
                                     justifyContent: 'center',
@@ -471,7 +497,6 @@ const RequestedServices = ({ navigation, route }: any) => {
                             </TouchableOpacity>
                         </>
                     ) : <></>}
-
                 </View>
             </View>
 
@@ -481,7 +506,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                 visible={isCancelModalVisible}
                 confirmReject={confirmReject}
             />
-       
+
             <EmployeeListModal
                 isVisible={isEmployeeListVisible}
                 onClose={toggleEmployeeListModal}
@@ -510,11 +535,11 @@ const styles = StyleSheet.create({
     divOnline: {
         flexDirection: 'row',
         alignItems: 'center',
-      },
+    },
     text: {
         marginLeft: 5,
         fontSize: 16,
-      },
+    },
     mapContainer: {
         flex: 1,
         marginBottom: '10%',

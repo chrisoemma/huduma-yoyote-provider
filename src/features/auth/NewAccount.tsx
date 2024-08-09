@@ -17,7 +17,7 @@ import Icon from 'react-native-vector-icons/Feather';
 
 import { useForm, Controller } from 'react-hook-form';
 import { RootStateOrAny, useSelector } from 'react-redux';
-import { multiRegister, setFirstTime, userLogout, userRegiter } from './userSlice';
+import { multiRegister, setFirstTime, userLogout, userLogoutThunk, userRegiter } from './userSlice';
 import { globalStyles } from '../../styles/global';
 import { useTogglePasswordVisibility } from '../../hooks/useTogglePasswordVisibility';
 import PhoneInput from 'react-native-phone-number-input';
@@ -216,13 +216,13 @@ const NewAccount = ({ route, navigation }: any) => {
           console.log(rejectedValueOrSerializedError);
         });
        }else{
-    setNidaLoading(true)
-    const nidaValidationResult = await validateNIDANumber(data.nida);
-    setNidaLoading(false)
+    //setNidaLoading(true)
+   // const nidaValidationResult = await validateNIDANumber(data.nida);
+   // setNidaLoading(false)
 
     setShowToast(false)
 
-    if (!nidaValidationResult.obj.error || nidaValidationResult.obj.error.trim() === '') {
+    // if (!nidaValidationResult.obj.error || nidaValidationResult.obj.error.trim() === '') {
 
       dispatch(multiRegister({ data, userId: user?.id }))
         .unwrap()
@@ -252,12 +252,12 @@ const NewAccount = ({ route, navigation }: any) => {
           console.log(rejectedValueOrSerializedError);
         });
 
-    } else {
-      setNidaError(t('auth:nidaDoesNotExist'))
-      console.log('NIDA validation failed:', nidaValidationResult.error);
-      setShowToast(true)
-      showToastMessage(t('screens:errorOccured'));
-    }
+    // } else {
+    //   setNidaError(t('auth:nidaDoesNotExist'))
+    //   console.log('NIDA validation failed:', nidaValidationResult.error);
+    //   setShowToast(true)
+    //   showToastMessage(t('screens:errorOccured'));
+    // }
 
   }
   };
@@ -469,7 +469,7 @@ const NewAccount = ({ route, navigation }: any) => {
                 }}
                 zIndex={6000}
                 placeholder={t(`screens:chooseProfessions`)}
-                listMode="SCROLLVIEW"
+                listMode="MODAL"
                 searchable={true}
                 open={open}
                 value={value}
@@ -535,7 +535,7 @@ const NewAccount = ({ route, navigation }: any) => {
           </BasicView>
 
           <BasicView>
-            <Button loading={nidaLoading || loading} onPress={handleSubmit(onSubmit)}>
+            <Button loading={loading} onPress={handleSubmit(onSubmit)}>
               <ButtonText>{t('auth:register')}</ButtonText>
             </Button>
           </BasicView>
@@ -544,7 +544,7 @@ const NewAccount = ({ route, navigation }: any) => {
             <TouchableOpacity
                disabled={loading}
               onPress={() => {
-                dispatch(userLogout());
+                dispatch(userLogoutThunk());
               }}
               style={[stylesGlobal.marginTop20, stylesGlobal.centerView]}>
               <Text style={stylesGlobal.touchablePlainTextSecondary}>

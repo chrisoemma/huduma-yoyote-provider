@@ -24,6 +24,7 @@ import FCMMessageHandler from "../components/FCMMessageHandler";
 import { useSelector } from "react-redux";
 import { AppState, Platform } from "react-native";
 import PackagePayments from "../features/payments/PackagePayments";
+import Notifications from "../features/Notifications/Notifications";
 
 
 
@@ -193,6 +194,10 @@ const AppStack = () => {
        <Stack.Screen name="My Documents"
          component={Documents}
          options={{ title: t('screens:myDocuments') }}
+          />
+        <Stack.Screen name="Notifications"
+         component={Notifications}
+         options={{ title: t('screens:notifications') }}
           />
     
     <Stack.Screen name="Subscriptions"

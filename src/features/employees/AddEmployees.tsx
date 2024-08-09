@@ -12,7 +12,7 @@ import { ButtonText } from '../../components/ButtonText'
 import { useAppDispatch } from '../../app/store'
 import { useSelector, RootStateOrAny } from 'react-redux'
 import { createEmployee, updateEmployee } from './EmployeeSlice'
-import { validateNIDANumber, validateTanzanianPhoneNumber } from '../../utils/utilts'
+import { validateTanzanianPhoneNumber } from '../../utils/utilts'
 
 const AddEmployees = ({ route, navigation }: any) => {
 
@@ -85,7 +85,6 @@ const AddEmployees = ({ route, navigation }: any) => {
 
   const onSubmit = async(data) => {
 
-  
     data.phone = validateTanzanianPhoneNumber(data.phone);
 
     if (isEditMode) {
@@ -114,13 +113,10 @@ const AddEmployees = ({ route, navigation }: any) => {
         });
     } else {
       data.provider_id=user?.provider?.id
-
-    
-      setNidaLoading(true)
-      const nidaValidationResult = await validateNIDANumber(data.nida);
-      setNidaLoading(false)
-     if (!nidaValidationResult?.obj?.error || nidaValidationResult?.obj?.error?.trim() === '') {
-       
+     // setNidaLoading(true)
+    //  const nidaValidationResult = await validateNIDANumber(data.nida);
+     // setNidaLoading(false)
+    //  if (!nidaValidationResult?.obj?.error || nidaValidationResult?.obj?.error?.trim() === '') {
     dispatch(createEmployee(data))
           .unwrap()
           .then(result => {
@@ -139,11 +135,10 @@ const AddEmployees = ({ route, navigation }: any) => {
               }
             }
           })
-        
-      } else {
-        setNidaError(t('auth:nidaDoesNotExist'))
-        console.log('NIDA validation failed:', nidaValidationResult.error);
-      }
+      // } else {
+      //   setNidaError(t('auth:nidaDoesNotExist'))
+      //   console.log('NIDA validation failed:', nidaValidationResult.error);
+      // }
 
     }
 
@@ -304,7 +299,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingHorizontal: 20,
     alignItems: 'center',
-
   },
 
   textStyle: {

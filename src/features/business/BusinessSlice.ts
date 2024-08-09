@@ -174,6 +174,13 @@ export const getBusinesses = createAsyncThunk(
       clearMessage(state: any) {
         state.status = null;
       },
+      changeDocStatus: (state, action) => {
+        const { docId, docStatus } = action.payload;
+        const document = state.documents.find(doc => doc.id === Number(docId));
+        if (document) {
+          document.status = docStatus;
+        }
+      }
     },
     extraReducers: builder => {
        
@@ -380,6 +387,6 @@ export const getBusinesses = createAsyncThunk(
     },
   });
   
-  export const { clearMessage } = BusinessSlice.actions;
+  export const { clearMessage,changeDocStatus } = BusinessSlice.actions;
   
   export default BusinessSlice.reducer;

@@ -389,7 +389,7 @@ const EditSubService = ({ route, navigation }: any) => {
           <Text style={[styles.textStyle, { color: isDarkMode ? colors.white : colors.black }]}>{t('screens:UploadImagesVideosOfService')}</Text>
           <View style={styles.imageContainer}>
             <TouchableOpacity onPress={selectImage}>
-              <Text style={{ color: isDarkMode ? colors.white : colors.blue }}>{t('screens:uploadImage')}</Text>
+              <Text style={{ color: isDarkMode ? colors.white : colors.blue,fontWeight:'bold',fontSize:15,marginVertical:15 }}>{t('screens:uploadImage')}</Text>
             </TouchableOpacity>
 
             {image ? (
@@ -438,7 +438,7 @@ const EditSubService = ({ route, navigation }: any) => {
 
           <View style={styles.imageContainer}>
             <TouchableOpacity onPress={selectVideo}>
-              <Text style={{ color: isDarkMode ? colors.white : colors.blue }}>{t('screens:uploadVideo')}</Text>
+              <Text style={{ color: isDarkMode ? colors.white : colors.blue,fontWeight:'bold',fontSize:15,marginVertical:15 }}>{t('screens:uploadVideo')}</Text>
             </TouchableOpacity>
             {video && video[0]?.uri ? (
                   <>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, Image, TextInput, ActivityIndicator } from 'react-native';
+import { Alert, PermissionsAndroid, Platform, Modal, View, Text, TouchableOpacity, StyleSheet, Image, TextInput, ActivityIndicator } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { convertBusinessesToLabelsAndValues, convertRegDoc, transformDataToDropdownOptions } from '../utils/utilts';
 import { colors } from '../utils/colors';
@@ -14,6 +14,7 @@ import { firebase } from '@react-native-firebase/storage';
 import RNFS from 'react-native-fs';
 import Pdf from 'react-native-pdf';
 import ToastMessage from './ToastMessage';
+import { check, request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
 
 
 const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,toastMessage, showToast,businesses,errorMessage, regDocs, handleDocumentUpload, uploadingDoc,resetModalState }: any) => {
@@ -71,9 +72,68 @@ const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,to
     }, [resetModal, setResetModal]);
 
  
+
+    const checkAndRequestPermissions = async () => {
+        let granted = false;
+
+        if (Platform.OS === 'android') {
+            const result = await PermissionsAndroid.requestMultiple([
+                PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            ]);
+
+            granted = 
+                result['android.permission.WRITE_EXTERNAL_STORAGE'] === PermissionsAndroid.RESULTS.GRANTED &&
+                result['android.permission.READ_EXTERNAL_STORAGE'] === PermissionsAndroid.RESULTS.GRANTED;
+        } else if (Platform.OS === 'ios') {
+            const readStatus = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
+            const writeStatus = await check(PERMISSIONS.IOS.MEDIA_LIBRARY);
+
+            if (readStatus === RESULTS.GRANTED && writeStatus === RESULTS.GRANTED) {
+                granted = true;
+            } else {
+                const requestRead = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
+                const requestWrite = await request(PERMISSIONS.IOS.MEDIA_LIBRARY);
+
+                granted = requestRead === RESULTS.GRANTED && requestWrite === RESULTS.GRANTED;
+            }
+        }
+
+        if (!granted) {
+            Alert.alert(
+                "Storage Permission Required",
+                "Espe provider needs access to your storage to upload documents. Please allow storage in device settings.",
+                [
+                    {
+                        text: "Cancel",
+                        onPress: () => console.log("Permission denied"),
+                        style: "cancel",
+                    },
+                    {
+                        text: "Settings",
+                        onPress: () => {
+                            openSettings().catch(() => console.warn('Cannot open settings'));
+                        },
+                    },
+                ]
+            );
+            // setShowToast(true);
+            // toggleToast();
+            return false;
+        }
+
+        return true;
+    };
     
 
     const selectDoc = async () => {
+
+        const permissionsGranted = await checkAndRequestPermissions();
+        if (!permissionsGranted) {
+            // setShowToast(true);
+            // toggleToast();
+            return;
+        }
 
         try {
             const res = await DocumentPicker.pick({
@@ -88,7 +148,7 @@ const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,to
 
             } else {
                 // For Unknown Error
-                alert("Unknown Error: " + JSON.stringify(error));
+              //  alert("Unknown Error: " + JSON.stringify(error));
                 throw error;
             }
         }

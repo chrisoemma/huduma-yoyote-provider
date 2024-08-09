@@ -100,7 +100,6 @@ const RegisterScreen = ({ route, navigation }: any) => {
     },
   });
 
-
   useEffect(() => {
     const retrieveDeviceToken = async () => {
       try {
@@ -172,12 +171,12 @@ const RegisterScreen = ({ route, navigation }: any) => {
     data.designation_id = value;
     data.deviceToken = deviceToken; 
 
-    setNidaLoading(true)
-    const nidaValidationResult = await validateNIDANumber(data.nida);
-    setNidaLoading(false)
+    // setNidaLoading(true)
+    // const nidaValidationResult = await validateNIDANumber(data.nida);
+    // setNidaLoading(false)
 
     setShowToast(false)
-    if (!nidaValidationResult.obj.error || nidaValidationResult.obj.error.trim() === '') {
+   // if (!nidaValidationResult.obj.error || nidaValidationResult.obj.error.trim() === '') {
 
       dispatch(userRegiter(data))
         .unwrap()
@@ -208,12 +207,12 @@ const RegisterScreen = ({ route, navigation }: any) => {
           console.log(rejectedValueOrSerializedError);
         });
 
-    } else {
-      setNidaError(t('auth:nidaDoesNotExist'))
-      console.log('NIDA validation failed:', nidaValidationResult.error);
-      setShowToast(true)
-      showToastMessage(t('screens:errorOccured'));
-    }
+   // } else {
+      // setNidaError(t('auth:nidaDoesNotExist'))
+      // console.log('NIDA validation failed:', nidaValidationResult.error);
+      // setShowToast(true)
+      // showToastMessage(t('screens:errorOccured'));
+  //  }
 
   };
 
@@ -422,7 +421,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
                 }}
                 zIndex={6000}
                 placeholder={t(`screens:chooseProfessions`)}
-                listMode="SCROLLVIEW"
+                listMode="MODAL"
                 searchable={true}
                 open={open}
                 value={value}
@@ -580,12 +579,13 @@ const RegisterScreen = ({ route, navigation }: any) => {
             </Button>
           </BasicView>
 
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 20, marginBottom: 80 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginHorizontal:5, marginBottom: 80 }}>
             <TouchableOpacity
               onPress={() => {
                 navigation.navigate('Login');
               }}
-              style={[stylesGlobal.marginTop20, stylesGlobal.centerView]}>
+              style={[stylesGlobal.marginTop20, {  flex: 1,
+                alignItems: 'flex-start',}]}>
               <Text style={stylesGlobal.touchablePlainTextSecondary}>
                 {t('auth:alreadyHaveAccount')}
               </Text>
@@ -594,7 +594,8 @@ const RegisterScreen = ({ route, navigation }: any) => {
               onPress={() => {
                 navigation.navigate('CheckPhoneNumber');
               }}
-              style={[stylesGlobal.marginTop20, stylesGlobal.centerView]}>
+              style={[stylesGlobal.marginTop20, { 
+                alignItems: 'flex-end',marginRight:10}]}>
               <Text style={stylesGlobal.touchablePlainTextSecondary}>
                 {t('auth:haveOtp')}
               </Text>

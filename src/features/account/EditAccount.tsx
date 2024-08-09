@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Platform,
+  Alert,
 } from 'react-native';
 
 
@@ -145,9 +146,6 @@ const EditAccount = ({
       const parsedDate = birthdate ? new Date(birthdate) : null;
       const formattedDate = parsedDate ? new Date(parsedDate.toISOString()) : null;
       setBirthdate(formattedDate);
-
-
-
       setDropDownValue(JSON.stringify(user?.provider?.designation_id))
     } else {
       setValue('name', user.employee?.name);
@@ -159,8 +157,8 @@ const EditAccount = ({
   }, [route.params]);
 
 
-  const lastNidaStatus=user?.provider?.nida_statuses[user?.provider?.nida_statuses?.length-1]?.status;
 
+  const lastNidaStatus = user?.provider?.nida_statuses?.[user?.provider?.nida_statuses.length - 1]?.status;
 
   const finalRegionValue = (value) => {
     setRegionValue(value)
@@ -251,39 +249,40 @@ const EditAccount = ({
 
 
   const updateProvider = (data: any) => {
-    // Proceed with updating other parts
-   // data.status = 'S.Valid';
     const userType = user.provider !== null ? 'provider' : 'employee';
-
+  
     dispatch(updateProviderInfo({ data: data, userType: userType, userId: user?.id }))
       .unwrap()
       .then(result => {
         if (result.status) {
-          ToastAndroid.show(`${t('screens:userUpatedSuccessfully')}`, ToastAndroid.LONG);
+          ToastAndroid.show(`${t('screens:updatedSuccessfully')}`, ToastAndroid.LONG);
           navigation.navigate('Account', {
             screen: 'Account',
             message: message
           });
         } else {
+          // Handle errors based on what is returned from the server
           if (result.error) {
-            setDisappearMessage(result.error
-            );
-            setShowToast(true)
-            showToastMessage(t('screens:errorOccured'));
+            // Show the error message received from the server
+            showToastMessage(result.error);
+            setShowToast(true);
+           // showToastMessage(t('screens:errorOccured'));
           } else {
+            // Fallback for any other messages
             setDisappearMessage(result.message);
+            setShowToast(true);
+            showToastMessage(t('screens:errorOccured'));
           }
-         
-          // const errors = result.data ? formatErrorMessages(result.data.errors) : result.message;
-          // setDisappearMessage(showErrorWithLineBreaks(errors));
-          //   setShowToast(true)
-          //   showToastMessage(t('screens:errorOccured'));//to be checked
-     
         }
+      })
+      .catch(error => {
+        // Catch any unexpected errors
+        console.error('Error updating provider:', error);
+        setShowToast(true);
+        showToastMessage(t('screens:errorOccured'));
       });
-  }
-
-
+  };
+  
 
 
   const onSubmit = async (data: any) => {
@@ -296,6 +295,44 @@ const EditAccount = ({
     } else {
       data.latitude = location.lat;
       data.longitude = location.lng;
+    }
+
+   const currentDesignationId = parseInt(user?.provider?.designation_id);
+    const selectedDesignationId = parseInt(DropDownvalue);
+  
+    if (user?.provider && currentDesignationId !== selectedDesignationId) {
+      Alert.alert(
+         t('screens:professionChange'), 
+          t('screens:changeProfessionBody'),
+        [
+          {
+            text: t('screens:cancel'),
+            onPress: () => console.log('Profession change canceled'),
+            style: 'cancel',
+          },
+          {
+            text: t('screens:ok'),
+            onPress: async () => {
+              data.phone = validateTanzanianPhoneNumber(data.phone);
+              if (user?.provider) {
+                data.birth_date = birthdate;
+                data.designation_id = selectedDesignationId;
+                data.location_id = streetValue;
+              }
+  
+              try {
+                updateProvider(data);
+              } catch (error) {
+                console.error('Error validating NIDA:', error);
+                setShowToast(true);
+                showToastMessage(t('screens:errorOccured'));
+              }
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+      return;
     }
 
     data.phone = validateTanzanianPhoneNumber(data.phone);
@@ -330,6 +367,73 @@ const EditAccount = ({
       // setNidaError(t('auth:errorValidatingNIDA'));
     }
   };
+
+
+
+
+  // const onSubmit = async (data: any) => {
+  //   if (Object.keys(location).length === 0) {
+  //     data.latitude = user?.provider.latitude;
+  //     data.longitude = user.provider.longitude;
+  //   } else {
+  //     data.latitude = location.lat;
+  //     data.longitude = location.lng;
+  //   }
+  
+  //   const currentDesignationId = parseInt(user?.provider?.designation_id);
+  //   const selectedDesignationId = parseInt(DropDownvalue);
+  
+  //   if (user?.provider && currentDesignationId !== selectedDesignationId) {
+  //     Alert.alert(
+  //       'Profession Change',
+  //       'You are about to change your profession. Do you want to continue?',
+  //       [
+  //         {
+  //           text: 'Cancel',
+  //           onPress: () => console.log('Profession change canceled'),
+  //           style: 'cancel',
+  //         },
+  //         {
+  //           text: 'OK',
+  //           onPress: async () => {
+  //             data.phone = validateTanzanianPhoneNumber(data.phone);
+  //             if (user?.provider) {
+  //               data.birth_date = birthdate;
+  //               data.designation_id = selectedDesignationId;
+  //               data.location_id = streetValue;
+  //             }
+  
+  //             try {
+  //               updateProvider(data);
+  //             } catch (error) {
+  //               console.error('Error validating NIDA:', error);
+  //               setShowToast(true);
+  //               showToastMessage(t('screens:errorOccured'));
+  //             }
+  //           },
+  //         },
+  //       ],
+  //       { cancelable: false }
+  //     );
+  //     return;
+  //   }
+  
+  //   data.phone = validateTanzanianPhoneNumber(data.phone);
+  //   if (user?.provider) {
+  //     data.birth_date = birthdate;
+  //     data.designation_id = selectedDesignationId;
+  //     data.location_id = streetValue;
+  //   }
+  
+  //   try {
+  //     updateProvider(data);
+  //   } catch (error) {
+  //     console.error('Error validating NIDA:', error);
+  //     setShowToast(true);
+  //     showToastMessage(t('screens:errorOccured'));
+  //   }
+  // };
+  
 
 
 
@@ -732,7 +836,7 @@ const EditAccount = ({
           </BasicView>
 
           <BasicView>
-            <Button loading={nidaLoading || loading} onPress={handleSubmit(onSubmit)}>
+            <Button loading={loading} onPress={handleSubmit(onSubmit)}>
               <ButtonText>{t('navigate:editAccount')}</ButtonText>
             </Button>
           </BasicView>

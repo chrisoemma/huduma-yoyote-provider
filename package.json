@@ -48,6 +48,7 @@
     "react-native-maps-directions": "^1.9.0",
     "react-native-modal": "^13.0.1",
     "react-native-modal-datetime-picker": "^17.1.0",
+    "react-native-notifications": "^5.1.0",
     "react-native-orientation-locker": "^1.6.0",
     "react-native-pdf": "^6.7.1",
     "react-native-permissions": "^4.0.4",

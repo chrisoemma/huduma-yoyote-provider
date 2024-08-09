@@ -53,7 +53,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
     if (subServiceByService) {
       const ids = sub_services?.map(subService => subService?.id);
       setCheckedSubServices(ids)
-      
+
     }
   }, [subServiceByService]);
 
@@ -100,7 +100,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
     }, 10000);
   };
 
-  const [toastMessage, setToastMessage] = useState(''); 
+  const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
   const toggleToast = () => {
     setShowToast(!showToast);
@@ -109,10 +109,10 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
 
   const showToastMessage = (message) => {
     setToastMessage(message);
-    toggleToast(); 
+    toggleToast();
     setTimeout(() => {
-      toggleToast(); 
-    }, 10000); 
+      toggleToast();
+    }, 10000);
   };
 
   const removeImage = () => {
@@ -179,7 +179,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
 
     if (image == null) {
       setDisappearMessage(`${t('screens:UploadImagesVideosOfService')}`);
-      if(!showToast){
+      if (!showToast) {
         setShowToast(true)
         showToastMessage(t('screens:errorOccured'));
       }
@@ -192,46 +192,46 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
 
       if (!mediaUploadHandled) {
         mediaUploadHandled = true;
-      if (checkedSubServices.length < 1 || data.name == null) {
-        setDisappearMessage(`${t('screens:chooseSubserviceOrEnterName')}`);
-        if(!showToast){
-          setShowToast(true)
-          showToastMessage(t('screens:errorOccured'));
-        }
+        if (checkedSubServices.length < 1 || data.name == null) {
+          setDisappearMessage(`${t('screens:chooseSubserviceOrEnterName')}`);
+          if (!showToast) {
+            setShowToast(true)
+            showToastMessage(t('screens:errorOccured'));
+          }
 
-      } else {
-        dispatch(createSubService({ data: data, providerId: user.provider.id, businessId: business.id }))
-          .unwrap()
-          .then(result => {
-            if (result.status) {
-              ToastAndroid.show(`${t('screens:createdSuccessfully')}`, ToastAndroid.SHORT);
-              navigation.navigate('My Businesses', {
-                screen: 'My Businesses',
-              });
-            } else {
-              if (result.error) {
+        } else {
+          dispatch(createSubService({ data: data, providerId: user.provider.id, businessId: business.id }))
+            .unwrap()
+            .then(result => {
+              if (result.status) {
+                ToastAndroid.show(`${t('screens:createdSuccessfully')}`, ToastAndroid.SHORT);
+                navigation.navigate('My Businesses', {
+                  screen: 'My Businesses',
+                });
+              } else {
+                if (result.error) {
                   setDisappearMessage(result.error
                   );
-                
-                  if(!showToast){
+
+                  if (!showToast) {
                     setShowToast(true)
                     showToastMessage(t('screens:errorOccured'));
                   }
-                
+
                 } else {
                   setDisappearMessage(`${t('screens:requestFail')}`);
-                  if(!showToast){
+                  if (!showToast) {
                     setShowToast(true)
                     showToastMessage(t('screens:errorOccured'));
                   }
                 }
-            }
-          })
-          .catch(rejectedValueOrSerializedError => {
-            console.log('error');
-            console.log(rejectedValueOrSerializedError);
-          });
-      }
+              }
+            })
+            .catch(rejectedValueOrSerializedError => {
+              console.log('error');
+              console.log(rejectedValueOrSerializedError);
+            });
+        }
 
       }
     };
@@ -273,7 +273,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
                     data.video_url = downloadUrl;
                   }
                   setUploadingDoc(false);
-                //  mediaUploaded = true;
+                  //  mediaUploaded = true;
 
                   // Check if both image and video uploads are complete
                   handleUploadFinish();
@@ -290,7 +290,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
       }
     };
 
-  
+
 
     if (image !== null) {
       await uploadFileAndHandleFinish(image, 'businesses/images/');
@@ -322,11 +322,11 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
           </Text>
 
         </TouchableOpacity>
-        {showToast && 
-           <ToastMessage message={toastMessage} onClose={toggleToast} />
-   }
-        <BasicView style={[stylesGlobal.centerView,{marginVertical:10}]}>
-          <Text style={[stylesGlobal.errorMessage,{fontSize:17}]}>{message}</Text>
+        {showToast &&
+          <ToastMessage message={toastMessage} onClose={toggleToast} />
+        }
+        <BasicView style={[stylesGlobal.centerView, { marginVertical: 10 }]}>
+          <Text style={[stylesGlobal.errorMessage, { fontSize: 17 }]}>{message}</Text>
         </BasicView>
         {
           activeTab === 'addFromList' ? (
@@ -342,7 +342,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
                     fillColor={colors.secondary}
                     style={{ marginTop: 5 }}
                     unfillColor="#FFFFFF"
-                    text={selectedLanguage=='en'?subservice?.name?.en:subservice?.name?.sw}
+                    text={selectedLanguage == 'en' ? subservice?.name?.en : subservice?.name?.sw}
                     iconStyle={{ borderColor: "red" }}
                     innerIconStyle={{ borderWidth: 2 }}
                     textStyle={{ fontFamily: "JosefinSans-Regular", color: isDarkMode ? colors.white : colors.alsoGrey }}
@@ -383,12 +383,12 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInputField
-                    placeholderTextColor={colors.alsoGrey}
+                      placeholderTextColor={colors.alsoGrey}
                       placeholder={t('screens:enterSubService')}
                       onBlur={onBlur}
                       onChangeText={onChange}
                       value={value}
-                      style={{ color:colors.black }}
+                      style={{ color: colors.black }}
                     />
                   )}
                   name="name"
@@ -419,7 +419,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInputField
-                    placeholderTextColor={colors.alsoGrey}
+                      placeholderTextColor={colors.alsoGrey}
                       placeholder={t('screens:enterDescription')}
                       onBlur={onBlur}
                       onChangeText={onChange}
@@ -441,18 +441,18 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
                 <Text style={[styles.textStyle, { color: isDarkMode ? colors.white : colors.black }]}>{t('screens:UploadImagesVideosOfService')}</Text>
                 <View style={styles.imageContainer}>
                   <TouchableOpacity onPress={selectImage}>
-                    <Text style={{ color: isDarkMode ? colors.white : colors.blue }}>{t('screens:uploadImage')}</Text>
+                    <Text style={{ color: isDarkMode ? colors.white : colors.blue, fontWeight: 'bold', fontSize: 15, marginVertical: 15 }}>{t('screens:uploadImage')}</Text>
                   </TouchableOpacity>
 
                   {image == null ? (
                     <TouchableOpacity onPress={selectImage}>
-                    <Ionicons name="image" color={isDarkMode ? colors.white : colors.blue} size={100} style={{ alignSelf: 'center' }} />
+                      <Ionicons name="image" color={isDarkMode ? colors.white : colors.blue} size={100} style={{ alignSelf: 'center' }} />
                     </TouchableOpacity>
                   ) : (
                     <>
                       {image == null ? (
                         <TouchableOpacity onPress={selectImage}>
-                        <Ionicons name="image" color={isDarkMode ? colors.white : colors.blue} size={100} style={{ alignSelf: 'center' }} />
+                          <Ionicons name="image" color={isDarkMode ? colors.white : colors.blue} size={100} style={{ alignSelf: 'center' }} />
                         </TouchableOpacity>
                       ) : (
                         <>
@@ -472,11 +472,11 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
 
                 <View style={styles.imageContainer}>
                   <TouchableOpacity onPress={selectVideo}>
-                    <Text style={{ color: isDarkMode ? colors.white : colors.blue }}>{t('screens:uploadVideo')}</Text>
+                    <Text style={{ color: isDarkMode ? colors.white : colors.blue, fontWeight: 'bold', fontSize: 15, marginVertical: 15 }}>{t('screens:uploadVideo')}</Text>
                   </TouchableOpacity>
                   {video == null ? (
-                     <TouchableOpacity onPress={selectVideo}>
-                    <Ionicons name="videocam-outline" color={isDarkMode ? colors.white : colors.blue} size={100} style={{ alignSelf: 'center' }} />
+                    <TouchableOpacity onPress={selectVideo}>
+                      <Ionicons name="videocam-outline" color={isDarkMode ? colors.white : colors.blue} size={100} style={{ alignSelf: 'center' }} />
                     </TouchableOpacity>
                   ) : (
                     <>
@@ -496,7 +496,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
             </View>
           )}
 
-        <BasicView style={{marginBottom:'20%'}}>
+        <BasicView style={{ marginBottom: '20%' }}>
           <Button loading={uploadingDoc || loading} onPress={handleSubmit(onSubmit)}>
             <ButtonText>{t('screens:addSubService')}</ButtonText>
           </Button>

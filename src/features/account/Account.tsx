@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelector, RootStateOrAny, useDispatch } from 'react-redux';
 import { firebase } from '@react-native-firebase/storage';
 import RNFS from 'react-native-fs';
-import { updateProfile, userLogout } from '../auth/userSlice';
+import { updateProfile, userLogout, userLogoutThunk } from '../auth/userSlice';
 import DocumentPicker, { types } from 'react-native-document-picker'
 import Notification from '../../components/Notification';
 
@@ -69,8 +69,6 @@ const Account = ({ navigation }: any) => {
   const [locationName, setLocationName] = useState(null);
   const [workingLocation,setWorkingLocation]=useState(null)
 
-
-  console.log('usersss',user);
   
   useEffect(() => {
 
@@ -90,6 +88,7 @@ const Account = ({ navigation }: any) => {
 
 
 
+  const lastNidaStatus = user?.provider?.nida_statuses?.[user?.provider?.nida_statuses.length - 1]?.status;
 
   
   const confirmLogout = () =>
@@ -102,7 +101,7 @@ const Account = ({ navigation }: any) => {
       {
         text: `${t('screens:ok')}`,
         onPress: () => {
-          dispatch(userLogout());
+          dispatch(userLogoutThunk());
         },
       },
     ]);
@@ -378,21 +377,22 @@ const Account = ({ navigation }: any) => {
 }
 
           </TouchableOpacity>
-               <Text style={{color: isDarkMode ? colors.white : colors.black,fontWeight:'bold'}}>{t('auth:nida')}</Text>
+          <Text style={{ color: isDarkMode ? colors.white : colors.black, fontWeight: 'bold' }}>{t('auth:nida')}</Text>
 
-               <TouchableOpacity style={{ flexDirection: 'row' }}
-               >
-                 <Icon
-                   name="infocirlce"
-                   color={isDarkMode ? colors.white : colors.black}
-                   size={25}
-                 />
-                  <Text style={{color: isDarkMode ? colors.white : colors.black }}>{user?.nida}</Text>
-               </TouchableOpacity>
+          <TouchableOpacity style={{ flexDirection: 'row' }}
+          >
+            <Icon
+              name="infocirlce"
+              color={isDarkMode ? colors.white : colors.black}
+              size={25}
+            />
+            <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{user?.nida}</Text>
+          </TouchableOpacity>
+          <Text style={{color:lastNidaStatus=='A.Valid'?colors.successGreen:colors.dangerRed}}>{lastNidaStatus=='A.Valid'?t('screens:verified'):t('screens:unVefified')}</Text>
                </>
           ):(<></>)}
         </View>
-        {user?.provider  && user.provider?.status !=='Deactivated' &&  user?.provider?.subscription_status !=='Ended' ? (
+        {user?.provider  && user?.provider?.status !=='Deactivated' &&  user?.provider?.subscription_status !=='Ended' ? (
           <TouchableOpacity
             onPress={() => {
               navigation.navigate('My Documents', {
@@ -414,7 +414,7 @@ const Account = ({ navigation }: any) => {
         <View style={{ marginVertical: 20 }}>
           <Divider />
         </View>
-        {user?.status !== 'In Active' ? (
+        {user?.provider?.status !== 'Deactivated' ? (
         <TouchableOpacity style={{ flexDirection: 'row', marginHorizontal: 10, marginTop: 5 }}
           onPress={() => { navigation.navigate("Change Password") }}
         >

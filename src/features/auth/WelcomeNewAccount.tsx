@@ -5,7 +5,7 @@ import { useSelector, RootStateOrAny } from 'react-redux';
 import { BasicView } from '../../components/BasicView';
 import { useTranslation } from 'react-i18next';
 import Notification from '../../components/Notification';
-import { userLogout } from './userSlice';
+import { userLogout, userLogoutThunk } from './userSlice';
 import { useAppDispatch } from '../../app/store';
 
 const WelcomeNewAccount = ({navigation}:any) => {
@@ -43,7 +43,7 @@ const WelcomeNewAccount = ({navigation}:any) => {
 
          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 20, marginBottom: 80 }}>
             <TouchableOpacity
-             onPress={() =>{  dispatch(userLogout());}}
+             onPress={() =>{   dispatch(userLogoutThunk());}}
             
               style={[stylesGlobal.marginTop20, stylesGlobal.centerView]}>
               <Text style={stylesGlobal.touchablePlainTextSecondary}>

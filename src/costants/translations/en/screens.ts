@@ -177,5 +177,11 @@ export default {
   continuePrivacyPolicy: 'And confirm that you are over 18. We many send promotions related to our services-you can unsubscribe anytime in settings',
   rejectRequest:'Reject request',
     deleteNotAllowed:'Delete not allowed',
-  approvedDocumentCannotBeDeleted:'This document can not be deleted'
+  approvedDocumentCannotBeDeleted:'This document can not be deleted',
+  documentsNeedsTobeUploaded:'document(s) needs to be uploaded',
+  verified:'Verified',
+  unVefified:'Unverified',
+   notifications: 'Notifications',
+   professionChange:'Profession Change', 
+   changeProfessionBody:'You are about to change your profession. Do you want to continue?'
 };

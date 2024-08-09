@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { API_URL } from '../../utils/config';
+import { clearNotifications } from '../Notifications/NotificationSlice';
 
 interface User {
   id: number;
@@ -291,6 +292,14 @@ export const changePassword = createAsyncThunk(
     });
     return (await response.json()) as UserData;
   },
+);
+
+export const userLogoutThunk = createAsyncThunk(
+  'users/userLogoutThunk',
+  async (_, { dispatch }) => {
+    dispatch(clearNotifications());
+    return;
+  }
 );
 
 function logout(state: any) {
@@ -651,6 +660,10 @@ const userSlice = createSlice({
       updateStatus(state, '');
     });
     builder.addCase(updateProviderInfo.fulfilled, (state, action) => {
+
+      console.log('dataaaa errorr',action.payload)
+
+      if (action.payload.status) {
       state.user = {
         ...state.user,
         ...action.payload.data.user,
@@ -658,7 +671,6 @@ const userSlice = createSlice({
       state.residence={
        ...state.residence,
        ...action.payload.data.location
-      
       }
 
       // Update token if it's received in the response
@@ -666,6 +678,7 @@ const userSlice = createSlice({
         state.user.token = action.payload.data.token;
       }
 
+    }
       state.loading = false;
       updateStatus(state, '');
     });
@@ -753,6 +766,9 @@ const userSlice = createSlice({
       updateStatus(state, '');
     });
 
+    builder.addCase(userLogoutThunk.fulfilled, (state) => {
+      logout(state);
+    });
   },
 });
 

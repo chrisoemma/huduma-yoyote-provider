@@ -6,9 +6,9 @@ import { authHeader } from '../../utils/auth-header';
 
   export const getRejectTemplate = createAsyncThunk(
     'feedbackTemplate/getRejectTemplate',
-    async () => {
+    async (context) => {
       let header: any = await authHeader();
-      const response = await fetch(`${API_URL}/feedback_templates/provider_reject`, {
+      const response = await fetch(`${API_URL}/feedback_templates/provider_reject/${context}`, {
         method: 'GET',
         headers: header,
       });

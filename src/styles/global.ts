@@ -132,7 +132,7 @@ import { colors } from '../utils/colors';
     touchablePlainTextSecondary: {
       fontFamily: 'Prompt-Regular',
       color: colors.secondary,
-      fontSize: 16,
+      fontSize: 13.5,
     },
     primaryButton: {
       backgroundColor: colors.primary,

@@ -7,7 +7,6 @@ import { authHeader } from '../../utils/auth-header';
 export const getCategories = createAsyncThunk(
     'categories/categories',
     async () => {
-      
       let header: any = await authHeader();
       const response = await fetch(`${API_URL}/categories/`, {
         method: 'GET',
@@ -43,6 +42,9 @@ export const getCategories = createAsyncThunk(
       clearMessage(state: any) {
         state.status = null;
       },
+      setCategoryChanges(state,action){
+       // state.categories=
+      }
     },
     extraReducers: builder => {
        

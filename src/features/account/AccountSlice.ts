@@ -42,6 +42,7 @@ export const getAccount = createAsyncThunk(
       clearMessage(state: any) {
         state.status = null;
       },
+      
     },
     extraReducers: builder => {
        

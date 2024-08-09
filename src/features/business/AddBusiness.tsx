@@ -86,7 +86,6 @@ const AddBusiness = ({ route, navigation }: any) => {
   }, [route.params]);
 
 
-
   useEffect(() => {
 
     if (value !== null) {
@@ -509,7 +508,7 @@ const AddBusiness = ({ route, navigation }: any) => {
           <Text style={[styles.textStyle, { color: isDarkMode ? colors.white : colors.black }]}>{t('screens:UploadImagesVideosOfService')}</Text>
           <View style={styles.imageContainer}>
             <TouchableOpacity onPress={selectImage}>
-              <Text style={{ color: isDarkMode ? colors.white : colors.blue }}>{t('screens:uploadImage')}</Text>
+              <Text style={{ color: isDarkMode ? colors.white : colors.blue,marginVertical:10,fontWeight:'bold',fontSize:15 }}>{t('screens:uploadImage')}</Text>
             </TouchableOpacity>
 
             {/* {console.log('editedBusinesss',editedBusiness?.service?.images[0]?.img_url)}
@@ -517,9 +516,9 @@ const AddBusiness = ({ route, navigation }: any) => {
             {!isEditMode ? (image == null ? (<TouchableOpacity onPress={selectImage}><Ionicons name="image" color={isDarkMode ? colors.white : colors.blue}
               size={100} style={{ alignSelf: 'center' }} /></TouchableOpacity>) : (<>
                 <Image source={{ uri: image[0].uri }} style={styles.docView} />
-                <TouchableOpacity onPress={removeImage}>
+                {/* <TouchableOpacity onPress={removeImage}>
                   <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeImage')}</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </>)
 
             ) : (
@@ -529,25 +528,25 @@ const AddBusiness = ({ route, navigation }: any) => {
                 ) : (
                   <Image source={{ uri: (isEditMode && existingBusiness?.img_url) || image?.[0]?.uri || (existingBusiness?.service?.images?.[0]?.img_url) || 'default-image-uri' }} style={styles.docView} />
                 )}
-                <TouchableOpacity onPress={removeImage}>
+                {/* <TouchableOpacity onPress={removeImage}>
                   <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeImage')}</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </>
             )}
 
           </View>
           <View style={styles.imageContainer}>
             <TouchableOpacity onPress={selectVideo}>
-              <Text style={{ color: isDarkMode ? colors.white : colors.blue }}>{t('screens:uploadVideo')}</Text>
+              <Text style={{ color: isDarkMode ? colors.white : colors.blue,marginVertical:10,fontWeight:'bold',fontSize:15 }}>{t('screens:uploadVideo')}</Text>
             </TouchableOpacity>
 
             {!isEditMode ? (video == null ? (<TouchableOpacity onPress={selectVideo}><Ionicons name="videocam-outline" color={isDarkMode ? colors.white : colors.blue}
               size={100} style={{ alignSelf: 'center' }} /></TouchableOpacity>) : (<>
                 <VideoPlayer
                   video_url={`${video[0]?.uri}`} />
-                <TouchableOpacity onPress={removeVideo}>
+                {/* <TouchableOpacity onPress={removeVideo}>
                   <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeVideo')}</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </>)
 
             ) : (
@@ -561,9 +560,9 @@ const AddBusiness = ({ route, navigation }: any) => {
                     <VideoPlayer
                       video_url={`${existingBusiness?.video_url || video[0]?.uri}`} />
                   ))}
-                <TouchableOpacity onPress={removeVideo}>
+                {/* <TouchableOpacity onPress={removeVideo}>
                   <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeVideo')}</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </>
             )}
 

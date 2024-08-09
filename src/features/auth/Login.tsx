@@ -228,7 +228,7 @@ const LoginScreen = ({ route, navigation }: any) => {
               onPress={() => {
                 navigation.navigate('Register');
               }}
-              style={[styles.marginTop20, styles.centerView]}>
+              style={[styles.marginTop20, {alignItems: 'flex-start'}]}>
               <Text style={styles.touchablePlainTextSecondary}>
               {t('auth:dontHaveAccount')}
               
@@ -238,7 +238,7 @@ const LoginScreen = ({ route, navigation }: any) => {
               onPress={() => {
                 navigation.navigate('CheckPhoneNumber');
               }}
-              style={[styles.marginTop20, styles.centerView]}>
+              style={[styles.marginTop20, {alignItems: 'flex-end'}]}>
               <Text style={styles.touchablePlainTextSecondary}>
                 {t('auth:haveOtp')}
               </Text>

@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 //import { globalStyles } from '../style/global';
 import { colors } from '../utils/colors';
-import { userLogout } from '../features/auth/userSlice';
+import { userLogout, userLogoutThunk } from '../features/auth/userSlice';
 //import TextView from '../components/TextView';
 import { useDispatch, useSelector, RootStateOrAny } from 'react-redux';
 import { makePhoneCall } from '../utils/utilts';
@@ -102,12 +102,12 @@ const CustomDrawerContent = (props: any) => {
   } else if ((user.provider) && user?.provider?.status == 'Pending approval') {
 
     drawerItems = [
-      {
-        name: 'My Businesses',
-        icon: 'id-card',
-        language: 'business',
-        screen: 'My Businesses',
-      },
+      // {
+      //   name: 'My Businesses',
+      //   icon: 'id-card',
+      //   language: 'business',
+      //   screen: 'My Businesses',
+      // },
       {
         name: 'Settings',
         icon: 'cogs',
@@ -156,7 +156,8 @@ const CustomDrawerContent = (props: any) => {
       {
         text: `${t('screens:ok')}`,
         onPress: () => {
-          dispatch(userLogout());
+          console.log('thunk');
+          dispatch(userLogoutThunk());
         },
       },
     ]);
@@ -168,6 +169,10 @@ const CustomDrawerContent = (props: any) => {
 
   const NavigateSubscription = () => {
     navigation.navigate('Subscriptions');
+  }
+
+  const NavigateNotifications = () => {
+    navigation.navigate('Notifications');
   }
 
   return (
@@ -230,6 +235,28 @@ const CustomDrawerContent = (props: any) => {
             </Text>
           </DrawerRow>
         ) : (<></>)}
+
+<DrawerRow
+          onPress={() => {
+
+            NavigateNotifications();
+          }}
+          isDarkMode={isDarkMode}
+        >
+          <DrawerIconContainer>
+            <FontAwesome5
+              name="Notifications"
+              color={isDarkMode ? colors.white : colors.alsoGrey}
+              size={25}
+            />
+          </DrawerIconContainer>
+          <Text
+            style={{
+              color: isDarkMode ? colors.white : colors.black,
+            }}>
+            {t('screens:notifications')}
+          </Text>
+        </DrawerRow>
         <DrawerRow
           onPress={() => {
 
