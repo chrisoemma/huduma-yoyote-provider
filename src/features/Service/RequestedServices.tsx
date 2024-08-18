@@ -88,7 +88,7 @@ const RequestedServices = ({ navigation, route }: any) => {
     const toggleModalReject = (context) => {
 
         if (context !== contextData) {
-            console.log('context123',context);
+            //   console.log('context123',context);
             setContext(context);
             dispatch(getRejectTemplate(context));
         }
@@ -423,56 +423,63 @@ const RequestedServices = ({ navigation, route }: any) => {
                 </GestureHandlerRootView>
                 <View style={[styles.bottomDiv, { backgroundColor: isDarkMode ? colors.black : colors.white }]}>
 
-                    {request_status == 'Comfirmed' ? (
+
+                    {request_status === 'Comfirmed' && (
                         <>
                             <TouchableOpacity
                                 onPress={() => updateRequest(request?.id, 'Complete')}
                                 style={{
-                                    backgroundColor: colors.successGreen, borderRadius: 20,
+                                    backgroundColor: colors.successGreen,
+                                    borderRadius: 20,
                                     justifyContent: 'center',
                                     padding: 10
-                                }}>
+                                }}
+                            >
                                 <Text style={{ color: colors.white }}>{t('screens:complete')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 onPress={() => toggleModalReject('After')}
                                 style={{
-                                    backgroundColor: colors.dangerRed, borderRadius: 20,
+                                    backgroundColor: colors.dangerRed,
+                                    borderRadius: 20,
                                     justifyContent: 'center',
                                     padding: 20
-                                }}>
+                                }}
+                            >
                                 <Text style={{ color: colors.white }}>{t('screens:reject')}</Text>
                             </TouchableOpacity>
+
+                            {!request?.is_transferred && user.provider && (
+                                <>
+                                    <TouchableOpacity
+                                        onPress={toggleEmployeeListModal}
+                                        style={{
+                                            backgroundColor: colors.primary,
+                                            borderRadius: 20,
+                                            justifyContent: 'center',
+                                            padding: 20
+                                        }}
+                                    >
+                                        <Text style={{ color: colors.white }}>{t('screens:transfer')}</Text>
+                                    </TouchableOpacity>
+
+                                    {/* <TouchableOpacity
+                    onPress={() => toggleModalReject('Opening')}
+                    style={{
+                        backgroundColor: colors.dangerRed,
+                        borderRadius: 20,
+                        justifyContent: 'center',
+                        padding: 20
+                    }}
+                >
+                    <Text style={{ color: colors.white }}>{t('screens:reject')}</Text>
+                </TouchableOpacity> */}
+                                </>
+                            )}
                         </>
+                    )}
 
-                    ) : <></>}
-
-                    {!request?.is_transferred && user.provider && request_status == 'Comfirmed' ? (
-                        <>
-                            <TouchableOpacity
-                                onPress={toggleEmployeeListModal}
-                                style={{
-                                    backgroundColor: colors.primary, borderRadius: 20,
-                                    justifyContent: 'center',
-                                    padding: 20
-                                }}>
-                                <Text style={{ color: colors.white }}>{t('screens:transfer')}</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                onPress={() => toggleModalReject('Opening')}
-                                style={{
-                                    backgroundColor: colors.dangerRed, borderRadius: 20,
-                                    justifyContent: 'center',
-                                    padding: 20
-                                }}>
-                                <Text style={{ color: colors.white }}>{t('screens:reject')}</Text>
-                            </TouchableOpacity>
-                        </>
-
-                    ) : (<></>)
-                    }
 
                     {request_status == 'Requested' ? (
                         <>
@@ -499,8 +506,8 @@ const RequestedServices = ({ navigation, route }: any) => {
                     ) : <></>}
                 </View>
             </View>
-
             <RejectModal
+
                 rejectData={extractRatingData(rejectTemplate)}
                 cancel={toggleModalReject}
                 visible={isCancelModalVisible}

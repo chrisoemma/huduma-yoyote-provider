@@ -241,7 +241,7 @@ const EditSubService = ({ route, navigation }: any) => {
       const fileExtension = file[0].type.split("/").pop();
       const uuid = makeid(10);
       const fileName = `${uuid}.${fileExtension}`;
-      const storageRef = firebase.storage().ref(storagePath);
+      const storageRef = firebase.storage().ref(`${storagePath}/${fileName}`);
 
       const fileUri = await getPathForFirebaseStorage(file[0].uri);
 

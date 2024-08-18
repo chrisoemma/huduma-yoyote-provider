@@ -1,4 +1,4 @@
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Button } from 'react-native'
+import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Button, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { globalStyles } from '../../styles/global'
 import Icon from 'react-native-vector-icons/AntDesign';
@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelector, RootStateOrAny } from 'react-redux';
 import { useAppDispatch } from '../../app/store';
 import { setTheme, toggleTheme } from './ThemeSlice';
+import { userLogoutThunk } from '../auth/userSlice';
 
 const Settings = ({ navigation }: any) => {
 
@@ -36,6 +37,23 @@ const Settings = ({ navigation }: any) => {
         console.log('taggled');
         dispatch(toggleTheme());
     };
+
+
+    
+    const confirmLogout = () =>
+        Alert.alert(`${t('screens:logout')}`, `${t('screens:areYouSureLogout')}`, [
+          {
+            text: `${t('screens:cancel')}`,
+            onPress: () => console.log('Cancel Logout'),
+            style: 'cancel',
+          },
+          {
+            text: `${t('screens:ok')}`,
+            onPress: () => {
+              dispatch(userLogoutThunk());
+            },
+          },
+        ]);
 
 
     return (
@@ -85,7 +103,11 @@ const Settings = ({ navigation }: any) => {
                     <Text style={{ paddingLeft: 10, fontWeight: 'bold', color: getTextColor(isDarkMode) }}>{t('screens:changePassword')}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={{ flexDirection: 'row', marginHorizontal: 10, marginTop: 25 }}>
+                <TouchableOpacity style={{ flexDirection: 'row', marginHorizontal: 10, marginTop: 25 }}
+                      onPress={() => {
+                        confirmLogout();
+                      }}
+                >
                     <Icon
                         name="logout"
                         color={colors.dangerRed}

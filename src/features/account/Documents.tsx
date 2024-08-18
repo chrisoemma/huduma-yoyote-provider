@@ -32,6 +32,7 @@ import RNFS from 'react-native-fs';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import UploadBusinessDocument from '../../components/UploadBusinessDocument';
 import { getProviderDocumentToRegister } from '../serviceproviders/ServiceProviderSlice';
+import ToastNotification from '../../components/ToastNotification/ToastNotification';
 
 const Documents = () => {
 
@@ -282,14 +283,11 @@ const Documents = () => {
                   console.log('resultsss', result);
                   if (result.status) {
                     console.log('excuted this true block')
-                    ToastAndroid.show(`${t('screens:uploadedDocSuccessfully')}`, ToastAndroid.SHORT);
-
+                    ToastNotification(`${t('screens:uploadedDocSuccessfully')}`,'success','long')
                     toggleBusinessListModal();
                     setResetModal(true)
                     onSuccess();
-
                   } else {
-
                     setDisappearMessage(`${t('screens:unAbletoProcessRequest')}`);
                     setShowToast(true)
                     showToastMessage(t('screens:unAbletoProcessRequest'))

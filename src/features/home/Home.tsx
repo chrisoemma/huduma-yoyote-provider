@@ -235,8 +235,8 @@ const Home = ({ navigation }: any) => {
                                         key={item.id}
                                     >
                                         <Text style={{ color: colors.primary }}>{selectedLanguage=='en' ?item?.service?.name?.en:item?.service?.name?.sw}</Text>
-                                        <Text style={{ paddingVertical: 10, color: colors.black }}>{item.client.name}</Text>
-                                        <View style={{ marginRight: '35%', color: colors.alsoGrey }}><Text >{item.request_time}</Text></View>
+                                        <Text style={{ paddingVertical: 10, color: colors.black }}>{item?.client?.name}</Text>
+                                        <View style={{ marginRight: '35%', color: colors.alsoGrey }}><Text >{item?.request_time}</Text></View>
                                     </TouchableOpacity>
                                 ))
 

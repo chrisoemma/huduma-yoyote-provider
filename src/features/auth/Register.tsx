@@ -140,6 +140,9 @@ const RegisterScreen = ({ route, navigation }: any) => {
   };
 
 
+  
+
+
 
   const onSubmit = async (data: any) => {
 
@@ -622,6 +625,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
     </SafeAreaView>
   );
 };
+
 
 
 const styles = StyleSheet.create({

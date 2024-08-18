@@ -118,7 +118,7 @@ export default {
   accountDeactivated: "Account Deactivated: Your account has been deactivated. Please contact support for assistance.",
   subscriptionEnded: "You cannot currently access your account as your subscription has expired. Please make the necessary payment to continue using the Espe Service.",
   notAllowedAction: 'You are not allowed to perform this action',
-  uploadingWait: 'Uploading,Please wait...',
+  uploadingWait: 'Uploading...',
   documentUploadError: 'Please make sure you have choose the document  Type & Uploaded the document',
   unAbletoProcessRequest: 'Unable to process request. Please try again later',
   registrationLicense: 'Registration  Docs',
@@ -182,6 +182,8 @@ export default {
   verified:'Verified',
   unVefified:'Unverified',
    notifications: 'Notifications',
+  noNotificationFound:'No notifications found',
    professionChange:'Profession Change', 
-   changeProfessionBody:'You are about to change your profession. Do you want to continue?'
+   changeProfessionBody:'You are about to change your profession. Do you want to continue?',
+mediaPermissionNotGranted: 'Uploading will failed: necessary permissions are not granted.'
 };

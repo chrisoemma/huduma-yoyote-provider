@@ -89,7 +89,7 @@ const EditAccount = ({
   const [workingLocation,setWorkingLocation]=useState(null)
 
   const [gLocation, setGLocation] = useState({})
-  // const [streetInputValue,setStreetInputValue]=useState(null);
+
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -111,6 +111,7 @@ const EditAccount = ({
   };
 
     
+
   useEffect(() => {
     if(user?.provider){
     dispatch(getProfessions({ language: selectedLanguage }));
@@ -489,6 +490,7 @@ const EditAccount = ({
                   value={value}
                   keyboardType="phone-pad"
                   editable={!user?.phone_verified_at}
+                  
 
                 />
               )}

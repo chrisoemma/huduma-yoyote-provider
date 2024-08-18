@@ -15,6 +15,8 @@ import RNFS from 'react-native-fs';
 import Pdf from 'react-native-pdf';
 import ToastMessage from './ToastMessage';
 import { check, request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
+import { mediaPermissions } from '../permissions/MediaPermissions';
+import ToastNotification from './ToastNotification/ToastNotification';
 
 
 const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,toastMessage, showToast,businesses,errorMessage, regDocs, handleDocumentUpload, uploadingDoc,resetModalState }: any) => {
@@ -71,73 +73,18 @@ const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,to
         }
     }, [resetModal, setResetModal]);
 
- 
-
-    const checkAndRequestPermissions = async () => {
-        let granted = false;
-
-        if (Platform.OS === 'android') {
-            const result = await PermissionsAndroid.requestMultiple([
-                PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-            ]);
-
-            granted = 
-                result['android.permission.WRITE_EXTERNAL_STORAGE'] === PermissionsAndroid.RESULTS.GRANTED &&
-                result['android.permission.READ_EXTERNAL_STORAGE'] === PermissionsAndroid.RESULTS.GRANTED;
-        } else if (Platform.OS === 'ios') {
-            const readStatus = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
-            const writeStatus = await check(PERMISSIONS.IOS.MEDIA_LIBRARY);
-
-            if (readStatus === RESULTS.GRANTED && writeStatus === RESULTS.GRANTED) {
-                granted = true;
-            } else {
-                const requestRead = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
-                const requestWrite = await request(PERMISSIONS.IOS.MEDIA_LIBRARY);
-
-                granted = requestRead === RESULTS.GRANTED && requestWrite === RESULTS.GRANTED;
-            }
-        }
-
-        if (!granted) {
-            Alert.alert(
-                "Storage Permission Required",
-                "Espe provider needs access to your storage to upload documents. Please allow storage in device settings.",
-                [
-                    {
-                        text: "Cancel",
-                        onPress: () => console.log("Permission denied"),
-                        style: "cancel",
-                    },
-                    {
-                        text: "Settings",
-                        onPress: () => {
-                            openSettings().catch(() => console.warn('Cannot open settings'));
-                        },
-                    },
-                ]
-            );
-            // setShowToast(true);
-            // toggleToast();
-            return false;
-        }
-
-        return true;
-    };
-    
 
     const selectDoc = async () => {
 
-        const permissionsGranted = await checkAndRequestPermissions();
+        const permissionsGranted = await mediaPermissions();
         if (!permissionsGranted) {
-            // setShowToast(true);
-            // toggleToast();
+           ToastNotification(`${t('screens:mediaPermissionNotGranted')}`, 'default', 'long');
             return;
         }
 
         try {
             const res = await DocumentPicker.pick({
-                type: [DocumentPicker.types.images], // DocumentPicker.types.pdf resticted pdf
+                type: [DocumentPicker.types.images],
             });
             setDoc(res);
             setShowToast(false)
@@ -292,10 +239,10 @@ const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,to
                         disabled={uploadingDoc}
                     >
                         {uploadingDoc ? (
-                            <>
+                            <View style={{flexDirection:'row'}}>
                              <ActivityIndicator color={colors.white} />
-                            <Text style={{ color: colors.white, paddingHorizontal:20,paddingVertical:10,fontSize:16 }}>{t('screens:uploadingWait')}</Text>
-                            </>
+                            <Text style={{ color: colors.white, paddingHorizontal:5,paddingVertical:10,fontSize:16 }}>{t('screens:uploadingWait')}</Text>
+                            </View>
                            
                         ) : (
                             <Text style={{ color: colors.white, paddingHorizontal:20,paddingVertical:10,fontSize:16 }}>{t('screens:upload')}</Text>

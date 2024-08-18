@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { View, SafeAreaView, StyleSheet, FlatList, Text } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-// import { markAsViewed, removeNotification } from './notificationSlice';
 import NotificationItem from '../../components/NotificationItem';
 import CustomModal from '../../components/CustomModal';
 import { colors } from '../../utils/colors';
 import { globalStyles } from '../../styles/global';
-import { markAsViewed,removeNotification } from './NotificationSlice';
+import { markAsViewed, removeNotification } from './NotificationSlice';
+import { useTranslation } from 'react-i18next';
 
 const Notifications = () => {
   const stylesGlobal = globalStyles();
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const notifications = useSelector((state: RootStateOrAny) => state.notifications.notifications);
+  const { isDarkMode } = useSelector((state: RootStateOrAny) => state.theme);
   const [isContentModalVisible, setContentModalVisible] = useState(false);
   const [content, setContent] = useState<any>({});
 
@@ -31,10 +33,12 @@ const Notifications = () => {
   };
 
   return (
-    <SafeAreaView style={stylesGlobal.scrollBg}>
+    <SafeAreaView style={[stylesGlobal.scrollBg, { backgroundColor: isDarkMode ? colors.darkBackground : colors.lightBackground }]}>
       <View style={styles.listContainer}>
         {notifications.length === 0 ? (
-          <Text style={styles.noNotificationsText}>No notifications found</Text>
+          <Text style={[styles.noNotificationsText, { color: isDarkMode ? colors.lightGrey : colors.grey }]}>
+            {t('screens:noNotificationFound')}
+          </Text>
         ) : (
           <FlatList
             data={notifications}
@@ -55,7 +59,9 @@ const Notifications = () => {
             <Text style={[styles.modalTitle, { color: content.type === 'Account' ? colors.primary : colors.secondary }]}>
               {content.title}
             </Text>
-            <Text style={styles.modalMessage}>{content.message}</Text>
+            <Text style={[styles.modalMessage, { color: isDarkMode ? colors.white : colors.black }]}>
+              {content.message}
+            </Text>
           </View>
         )}
       </CustomModal>
@@ -71,7 +77,6 @@ const styles = StyleSheet.create({
   noNotificationsText: {
     fontSize: 16,
     textAlign: 'center',
-    color: colors.grey,
     marginTop: 20,
   },
   modalContent: {

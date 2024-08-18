@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { colors } from '../utils/colors';
-import { useDispatch } from 'react-redux';
+import { colors } from '../utils/colors'; // Assume you have light and dark mode colors defined here
+import { useDispatch, useSelector } from 'react-redux';
 import { markAsViewed, removeNotification } from '../features/Notifications/NotificationSlice';
 
 const NotificationItem = ({ notification, openContentModal }: any) => {
@@ -11,6 +11,9 @@ const NotificationItem = ({ notification, openContentModal }: any) => {
   const { id, type, title, message, viewed } = notification;
 
   const typeColor = type === 'Account' ? colors.primary : colors.secondary;
+  const { isDarkMode } = useSelector(
+    (state: RootStateOrAny) => state.theme,
+  );
 
   const handleNotificationPress = () => {
     dispatch(markAsViewed(id));  // Mark notification as viewed
@@ -29,15 +32,27 @@ const NotificationItem = ({ notification, openContentModal }: any) => {
   return (
     <Swipeable renderRightActions={renderRightActions}>
       <TouchableOpacity
-        style={[styles.notificationItem, viewed ? styles.viewed : styles.notViewed]}
+        style={[
+          styles.notificationItem,
+          viewed 
+            ? (isDarkMode ? styles.viewedDark : styles.viewedLight)
+            : (isDarkMode ? styles.notViewedDark : styles.notViewedLight),
+        ]}
         onPress={handleNotificationPress}
       >
         <View style={styles.notificationHeader}>
           <Text style={[styles.notificationType, { color: typeColor }]}>{type}</Text>
-          <View style={[styles.notificationDot, viewed ? styles.viewedDot : styles.notViewedDot]} />
+          <View 
+            style={[
+              styles.notificationDot, 
+              viewed 
+                ? styles.viewedDot 
+                : styles.notViewedDot,
+            ]}
+          />
         </View>
-        <Text style={styles.notificationTitle}>{title}</Text>
-        <Text style={styles.notificationMessage}>{message}</Text>
+        <Text style={[styles.notificationTitle, {color: isDarkMode ? colors.white : colors.black}]}>{title}</Text>
+        <Text style={[styles.notificationMessage, {color: isDarkMode ? colors.white : colors.black}]}>{message}</Text>
       </TouchableOpacity>
     </Swipeable>
   );
@@ -47,13 +62,22 @@ const styles = StyleSheet.create({
   notificationItem: {
     padding: 15,
   },
-  viewed: {
+  viewedLight: {
     backgroundColor: colors.white,
   },
-  notViewed: {
+  notViewedLight: {
     backgroundColor: colors.lightGrey,
     borderWidth: 0.6,
     borderColor: colors.primary,
+  },
+  viewedDark: {
+  //  backgroundColor: colors.darkGrey,
+  borderWidth: 0.6
+  },
+  notViewedDark: {
+   // backgroundColor: colors.alsoLightGrey,
+    borderWidth: 0.6,
+    borderColor: colors.alsoGrey,
   },
   notificationHeader: {
     flexDirection: 'row',

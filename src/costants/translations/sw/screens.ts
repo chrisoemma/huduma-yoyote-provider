@@ -117,7 +117,7 @@ reregitrationProvider:"Karibu! Hebu tujenge Akaunti yako ya Mtoa huduma. Tafadha
 accountDeactivated:"Akaunti imezuiwa kwa muda: Akaunti yako imezuiwa kwa muda. Tafadhali wasiliana na Espe services kwa msaada zaidi.",
 notAllowedAction:'Hauruhusiwi kufanya hichi kitendo',
 subscriptionEnded:"Hivi sasa huwezi kupata akaunti yako kwa kuwa usajili wako umeisha. Tafadhali fanya malipo muhimu ili uendelee kutumia Huduma ya Espe Service.",
-uploadingWait: 'Inapakia,Tafadhali subiri...',
+uploadingWait: 'Inapakia...',
 documentUploadError: 'Tafadhali hakikisha umechagua nyaraka na umepakia nyaraka',
 unAbletoProcessRequest:'Imeshindikana kuenedelea, Tafadhali jaribu tena',
 registrationLicense: 'Nyaraka za Usajili',
@@ -183,7 +183,9 @@ approvedDocumentCannotBeDeleted: 'Hati hii haiwezi kufutwa',
 documentsNeedsTobeUploaded:'Nyaraka zinazo hitajika kupakuliwa',
 verified:'Imethibitishwa',
 unVefified:'Haijathibitishwa',
- notifications: 'Arifa',
-  professionChange:'Mabadiliko ya Kazi', 
-   changeProfessionBody:'Unakaribia kubadilisha kazi yako. Unaendelea?'
+notifications:'Arifa',
+ noNotificationFound:'Hakuna taharifa yeyote',
+professionChange:'Mabadiliko ya Kazi', 
+changeProfessionBody:'Unakaribia kubadilisha kazi yako. Unaendelea?',
+mediaPermissionNotGranted: 'Kupakia kutashindwa: ruhusa muhimu hazijatolewa.'
 };

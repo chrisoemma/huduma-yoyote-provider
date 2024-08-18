@@ -29,6 +29,8 @@ import RNFS from 'react-native-fs';
 import VideoPlayer from '../../components/VideoPlayer';
 import { selectLanguage } from '../../costants/languangeSlice';
 import ToastMessage from '../../components/ToastMessage';
+import ToastNotification from '../../components/ToastNotification/ToastNotification';
+import { mediaPermissions } from '../../permissions/MediaPermissions';
 
 
 const AddBusiness = ({ route, navigation }: any) => {
@@ -39,9 +41,6 @@ const AddBusiness = ({ route, navigation }: any) => {
   const dispatch = useAppDispatch();
   const [value, setCategoryValue] = useState(null);
   const [ServiceValue, setServiceValue] = useState(null);
-
-
-
 
   const [checkedSubServices, setCheckedSubServices] = useState([]);
   const selectedLanguage = useSelector(selectLanguage);
@@ -149,8 +148,8 @@ const AddBusiness = ({ route, navigation }: any) => {
 
 
   const [uploadingDoc, setUploadingDoc] = useState(false)
-  const [items, setItems] = useState(transformDataToDropdownOptionsLanguage(categories,selectedLanguage));
-  const [ServiceItems, setServiceItems] = useState(transformDataToDropdownOptionsLanguage(servicesByCategory,selectedLanguage));
+  const [items, setItems] = useState(transformDataToDropdownOptionsLanguage(categories, selectedLanguage));
+  const [ServiceItems, setServiceItems] = useState(transformDataToDropdownOptionsLanguage(servicesByCategory, selectedLanguage));
   const [subs, setSubs] = useState(subServiceByService)
 
   const { isDarkMode } = useSelector(
@@ -185,7 +184,7 @@ const AddBusiness = ({ route, navigation }: any) => {
   }
 
   const ServiceItemsMemoized = useMemo(() => {
-    return transformDataToDropdownOptionsLanguage(servicesByCategory,selectedLanguage)
+    return transformDataToDropdownOptionsLanguage(servicesByCategory, selectedLanguage)
   }, [servicesByCategory]);
 
   const [video, setVideo] = useState(null);
@@ -201,7 +200,7 @@ const AddBusiness = ({ route, navigation }: any) => {
   };
 
 
-  const [toastMessage, setToastMessage] = useState(''); 
+  const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
   const toggleToast = () => {
     setShowToast(!showToast);
@@ -210,14 +209,21 @@ const AddBusiness = ({ route, navigation }: any) => {
 
   const showToastMessage = (message) => {
     setToastMessage(message);
-    toggleToast(); 
+    toggleToast();
     setTimeout(() => {
-      toggleToast(); 
-    }, 5000); 
+      toggleToast();
+    }, 5000);
   };
 
 
   const selectImage = async () => {
+
+    const permissionsGranted = await mediaPermissions();
+    if (!permissionsGranted) {
+      ToastNotification(`${t('screens:mediaPermissionNotGranted')}`, 'default', 'long');
+      return;
+    }
+
     try {
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.images],
@@ -236,6 +242,13 @@ const AddBusiness = ({ route, navigation }: any) => {
   };
 
   const selectVideo = async () => {
+
+    const permissionsGranted = await mediaPermissions();
+    if (!permissionsGranted) {
+      ToastNotification(`${t('screens:mediaPermissionNotGranted')}`, 'default', 'long');
+      return;
+    }
+
     try {
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.video],
@@ -267,26 +280,26 @@ const AddBusiness = ({ route, navigation }: any) => {
 
       if (!mediaUploadHandled) {
         mediaUploadHandled = true;
-    
-      if (value == null || ServiceValue == null || checkedSubServices.length < 1) {
 
-        setDisappearMessage(`${t('screens:chooseCategoryServiceSubService')}`);
-        if(!showToast){
-          setShowToast(true)
-          showToastMessage(t('screens:errorOccured'));
-        }
+        if (value == null || ServiceValue == null || checkedSubServices.length < 1) {
 
-      } else {
-        if (isEditMode && data?.img_url == null) {
-         
-          data.img_url = existingBusiness?.img_url?existingBusiness?.img_url : existingBusiness?.service?.images[0]?.img_url
-          console.log('Edit mode',data.img_url);
-        }
+          setDisappearMessage(`${t('screens:chooseCategoryServiceSubService')}`);
+          if (!showToast) {
+            setShowToast(true)
+            showToastMessage(t('screens:errorOccured'));
+          }
 
-        if (isEditMode && data?.video_url == null) {
-          data.video_url = existingBusiness?.video_url ? existingBusiness?.video_url : null
-        }
-       
+        } else {
+          if (isEditMode && data?.img_url == null) {
+
+            data.img_url = existingBusiness?.img_url ? existingBusiness?.img_url : existingBusiness?.service?.images[0]?.img_url
+            console.log('Edit mode', data.img_url);
+          }
+
+          if (isEditMode && data?.video_url == null) {
+            data.video_url = existingBusiness?.video_url ? existingBusiness?.video_url : null
+          }
+
           dispatch(isEditMode ? updateBusiness({ data, businessId: existingBusiness.id }) : createBusiness(data))
             .unwrap()
             .then(result => {
@@ -298,87 +311,74 @@ const AddBusiness = ({ route, navigation }: any) => {
               } else {
 
                 if (result.error) {
-         
+
                   setDisappearMessage(result.error
                   );
-             
-                  if(!showToast){
+
+                  if (!showToast) {
                     setShowToast(true)
                     showToastMessage(t('screens:errorOccured'));
                   }
-                
+
                 } else {
                   setDisappearMessage(`${t('screens:requestFail')}`);
-                  if(!showToast){
+                  if (!showToast) {
                     setShowToast(true)
                     showToastMessage(t('screens:errorOccured'));
                   }
                 }
-            
+
               }
             }).catch(rejectedValueOrSerializedError => {
               console.log('error');
               console.log(rejectedValueOrSerializedError);
             });
-     
+
+        }
       }
-    }
     };
 
     const uploadFileAndHandleFinish = async (file, storagePath) => {
       const fileExtension = file[0].type.split("/").pop();
       const uuid = makeid(10);
       const fileName = `${uuid}.${fileExtension}`;
-      const storageRef = firebase.storage().ref(storagePath);
+      const storageRef = firebase.storage().ref(`${storagePath}/${fileName}`);
 
       const fileUri = await getPathForFirebaseStorage(file[0].uri);
 
       try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          {
-            title: "Read Permission",
-            message: "Your app needs permission.",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
-            buttonPositive: "OK",
+
+        setUploadingDoc(true);
+        storageRef.putFile(fileUri).on(
+          firebase.storage.TaskEvent.STATE_CHANGED,
+          (snapshot: any) => {
+            console.log("snapshot state: " + snapshot.state);
+            if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
+              storageRef.getDownloadURL().then((downloadUrl: any) => {
+                if (file === image) {
+
+                  data.img_url = downloadUrl;
+                } else if (file === video) {
+                  data.video_url = downloadUrl;
+                }
+                setUploadingDoc(false);
+
+                // Check if both image and video uploads are complete
+                handleUploadFinish();
+              });
+            }
+          },
+          (error) => {
+            unsubscribe();
           }
         );
 
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          setUploadingDoc(true);
-
-          storageRef.putFile(fileUri).on(
-            firebase.storage.TaskEvent.STATE_CHANGED,
-            (snapshot: any) => {
-              console.log("snapshot state: " + snapshot.state);
-              if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
-                storageRef.getDownloadURL().then((downloadUrl: any) => {
-                  if (file === image) {
-
-                    data.img_url = downloadUrl;
-                  } else if (file === video) {
-                    data.video_url = downloadUrl;
-                  }
-                  setUploadingDoc(false);
-
-                  // Check if both image and video uploads are complete
-                  handleUploadFinish();
-                });
-              }
-            },
-            (error) => {
-              unsubscribe();
-            }
-          );
-        }
       } catch (error) {
         console.warn(error);
       }
     };
 
-   
+
 
     if (image !== null) {
       await uploadFileAndHandleFinish(image, 'businesses/images/');
@@ -396,13 +396,13 @@ const AddBusiness = ({ route, navigation }: any) => {
 
   return (
     <SafeAreaView style={stylesGlobal.scrollBg}>
-      {showToast && <View style={{marginBottom:'15%'}}>
-   <ToastMessage message={toastMessage} onClose={toggleToast} />
-   </View>}
+      {showToast && <View style={{ marginBottom: '15%' }}>
+        <ToastMessage message={toastMessage} onClose={toggleToast} />
+      </View>}
       <ScrollView style={stylesGlobal.appView} showsVerticalScrollIndicator={false}>
-    
+
         <BasicView style={stylesGlobal.centerView}>
-          <Text style={[stylesGlobal.errorMessage,{fontSize:17,marginBottom:10}]}>{message}</Text>
+          <Text style={[stylesGlobal.errorMessage, { fontSize: 17, marginBottom: 10 }]}>{message}</Text>
         </BasicView>
         <View style={styles.marginDropdown}>
           <Text style={{ color: isDarkMode ? colors.white : colors.black }}>{t('screens:category')}</Text>
@@ -447,7 +447,7 @@ const AddBusiness = ({ route, navigation }: any) => {
                 fillColor={colors.secondary}
                 style={{ marginTop: 5 }}
                 unfillColor="#FFFFFF"
-                text={selectedLanguage=='en'?subservice?.name?.en:subservice?.name?.sw}
+                text={selectedLanguage == 'en' ? subservice?.name?.en : subservice?.name?.sw}
                 iconStyle={{ borderColor: "red" }}
                 innerIconStyle={{ borderWidth: 2 }}
                 textStyle={{ fontFamily: "JosefinSans-Regular" }}
@@ -508,7 +508,7 @@ const AddBusiness = ({ route, navigation }: any) => {
           <Text style={[styles.textStyle, { color: isDarkMode ? colors.white : colors.black }]}>{t('screens:UploadImagesVideosOfService')}</Text>
           <View style={styles.imageContainer}>
             <TouchableOpacity onPress={selectImage}>
-              <Text style={{ color: isDarkMode ? colors.white : colors.blue,marginVertical:10,fontWeight:'bold',fontSize:15 }}>{t('screens:uploadImage')}</Text>
+              <Text style={{ color: isDarkMode ? colors.white : colors.blue, marginVertical: 10, fontWeight: 'bold', fontSize: 15 }}>{t('screens:uploadImage')}</Text>
             </TouchableOpacity>
 
             {/* {console.log('editedBusinesss',editedBusiness?.service?.images[0]?.img_url)}
@@ -524,7 +524,7 @@ const AddBusiness = ({ route, navigation }: any) => {
             ) : (
               <>
                 {isEditMode && image && image[0]?.uri ? (
-                  <Image source={{uri: image[0].uri }} style={styles.docView} />
+                  <Image source={{ uri: image[0].uri }} style={styles.docView} />
                 ) : (
                   <Image source={{ uri: (isEditMode && existingBusiness?.img_url) || image?.[0]?.uri || (existingBusiness?.service?.images?.[0]?.img_url) || 'default-image-uri' }} style={styles.docView} />
                 )}
@@ -537,7 +537,7 @@ const AddBusiness = ({ route, navigation }: any) => {
           </View>
           <View style={styles.imageContainer}>
             <TouchableOpacity onPress={selectVideo}>
-              <Text style={{ color: isDarkMode ? colors.white : colors.blue,marginVertical:10,fontWeight:'bold',fontSize:15 }}>{t('screens:uploadVideo')}</Text>
+              <Text style={{ color: isDarkMode ? colors.white : colors.blue, marginVertical: 10, fontWeight: 'bold', fontSize: 15 }}>{t('screens:uploadVideo')}</Text>
             </TouchableOpacity>
 
             {!isEditMode ? (video == null ? (<TouchableOpacity onPress={selectVideo}><Ionicons name="videocam-outline" color={isDarkMode ? colors.white : colors.blue}
@@ -567,7 +567,7 @@ const AddBusiness = ({ route, navigation }: any) => {
             )}
 
           </View>
-          <BasicView style={{marginBottom:'20%'}}>
+          <BasicView style={{ marginBottom: '20%' }}>
             <Button loading={loading || uploadingDoc} onPress={handleSubmit(onSubmit)}>
               <ButtonText>{isEditMode ? `${t('screens:editBusiness')}` : `${t('screens:addBusiness')}`}</ButtonText>
             </Button>

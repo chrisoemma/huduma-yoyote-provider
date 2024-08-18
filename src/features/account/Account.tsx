@@ -286,7 +286,7 @@ const Account = ({ navigation }: any) => {
             />
           </TouchableOpacity>
         </View>
-        <Text style={{ color: isDarkMode ? colors.white : colors.secondary, fontWeight: 'bold', alignSelf: 'center' }}>{user?.name}</Text>
+        <Text style={{ color: isDarkMode ? colors.white : colors.secondary, fontWeight: 'bold', alignSelf: 'center',fontFamily:'Prompt-Regular' }}>{user?.name}</Text>
 
         <View style={{marginLeft:10}}>
         

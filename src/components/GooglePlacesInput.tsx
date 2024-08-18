@@ -1,6 +1,6 @@
-import React, {useEffect, useRef} from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Alert } from 'react-native';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import Geolocation from '@react-native-community/geolocation';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { useTranslation } from 'react-i18next';
@@ -12,21 +12,24 @@ const PLACES_API_KEY = 'AIzaSyBdEZINT7lRnj8V0Xs840TMX-_3dbGqXMc';
 const GooglePlacesInput = ({
   placeholder = 'Enter Location',
   setLocation,
-  defaultValue,
+  defaultValue = {},
 }: any) => {
   const ref: any = useRef();
 
   useEffect(() => {
-    if (defaultValue) {
+    if (defaultValue.latitude && defaultValue.longitude) {
       getLocationName(defaultValue.latitude, defaultValue.longitude)
         .then(locationName => {
-          ref.current?.setAddressText(locationName);
+          if (ref.current) {
+            ref.current.setAddressText(locationName);
+          }
         })
         .catch(error => {
           console.error('Error fetching location name:', error);
         });
     }
   }, [defaultValue, ref]);
+
 
   const { t } = useTranslation();
 
@@ -35,7 +38,7 @@ const GooglePlacesInput = ({
     if (result === RESULTS.GRANTED) {
       getCurrentLocation();
     } else {
-    requestLocationPermission();
+      requestLocationPermission();
     }
   };
 
@@ -60,7 +63,6 @@ const GooglePlacesInput = ({
       { enableHighAccuracy: true, timeout: 30000, maximumAge: 10000 }
     );
   };
-  
 
   return (
     <GooglePlacesAutocomplete
@@ -70,10 +72,14 @@ const GooglePlacesInput = ({
       fetchDetails={true}
       enablePoweredByContainer={false}
       onPress={(data, details = null) => {
+        console.log('Data:', data);
+        console.log('Details:', details);
+
         if (data.description === 'Current location') {
           checkLocationPermission();
         } else {
-          setLocation(details?.geometry.location);
+          const location = details?.geometry?.location || {};
+          setLocation(location);
         }
       }}
       query={{
@@ -91,7 +97,7 @@ const GooglePlacesInput = ({
         placeholderTextColor: 'gray',
         returnKeyType: 'search',
       }}
-      
+
       styles={{
         textInputContainer: {},
         textInput: {
@@ -105,12 +111,12 @@ const GooglePlacesInput = ({
           elevation: 4,
         },
         listView: {
-          backgroundColor: 'white', 
-          color: 'black', 
+          backgroundColor: 'white',
+          color: 'black',
           zIndex: 100000
         },
-        row:{
-          description: { color: 'gray'},
+        row: {
+          description: { color: 'gray' },
         },
         description: { color: 'gray' },
         predefinedPlacesDescription: {
