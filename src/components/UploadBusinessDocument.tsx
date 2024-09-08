@@ -6,24 +6,17 @@ import { convertBusinessesToLabelsAndValues, convertRegDoc, transformDataToDropd
 import { colors } from '../utils/colors';
 import { BasicView } from './BasicView';
 import { globalStyles } from '../styles/global';
-import { Controller, useForm } from 'react-hook-form'
-import { TextInputField } from './TextInputField';
 import Icon from 'react-native-vector-icons/Ionicons';
 import DocumentPicker, { types } from 'react-native-document-picker';
-import { firebase } from '@react-native-firebase/storage';
-import RNFS from 'react-native-fs';
 import Pdf from 'react-native-pdf';
 import ToastMessage from './ToastMessage';
-import { check, request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
 import { mediaPermissions } from '../permissions/MediaPermissions';
 import ToastNotification from './ToastNotification/ToastNotification';
+import { useSelector } from 'react-redux';
 
 
 const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,toastMessage, showToast,businesses,errorMessage, regDocs, handleDocumentUpload, uploadingDoc,resetModalState }: any) => {
           
-    
-
-
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState(null);
     const [items, setItems] = useState(convertRegDoc(documentForBusiness));
@@ -44,7 +37,9 @@ const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,to
         { label: `${t('screens:businessDocs')}`, value: 2 }
     ]);
 
-
+    const { isDarkMode } = useSelector(
+        (state: RootStateOrAny) => state.theme,
+      );
 
 
 
@@ -124,13 +119,13 @@ const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,to
             {showToast && <ToastMessage message={toastMessage} onClose={toggleToast} />}
             </View>
             <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>{t('screens:selectDocType')}</Text>
+                <Text style={[styles.modalTitle,{color:isDarkMode?colors.white:colors.black}]}>{t('screens:selectDocType')}</Text>
                 <View style={styles.marginDropdown}>
                     <DropDownPicker
                         searchable={true}
                         zIndex={7000}
                         placeholder={t('screens:selectDocType')}
-                        listMode="SCROLLVIEW"
+                        listMode="MODAL"
                         open={openType}
                         value={valueType}
                         items={doctypes}
@@ -143,13 +138,13 @@ const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,to
 
                 {valueType ? (
                     <>
-                        <Text style={styles.modalTitle}> {t(textData)}</Text>
+                        <Text style={[styles.modalTitle,{color:isDarkMode?colors.white:colors.black}]}> {t(textData)}</Text>
                         <View style={styles.marginDropdown}>
                             <DropDownPicker
                                 searchable={true}
                                 zIndex={6000}
                                 placeholder={t(textData)}
-                                listMode="SCROLLVIEW"
+                                listMode="MODAL"
                                 open={open}
                                 value={value}
                                 items={valueType == 1 ? registrationDocs : items}
@@ -163,16 +158,23 @@ const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,to
                 ) : <View />}
                 <BasicView style={[stylesGlobal.marginTop20, { marginHorizontal: 10 }]}>
                     <Text
-                        style={[stylesGlobal.inputFieldTitle, { color: 'black' }]}>
+                        style={[stylesGlobal.inputFieldTitle, { color: 'black',fontFamily: 'Prompt-Regular',color:isDarkMode?colors.white:colors.black }]}>
                         {t('screens:documentName')}
                     </Text>
 
                     <TextInput
-                        style={styles.input}
-                        onChangeText={onChangeText}
-                        value={text}
-                        placeholder={t('screens:enterDocumentName')}
-                    />
+      style={[
+        styles.input,
+        {
+          color: isDarkMode ? colors.white : colors.black,  // Text color
+          borderColor: isDarkMode ? colors.white : colors.black,  // Border color
+        },
+      ]}
+      onChangeText={onChangeText}
+      value={text}
+      placeholder={t('screens:enterDocumentName')}
+      placeholderTextColor={isDarkMode ? colors.white : colors.black}  // Placeholder text color
+    />
 
                     {/* {errors.doc_type && (
                             <Text style={stylesGlobal.errorMessage}>
@@ -187,7 +189,7 @@ const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,to
                     >
 
                         {uploadedDocument ? (
-                            <Text style={styles.uploadedFileName}>
+                            <Text style={[styles.uploadedFileName,{color:isDarkMode?colors.white:colors.black}]}>
                                 {uploadedDocument?.name}
                             </Text>
                         ) : (
@@ -195,9 +197,9 @@ const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,to
                                 <Icon
                                     name="cloud-upload-outline"
                                     size={48}
-                                    color="#3238a8"
+                                    color={isDarkMode?colors.white:"#3238a8"}
                                 />
-                                <Text style={styles.uploadText}>{t('screens:uploadDocument')}</Text>
+                                <Text style={[styles.uploadText,{color:isDarkMode?colors.white:colors.black}]}>{t('screens:uploadDocument')}</Text>
                             </>
                         )}
                         <View style={styles.dottedLine}></View>
@@ -241,11 +243,11 @@ const UploadBusinessDocument = ({documentForBusiness,setShowToast,toggleToast,to
                         {uploadingDoc ? (
                             <View style={{flexDirection:'row'}}>
                              <ActivityIndicator color={colors.white} />
-                            <Text style={{ color: colors.white, paddingHorizontal:5,paddingVertical:10,fontSize:16 }}>{t('screens:uploadingWait')}</Text>
+                            <Text style={{ color: colors.white, paddingHorizontal:5,paddingVertical:10,fontSize:16,fontFamily: 'Prompt-Regular', }}>{t('screens:uploadingWait')}</Text>
                             </View>
                            
                         ) : (
-                            <Text style={{ color: colors.white, paddingHorizontal:20,paddingVertical:10,fontSize:16 }}>{t('screens:upload')}</Text>
+                            <Text style={{ color: colors.white, paddingHorizontal:20,paddingVertical:10,fontSize:16,fontFamily: 'Prompt-Regular', }}>{t('screens:upload')}</Text>
                         )}
                     </TouchableOpacity>
                 </View>
@@ -266,21 +268,19 @@ const styles = StyleSheet.create({
     },
     
     modalContent: {
-        backgroundColor: 'white',
         borderRadius: 10,
         padding: 20,
         width: '95%',
     },
     modalTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: 'Prompt-Bold',
         marginBottom: 10,
     },
     uploadArea: {
         alignSelf: 'center',
         width: '45%',
         height: 150,
-        backgroundColor: '#f0f0f0',
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 10,
@@ -290,13 +290,14 @@ const styles = StyleSheet.create({
       },
     uploadedFileName: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: 'Prompt-Bold',
         color: colors.alsoGrey,
         textAlign: 'center',
         marginBottom: 5,
     },
     uploadText: {
         fontSize: 16,
+        fontFamily: 'Prompt-Regular',
         color: colors.alsoGrey,
         textAlign: 'center',
     },
@@ -308,12 +309,13 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     employeeName: {
-        fontSize: 16,
+        fontSize: 15,
         marginBottom: 10,
         color: 'blue',
     },
     closeButton: {
-        fontSize: 16,
+        fontSize: 15,
+        fontFamily: 'Prompt-Regular',
         color: 'red',
         marginTop: 20,
     },

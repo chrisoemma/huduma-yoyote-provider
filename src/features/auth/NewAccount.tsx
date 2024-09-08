@@ -33,6 +33,7 @@ import { colors } from '../../utils/colors';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { getProfessions } from '../professionsSlice';
 import ToastMessage from '../../components/ToastMessage';
+import ToastNotification from '../../components/ToastNotification/ToastNotification';
 
 const NewAccount = ({ route, navigation }: any) => {
 
@@ -194,7 +195,7 @@ const NewAccount = ({ route, navigation }: any) => {
           console.log('resultsss', result);
           if (result.status) {
             console.log('excuted this true block')
-            ToastAndroid.show(`${t('screens:userMultiAccountCreated')}`, ToastAndroid.LONG);
+            ToastNotification(`${t('screens:userMultiAccountCreated')}`,'success','long')
           } else {
             if (result.error) {
          
@@ -230,7 +231,8 @@ const NewAccount = ({ route, navigation }: any) => {
           console.log('resultsss', result);
           if (result.status) {
             console.log('excuted this true block')
-            ToastAndroid.show(`${t('screens:userMultiAccountCreated')}`, ToastAndroid.LONG);
+            ToastNotification(`${t('screens:userMultiAccountCreated')}`,'success','long')
+           
           } else {
             if (result.error) {
          

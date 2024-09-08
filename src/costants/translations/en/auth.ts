@@ -58,7 +58,9 @@ export default{
     changePassword:'Change Password',
     nidaEmptyError:'NIDA Number is required',
     errorValidatingNIDA:'Could not get NIDA check network',
-    resendOTP:'Resend OTP'
+    resendOTP:'Resend OTP',
+      confirmAccount:'Confirm account',
+    accountVerification:'Account verification'
 
    
 }

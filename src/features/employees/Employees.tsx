@@ -33,7 +33,7 @@ const Employees = ({ navigation }: any) => {
         <View style={styles.employeesContainer}>
             <TouchableOpacity
                key={item?.id}
-                style={[styles.employees,{backgroundColor:isDarkMode?colors.blackBackground:colors.white}]}
+                style={[styles.employees,{backgroundColor:isDarkMode?colors.darkModeBackground:colors.white}]}
                 onPress={() => navigation.navigate('Employee Account',{
                     employee:item
                 })}
@@ -55,7 +55,7 @@ const Employees = ({ navigation }: any) => {
                     }}
                 />
                 <View style={styles.textContainer}>
-                    <Text style={[styles.employeeName,{color:isDarkMode?colors.black:colors.primary,fontWeight:'bold'}]}>{item.name}</Text>
+                    <Text style={[styles.employeeName,{color:isDarkMode?colors.black:colors.secondary}]}>{item.name}</Text>
                     <Text style={[styles.subservice,{color:isDarkMode?colors.white:colors.black}]}>{t('screens:requests')}: {item?.request_transfers?.length || 0}</Text>
                 </View>
 
@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
         margin: 5
     },
     employeeName: {
+        fontFamily: 'Prompt-Bold',
         textTransform: 'uppercase',
         color: colors.secondary
     },
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
     },
     subservice: {
         paddingTop: 5,
-        fontWeight: 'bold',
+        fontFamily: 'Prompt-Regular',
         color: colors.black
     },
     desc: {

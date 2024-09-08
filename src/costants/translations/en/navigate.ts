@@ -21,7 +21,8 @@ export default {
     editSubService:'Edit Sub service',
     viewSubService:'View Sub service',
     subscriptions:'Subscriptions',
-    packagePayment:'Package Payments'
+    packagePayment:'Package Payments',
+     providerSubServiceDetails:'Sub service Details'
 
 
   };

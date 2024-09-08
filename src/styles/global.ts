@@ -290,13 +290,13 @@ import { colors } from '../utils/colors';
       marginHorizontal: 3,
       backgroundColor: isDarkMode ? colors.secondary : colors.primary,
       padding: 5,
-      borderRadius: 5,
+      borderRadius:20,
     },
     otherBtn: {
       marginHorizontal: 3,
       backgroundColor: isDarkMode ? colors.warningYellow : colors.primary,
       padding: 5,
-      borderRadius: 5,
+      borderRadius:10,
     },
 
     //taken input

@@ -7,7 +7,7 @@ export default {
     whatsapp: 'WhatsApp',
     support: 'Msaada',
     language: 'Lugha',
-    business:'Biashara yangu',
+    business:'Biashara zangu',
     logout: 'Toka',
     addBusiness:'Ongeza Biashara',
     addSubService:'Ongeza Huduma',

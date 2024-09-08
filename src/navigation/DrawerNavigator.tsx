@@ -50,7 +50,7 @@ const Drawer = createDrawerNavigator();
 
 const DrawerNavigator = () => {
   const { isDarkMode } = useSelector((state: RootStateOrAny) => state.theme);
-  const notifications = useSelector((state: RootStateOrAny) => state.notifications.notifications);
+  const notifications = useSelector((state: RootStateOrAny) => state.notificationsProvider.notifications);
   const navigation = useNavigation();
 
   // Get notification count from notifications state

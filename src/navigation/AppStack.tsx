@@ -17,14 +17,16 @@ import EditSubService from "../features/business/EditSubService";
 import ViewSubService from "../features/business/ViewSubService";
 import Subscriptions from "../features/subscriptions/Subscriptions";
 import { useEffect, useRef, useState } from "react";
-import { postUserDeviceToken, postUserOnlineStatus } from "../features/auth/userSlice";
+import {postUserOnlineStatus } from "../features/auth/userSlice";
 import { useAppDispatch } from "../app/store";
-import messaging from '@react-native-firebase/messaging';
 import FCMMessageHandler from "../components/FCMMessageHandler";
 import { useSelector } from "react-redux";
 import { AppState, Platform } from "react-native";
 import PackagePayments from "../features/payments/PackagePayments";
 import Notifications from "../features/Notifications/Notifications";
+import { getActiveRequests, getEmployeeActiveRequests } from "../features/requests/RequestSlice";
+import { handleDeviceToken } from "../utils/handeDeviceToken";
+import ProviderSubServiceDetails from "../features/subservices/ProviderSubServiceDetails";
 
 
 
@@ -36,53 +38,23 @@ const AppStack = () => {
   const dispatch = useAppDispatch();
 
   const screenOptions = {
-      headerShown: false,
-    };
+    headerShown: true,
+    headerTitleStyle: {
+      fontFamily: 'Prompt-Regular', 
+      fontSize: 15, 
+    },
+  };
 
     const { user} = useSelector((state: RootStateOrAny) => state.user);
     const appState = useRef(AppState.currentState);
     const [appStateVisible, setAppStateVisible] = useState(appState.current);
 
 
+
     useEffect(() => {
-      
-      const retrieveDeviceToken = async () => {
-        try {
-          const token = await messaging().getToken();
-          console.log('Device Token:', token);
-          if (user) {
-            dispatch(postUserDeviceToken({ userId: user?.id, deviceToken: token }));
-          }
-        } catch (error) {
-          console.log('Error retrieving device token:', error);
-        }
-      };
-  
-      const handleTokenRefresh = async (token) => {
-        console.log('New token:', token);
-        if (user) {
-          dispatch(postUserDeviceToken({ userId: user?.id, deviceToken: token }));
-        }
-      };
-      if (Platform.OS === 'ios') {
-        const requestPermission = async () => {
-          try {
-            await messaging().requestPermission();
-            retrieveDeviceToken();
-          } catch (error) {
-            console.log('Permission denied:', error);
-          }
-        };
-  
-        requestPermission();
-      } else {
-        retrieveDeviceToken();
-      }
-      // Listen for token refresh
-      const unsubscribeOnTokenRefresh = messaging().onTokenRefresh(handleTokenRefresh);
-  
+      const unsubscribe = handleDeviceToken(dispatch, user);
       return () => {
-        unsubscribeOnTokenRefresh();
+        if (unsubscribe) unsubscribe();
       };
     }, [dispatch, user]);
     
@@ -100,7 +72,11 @@ const AppStack = () => {
           if (user) {
                data.isOnline=true
             dispatch(postUserOnlineStatus({ userId: user?.id, data }));
-          
+            if(user?.provider){
+              dispatch(getActiveRequests(user?.provider?.id));
+             }else if(user?.employee){
+              dispatch(getEmployeeActiveRequests(user?.employee?.id));
+             } 
           }
         }
         if (appState.current === 'background') {
@@ -122,7 +98,7 @@ const AppStack = () => {
   return (
     <>
     <FCMMessageHandler />
-    <Stack.Navigator initialRouteName="Home">
+    <Stack.Navigator initialRouteName="Home"  screenOptions={screenOptions}>
       <Stack.Screen name="Home" component={DrawerNavigator}
         options={{ headerShown: false }}
       />
@@ -164,6 +140,11 @@ const AppStack = () => {
         component={Settings}
         options={{ title: t('navigate:settings') }}
       />
+        <Stack.Screen name="providerSubServiceDetails"
+          component={ProviderSubServiceDetails}
+          options={{ title: t('navigate:providerSubServiceDetails') }}
+        />
+
       <Stack.Screen
         name="Employees"
         component={Employees}

@@ -1,4 +1,4 @@
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, StyleSheet, RefreshControl, ScrollView } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { globalStyles } from '../../styles/global'
 import { colors } from '../../utils/colors';
@@ -7,12 +7,14 @@ import { useTranslation } from 'react-i18next';
 import { useSelector, RootStateOrAny } from 'react-redux';
 import { useAppDispatch } from '../../app/store';
 import { getActiveRequests, getEmployeeActiveRequests, getEmployeePastRequests, getPastRequests } from './RequestSlice';
+import ToastNotification from '../../components/ToastNotification/ToastNotification';
 
 const Requests = ({ navigation }: any) => {
 
   const { user } = useSelector(
     (state: RootStateOrAny) => state.user,
   );
+  const [refreshing, setRefreshing] = useState(false);
 
   const { loading, activeRequests, pastRequests } = useSelector(
     (state: RootStateOrAny) => state.requests,
@@ -29,6 +31,22 @@ const Requests = ({ navigation }: any) => {
       dispatch(getEmployeePastRequests(user.employee.id));
     }
   }, [dispatch, user.provider, user.employee]);
+
+
+  const callGetRequests = React.useCallback(() => {
+    setRefreshing(true);
+    dispatch(getActiveRequests(user?.provider?.id));
+    dispatch(getPastRequests(user?.provider?.id))
+      .unwrap()
+      .then(result => {
+        setRefreshing(false);
+          ToastNotification(`${t('screens:dataRefreshed')}`,'default','long');
+      // Adjust the time as needed
+      })
+      .catch(error => {
+        // Handle errors if necessary
+      });
+  }, []);
 
   const { t } = useTranslation();
 
@@ -52,7 +70,8 @@ const Requests = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={stylesGlobal.scrollBg}>
+ 
+    <SafeAreaView    style={stylesGlobal.scrollBg}>
       <View>
         <View style={styles.container}>
           <TouchableOpacity
@@ -72,10 +91,14 @@ const Requests = ({ navigation }: any) => {
             data={activeTab === 'current' ? activeRequests : pastRequests}
             renderItem={renderRequestItem}
             keyExtractor={(item) => item.id.toString()}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={callGetRequests} />
+          }
           />
         </View>
       </View>
     </SafeAreaView>
+  
   )
 }
 
@@ -98,6 +121,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.primary,
+    fontFamily: 'Prompt-Regular',
     padding: 10,
     marginRight: 5
   },

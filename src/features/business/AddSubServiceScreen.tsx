@@ -19,6 +19,8 @@ import { firebase } from '@react-native-firebase/storage';
 import RNFS from 'react-native-fs';
 import { selectLanguage } from '../../costants/languangeSlice';
 import ToastMessage from '../../components/ToastMessage';
+import { mediaPermissions } from '../../permissions/MediaPermissions';
+import ToastNotification from '../../components/ToastNotification/ToastNotification';
 
 const AddSubServiceScreen = ({ route, navigation }: any) => {
 
@@ -70,9 +72,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
 
 
   const commonSubServices = subServiceByService.filter(itemB => sub_services.some(itemA => itemA?.id === itemB?.id));
-
-
-
+  
   const makeid = (length: any) => {
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -124,6 +124,13 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
   }
 
   const selectImage = async () => {
+
+    const permissionsGranted = await mediaPermissions();
+    if (!permissionsGranted) {
+      ToastNotification(`${t('screens:mediaPermissionNotGranted')}`, 'default', 'long');
+      return;
+    }
+
     try {
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.images],
@@ -142,6 +149,13 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
   };
 
   const selectVideo = async () => {
+
+    const permissionsGranted = await mediaPermissions();
+    if (!permissionsGranted) {
+      ToastNotification(`${t('screens:mediaPermissionNotGranted')}`, 'default', 'long');
+      return;
+    }
+    
     try {
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.video],
@@ -170,21 +184,22 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
 
   const onSubmit = async (data) => {
 
-
     data.provider_id = user.provider.id;
     data.service_id = business?.service_id;
     data.business_id = business?.id;
     data.sub_services = checkedSubServices;
 
-
-    if (image == null) {
-      setDisappearMessage(`${t('screens:UploadImagesVideosOfService')}`);
-      if (!showToast) {
-        setShowToast(true)
-        showToastMessage(t('screens:errorOccured'));
-      }
-      return
-    }
+    // if (data.name == null || data.name.trim() == '') {
+    //   if (image == null) {
+    //     setDisappearMessage(`${t('screens:UploadImagesVideosOfService')}`);
+    //     if (!showToast) {
+    //       setShowToast(true)
+    //       showToastMessage(t('screens:errorOccured'));
+    //     }
+    //     return
+    //   }
+    // }
+  
 
     let mediaUploadHandled = false;
 
@@ -204,7 +219,8 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
             .unwrap()
             .then(result => {
               if (result.status) {
-                ToastAndroid.show(`${t('screens:createdSuccessfully')}`, ToastAndroid.SHORT);
+              
+                ToastNotification(`${t('screens:createdSuccessfully')}`,'success','long')
                 navigation.navigate('My Businesses', {
                   screen: 'My Businesses',
                 });
@@ -245,21 +261,9 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
       const fileUri = await getPathForFirebaseStorage(file[0].uri);
 
       try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          {
-            title: "Read Permission",
-            message: "Your app needs permission.",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
-            buttonPositive: "OK",
-          }
-        );
+  
 
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           setUploadingDoc(true);
-
           storageRef.putFile(fileUri).on(
             firebase.storage.TaskEvent.STATE_CHANGED,
             (snapshot: any) => {
@@ -284,7 +288,7 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
               unsubscribe();
             }
           );
-        }
+     
       } catch (error) {
         console.warn(error);
       }
@@ -343,7 +347,11 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
                     fillColor={colors.secondary}
                     style={{ marginTop: 5 }}
                     unfillColor="#FFFFFF"
-                    text={selectedLanguage == 'en' ? subservice?.name?.en : subservice?.name?.sw}
+                    text={
+                      selectedLanguage === 'sw' && subservice?.name?.sw 
+                      ? subservice.name.sw 
+                      : subservice?.name?.en
+                    }
                     iconStyle={{ borderColor: "red" }}
                     innerIconStyle={{ borderWidth: 2 }}
                     textStyle={{ fontFamily: "JosefinSans-Regular", color: isDarkMode ? colors.white : colors.alsoGrey }}

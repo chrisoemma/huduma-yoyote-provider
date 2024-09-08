@@ -121,7 +121,9 @@ const ServiceSlice = createSlice({
       state.subServiceByService = [];
     },
     setServiceApproval: (state, action) => {
-      const updatedSubservice = action.payload;
+      const updatedSubservice = typeof action.payload === 'string'
+        ? JSON.parse(action.payload)
+        : action.payload;
       const subserviceIndex = state.providerSubServices.findIndex(
         (subService) => subService.id === updatedSubservice.id
       );

@@ -35,6 +35,8 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import { getProfessions } from '../professionsSlice';
 import ToastMessage from '../../components/ToastMessage';
 import messaging from '@react-native-firebase/messaging';
+import ToastNotification from '../../components/ToastNotification/ToastNotification';
+import CustomAlert from '../../components/Modals/CustomAlert';
 
 const RegisterScreen = ({ route, navigation }: any) => {
 
@@ -71,6 +73,10 @@ const RegisterScreen = ({ route, navigation }: any) => {
   const [value, setValue] = useState([]);
   const [designationError, setDesignationError] = useState('')
   const [deviceToken, setDeviceToken] = useState('');
+  
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [onConfirmCallback, setOnConfirmCallback] = useState<() => void>(() => () => {});
 
   const WIDTH = Dimensions.get("window").width;
 
@@ -100,19 +106,14 @@ const RegisterScreen = ({ route, navigation }: any) => {
     },
   });
 
-  useEffect(() => {
-    const retrieveDeviceToken = async () => {
-      try {
-        const token = await messaging().getToken();
-        console.log('new token', token);
-        setDeviceToken(token);
-      } catch (error) {
-        console.log('Error retrieving device token:', error);
-      }
-    };
+  const handleModalConfirm = () => {
+    if (onConfirmCallback) onConfirmCallback();
+    setIsModalVisible(false);
+  };
 
-    retrieveDeviceToken();
-  }, []);
+  const handleModalCancel = () => {
+    setIsModalVisible(false);
+  };
 
 
   const setDisappearMessage = (message: any) => {
@@ -172,7 +173,6 @@ const RegisterScreen = ({ route, navigation }: any) => {
 
     data.app_type = 'provider';
     data.designation_id = value;
-    data.deviceToken = deviceToken; 
 
     // setNidaLoading(true)
     // const nidaValidationResult = await validateNIDANumber(data.nida);
@@ -187,17 +187,30 @@ const RegisterScreen = ({ route, navigation }: any) => {
           console.log('resultsss', result);
           if (result.status) {
             console.log('excuted this true block')
-            ToastAndroid.show(`${t('auth:userCreatedSuccessfully')}`, ToastAndroid.LONG);
+            ToastNotification(`${t('screens:userCreatedSuccessfully')}`,'success','long')
             navigation.navigate('Verify', { nextPage: 'Verify' });
           } else {
             if (result.error) {
-         
               setDisappearMessage(result.error
               );
               setShowToast(true)
               showToastMessage(t('screens:errorOccured'));
             } else {
-              setDisappearMessage(result.message);
+              if(result?.message){
+                if (result?.existing_user) {
+                  setModalMessage(result?.message);
+                  setOnConfirmCallback(() => () => {
+                    navigation.navigate('NewAccountPassword',{userData:result?.existing_user});
+                  });
+                  setIsModalVisible(true);
+                } else {
+                  setDisappearMessage(result?.message);
+                }
+
+              }
+             
+              // setShowToast(true)
+              // showToastMessage(t('screens:errorOccured'));
             }
           }
 
@@ -620,6 +633,13 @@ const RegisterScreen = ({ route, navigation }: any) => {
           </View>
 
         </View>
+        <CustomAlert
+          isVisible={isModalVisible}
+          onConfirm={handleModalConfirm}
+          onCancel={handleModalCancel}
+          title={t('screens:accountExists')}
+          message={modalMessage}
+        />
 
       </ScrollView>
     </SafeAreaView>

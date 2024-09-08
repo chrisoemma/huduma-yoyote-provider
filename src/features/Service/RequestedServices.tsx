@@ -28,6 +28,8 @@ import PusherOnlineListener from '../../components/PusherOnlineListener';
 import IconOnline from 'react-native-vector-icons/Ionicons';
 import RejectModal from '../../components/RejectModal';
 import { getRejectTemplate } from '../feedbackTemplate/FeebackTemplateSlice';
+import ToastNotification from '../../components/ToastNotification/ToastNotification';
+import CustomBackground from '../../components/CustomBgBottomSheet'
 
 const RequestedServices = ({ navigation, route }: any) => {
 
@@ -48,6 +50,13 @@ const RequestedServices = ({ navigation, route }: any) => {
     const { rejectTemplate } = useSelector(
         (state: RootStateOrAny) => state.feebackTemplate,
     );
+
+
+
+
+    const requestSubService = combineSubServices(request);
+
+
 
 
     const { loading, providerSubServices, subServices } = useSelector(
@@ -120,15 +129,16 @@ const RequestedServices = ({ navigation, route }: any) => {
         dispatch(updateRequestStatus({ data: data, requestId: request?.id }))
             .unwrap()
             .then(result => {
+                console.log('resultsss', result);
                 if (result.status) {
-                    ToastAndroid.show(`${t('screens:requestUpdatedSuccessfully')}`, ToastAndroid.SHORT);
+
+                    ToastNotification(`${t('screens:requestUpdatedSuccessfully')}`, 'success', 'long')
                     navigation.navigate('Requests', {
                         screen: 'Requests',
                     });
                 } else {
-                    setDisappearMessage(
-                        `${t('screens:requestFail')}`,
-                    );
+                    ToastNotification(`${t('screens:requestFail')}`, 'danger', 'long')
+
                     console.log('dont navigate');
                 }
             })
@@ -223,12 +233,13 @@ const RequestedServices = ({ navigation, route }: any) => {
             .unwrap()
             .then((result) => {
                 if (result.status) {
-                    ToastAndroid.show(`${t('screens:requestUpdatedSuccessfully')}`, ToastAndroid.SHORT);
+                    ToastNotification(`${t('screens:requestUpdatedSuccessfully')}`, 'success', 'long')
+
                     navigation.navigate('Requests', {
                         screen: 'Requests',
                     });
                 } else {
-                    setDisappearMessage(`${t('screens:requestFail')}`);
+                    ToastNotification(`${t('screens:requestFail')}`, 'danger', 'long')
                     console.log('dont navigate');
                 }
             })
@@ -242,10 +253,12 @@ const RequestedServices = ({ navigation, route }: any) => {
         // toggleEmployeeListModal();
     };
 
+
+
     const updateRequest = (id, requestType) => {
 
-        console.log('providerLocation', providerLocation)
-        console.log('client location', userLocation)
+        // console.log('providerLocation', providerLocation)
+        // console.log('client location', userLocation)
 
         data.client_latitude = userLocation?.latitude
         data.client_longitude = userLocation?.longitude
@@ -253,15 +266,15 @@ const RequestedServices = ({ navigation, route }: any) => {
         data.provider_longitude = providerLocation?.longitude
 
         Alert.alert(
-            'Confirm Action',
-            `Are you sure you want to ${requestType} this request?`,
+            t('screens:confirmAction'),
+            `${t('screens:areYouSureYouwantTo')} ${t(`screens:${requestType}`)}`,
             [
                 {
-                    text: 'Cancel',
+                    text: t('screens:cancel'),
                     style: 'cancel',
                 },
                 {
-                    text: 'Confirm',
+                    text: t('screens:ok'),
                     onPress: () => {
                         if (requestType === 'Accept') {
                             data.status = 'Accepted';
@@ -275,12 +288,14 @@ const RequestedServices = ({ navigation, route }: any) => {
                             .unwrap()
                             .then((result) => {
                                 if (result.status) {
-                                    ToastAndroid.show(`${t('screens:requestUpdatedSuccessfully')}`, ToastAndroid.SHORT);
+                                    ToastNotification(`${t('screens:requestUpdatedSuccessfully')}`, 'success', 'long')
+
                                     navigation.navigate('Requests', {
                                         screen: 'Requests',
                                     });
                                 } else {
-                                    setDisappearMessage(`${t('screens:requestFail')}`);
+
+                                    ToastNotification(`${t('screens:requestFail')}`, 'danger', 'long')
                                     console.log('dont navigate');
                                 }
                             })
@@ -335,8 +350,8 @@ const RequestedServices = ({ navigation, route }: any) => {
                         </View>
                         <View style={{ flexDirection: 'row' }}>
                             <View>
-                                <Text style={{ marginVertical: 5, color: isDarkMode ? colors.white : colors.black }}>{request?.client?.name}</Text>
-                                <Text style={{ marginVertical: 5, color: colors.secondary }}>{selectedLanguage == 'en' ? request?.service?.name?.en : request?.service?.name?.sw}</Text>
+                                <Text style={{ marginVertical: 5, color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Regular', }}>{request?.client?.name}</Text>
+                                <Text style={{ marginVertical: 5, color: colors.secondary, fontFamily: 'Prompt-Regular', }}>{selectedLanguage == 'en' ? request?.service?.name?.en : request?.service?.name?.sw}</Text>
                             </View>
                             <TouchableOpacity style={{
                                 flexDirection: 'row',
@@ -352,26 +367,26 @@ const RequestedServices = ({ navigation, route }: any) => {
                                     size={20}
                                 />
                                 <Text style={{
-                                    paddingHorizontal: 5, fontWeight: 'bold',
+                                    paddingHorizontal: 5, fontFamily: 'Prompt-Bold',
                                     color: isDarkMode ? colors.white : colors.black
                                 }}>{PhoneNumber}</Text>
                             </TouchableOpacity>
                         </View>
-                        <View style={styles.divOnline}>
+                        {/* <View style={styles.divOnline}>
                             <IconOnline name={isOnline ? 'checkmark-circle' : 'close-circle'} size={24} color={isOnline ? 'green' : colors.darkGrey} />
                             <Text style={styles.text}>{isOnline ? 'Online' : 'Offline'}</Text>
-                        </View>
+                        </View> */}
 
                         <View style={[stylesGlobal.chooseServiceBtn, { justifyContent: 'space-between', marginBottom: 50 }]}>
                             <View style={[stylesGlobal.otherBtn, { backgroundColor: getStatusBackgroundColor(request_status) }]}>
-                                <Text style={{ color: colors.white }}>{getStatusTranslation(request_status)}</Text>
+                                <Text style={{ color: colors.white, fontFamily: 'Prompt-Regular', }}>{getStatusTranslation(request_status)}</Text>
                             </View>
 
 
                             <TouchableOpacity style={[stylesGlobal.chooseBtn,]}
                                 onPress={() => handlePresentModalPress('Services')}
                             >
-                                <Text style={{ color: colors.white }}>{t('navigate:requestedServices')}</Text>
+                                <Text style={{ color: colors.white, fontFamily: 'Prompt-Regular', }}>{t('navigate:requestedServices')}</Text>
                             </TouchableOpacity>
 
                         </View>
@@ -395,6 +410,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                         <View style={styles.container}>
                             <BottomSheetModal
                                 ref={bottomSheetModalRef}
+                                backgroundComponent={CustomBackground}
                                 index={1}
                                 snapPoints={snapPoints}
                                 onChange={handleSheetChanges}
@@ -407,7 +423,9 @@ const RequestedServices = ({ navigation, route }: any) => {
 
                                     <View style={stylesGlobal.subCategory}>
                                         <ContentServiceList
+                                            navigation={navigation}
                                             subServices={subServices}
+                                            requestSubService={requestSubService}
                                             providerSubServices={providerSubServices}
                                             toggleSubService={{}}
                                             selectedSubServices={selectedSubservice}
@@ -435,7 +453,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                                     padding: 10
                                 }}
                             >
-                                <Text style={{ color: colors.white }}>{t('screens:complete')}</Text>
+                                <Text style={{ color: colors.white, fontFamily: 'Prompt-Regular', }}>{t('screens:complete')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -447,7 +465,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                                     padding: 20
                                 }}
                             >
-                                <Text style={{ color: colors.white }}>{t('screens:reject')}</Text>
+                                <Text style={{ color: colors.white, fontFamily: 'Prompt-Regular', }}>{t('screens:reject')}</Text>
                             </TouchableOpacity>
 
                             {!request?.is_transferred && user.provider && (
@@ -461,7 +479,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                                             padding: 20
                                         }}
                                     >
-                                        <Text style={{ color: colors.white }}>{t('screens:transfer')}</Text>
+                                        <Text style={{ color: colors.white, fontFamily: 'Prompt-Regular', }}>{t('screens:transfer')}</Text>
                                     </TouchableOpacity>
 
                                     {/* <TouchableOpacity
@@ -490,7 +508,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                                     justifyContent: 'center',
                                     padding: 20
                                 }}>
-                                <Text style={{ color: colors.white }}>{t('screens:accept')}</Text>
+                                <Text style={{ color: colors.white, fontFamily: 'Prompt-Regular', }}>{t('screens:accept')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -500,7 +518,7 @@ const RequestedServices = ({ navigation, route }: any) => {
                                     justifyContent: 'center',
                                     padding: 20
                                 }}>
-                                <Text style={{ color: colors.white }}>{t('screens:reject')}</Text>
+                                <Text style={{ color: colors.white, fontFamily: 'Prompt-Regular', }}>{t('screens:reject')}</Text>
                             </TouchableOpacity>
                         </>
                     ) : <></>}

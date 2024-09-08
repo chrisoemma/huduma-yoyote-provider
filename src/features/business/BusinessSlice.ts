@@ -50,11 +50,11 @@ export const getBusinesses = createAsyncThunk(
     async (data) => {
       const response = await fetch(`${API_URL}/businesses`, {
         method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        // headers: {
+        //   Accept: 'application/json',
+        //   'Content-Type': 'application/json',
+        // },
+        body: data,
       });
       return (await response.json()) 
     },
@@ -63,17 +63,17 @@ export const getBusinesses = createAsyncThunk(
   export const updateBusiness = createAsyncThunk(
     'businesses/updateBusiness',
     async ({ data, businessId }: any) => {
-        console.log('businessId111', businessId);
-        console.log('dtaaaa',data);
+        // console.log('businessId111', businessId);
+        // console.log('dtaaaa',data);
 
       
         const response = await fetch(`${API_URL}/businesses/${businessId}`, {
             method: 'PUT',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
+            // headers: {
+            //     Accept: 'application/json',
+            //     'Content-Type': 'application/json',
+            // },
+            body:data,
         });
         return (await response.json());
     }
@@ -83,15 +83,14 @@ export const getBusinesses = createAsyncThunk(
   export const createDocument = createAsyncThunk(
     'businesses/createDocument',
     async ({data,providerId}:any) => {
-     
-        
+    
       const response = await fetch(`${API_URL}/providers/documents/${providerId}`, {
         method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        // headers: {
+        //   Accept: 'application/json',
+        //   'Content-Type': 'application/json',
+        // },
+        body:data,
       });
       return (await response.json()) 
     },
@@ -168,14 +167,17 @@ export const getBusinesses = createAsyncThunk(
         regDocs:[],
         document:{},
         business:[],
-      loading: false,
+        createLoading:false,
+        loading: false,
     },
     reducers: {
       clearMessage(state: any) {
         state.status = null;
       },
       changeDocStatus: (state, action) => {
+
         const { docId, docStatus } = action.payload;
+
         const document = state.documents.find(doc => doc.id === Number(docId));
         if (document) {
           document.status = docStatus;
@@ -250,12 +252,12 @@ export const getBusinesses = createAsyncThunk(
     });
     builder.addCase(createBusiness.fulfilled, (state, action) => {
          console.log('sucesss')
-         console.log('dayaa',action.payload)
+        //  console.log('dayaa',action.payload)
 
       state.loading = false;
       updateStatus(state, '');
 
-      if (action.payload.status) {
+      if (action.payload && action.payload.status) {
           state.business = { ...action.payload.data.business };
           state.businesses=[...state.businesses,{...action.payload.data.business}]
           updateStatus(state, '');
@@ -276,14 +278,11 @@ export const getBusinesses = createAsyncThunk(
 
     builder.addCase(createDocument.pending, state => {
       console.log('Pending');
-      state.loading = true;
+      state.createLoading = true;
       updateStatus(state, '');
     });
     builder.addCase(createDocument.fulfilled, (state, action) => {
-         console.log('sucesss')
-         console.log('dayaa',action.payload)
-
-      state.loading = false;
+      state.createLoading = false;
       updateStatus(state, '');
 
       if (action.payload.status) {
@@ -298,11 +297,9 @@ export const getBusinesses = createAsyncThunk(
     });
     builder.addCase(createDocument.rejected, (state, action) => {
       console.log('Rejected');
-      state.loading = false;
+      state.createLoading = false;
       updateStatus(state, '');
     });
-
-
 
     //delete document 
 

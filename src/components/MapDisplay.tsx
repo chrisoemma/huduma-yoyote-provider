@@ -188,10 +188,10 @@ const MapDisplay = ({ onLocationUpdate, client, clientLastLocation, requestStatu
           const channel = pusher.subscribe({
             channelName: `private-client-location-updates-user-${client.user_id}`,
             onSubscriptionSucceeded: (data: any) => {
-              console.log('Subscription succeeded:', data);
+            //  console.log('Subscription succeeded:', data);
             },
             onSubscriptionError: (channelName, message, e) => {
-              console.log(`onSubscriptionError: ${message} channelName: ${channelName} Exception: ${e}`);
+             // console.log(`onSubscriptionError: ${message} channelName: ${channelName} Exception: ${e}`);
             },
             onEvent: (event: PusherEvent) => {
               if (extractEventName(event.eventName) === "ClientLocationUpdated") {

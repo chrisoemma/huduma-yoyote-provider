@@ -15,6 +15,9 @@ import { deleteSubService, getBusinessSubservices } from '../subservices/Subserv
 import VideoPlayer from '../../components/VideoPlayer';
 import Orientation from 'react-native-orientation-locker';
 import { selectLanguage } from '../../costants/languangeSlice';
+import ToastNotification from '../../components/ToastNotification/ToastNotification';
+import Icon from 'react-native-vector-icons/Ionicons';
+import CustomBackground from '../../components/CustomBgBottomSheet'
 
 const BusinessDetails = ({ route, navigation }: any) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -39,6 +42,7 @@ const BusinessDetails = ({ route, navigation }: any) => {
   const { loading, subservices, providerSubServices } = useSelector(
     (state: RootStateOrAny) => state.subservices,
   );
+
 
   const { isDarkMode } = useSelector(
     (state: RootStateOrAny) => state.theme,
@@ -100,14 +104,14 @@ const BusinessDetails = ({ route, navigation }: any) => {
             .unwrap()
             .then(result => {
               if (result.status) {
-                ToastAndroid.show(`${t('screens:deletedSuccessfully')}`, ToastAndroid.SHORT);
+
+                ToastNotification(`${t('screens:deletedSuccessfully')}`, 'success', 'long')
                 navigation.navigate('My Businesses', {
                   screen: 'My Businesses',
                 });
               } else {
-                setDisappearMessage(
-                  `${t('screens:requestFail')}`,
-                );
+
+                ToastNotification(`${t('screens:requestFail')}`, 'danger', 'long')
                 console.log('dont navigate');
               }
 
@@ -139,14 +143,13 @@ const BusinessDetails = ({ route, navigation }: any) => {
             .unwrap()
             .then(result => {
               if (result.status) {
-                ToastAndroid.show(`${t('screens:deletedSuccessfully')}`, ToastAndroid.SHORT);
+
+                ToastNotification(`${t('screens:deletedSuccessfully')}`, 'success', 'long')
                 navigation.navigate('My Businesses', {
                   screen: 'My Businesses',
                 });
               } else {
-                setDisappearMessage(
-                  `${t('screens:requestFail')}`,
-                );
+                ToastNotification(`${t('screens:requestFail')}`, 'danger', 'long')
                 console.log('dont navigate');
               }
 
@@ -162,276 +165,284 @@ const BusinessDetails = ({ route, navigation }: any) => {
     ]);
 
 
-  const ServicesOffered = ({ sub_service, provider_sub_service }: any) => {
-    if (sub_service) {
-
-      return (
-        <TouchableOpacity style={[styles.sub_div, { borderColor: isDarkMode ? colors.white : colors.alsoLightGrey }]} key={sub_service.id}
-
-          onPress={() => navigation.navigate('View sub service', {
-            sub_service: sub_service,
-            type: 'subService'
-          })}
-        >
-         
-          <Text style={styles.category}>
-  {sub_service?.provider_sub_list?.name ? 
-    sub_service?.provider_sub_list?.name :
-    (selectedLanguage === 'en' ? sub_service.name.en : sub_service.name.sw)
-  }
-</Text>
-          <View style={styles.descBtnsContainer}>
-            <View>
-              <Text style={{ color: colors.alsoGrey }}>{sub_service?.provider_sub_list?.description ? sub_service?.provider_sub_list?.description : (selectedLanguage=='en'?sub_service?.description?.en:sub_service?.description?.sw)}</Text>
+    const ServicesOffered = ({ sub_service, provider_sub_service }: any) => {
+      const containerStyle = {
+        ...styles.sub_div,
+        borderColor: isDarkMode ? colors.white : colors.alsoLightGrey,
+        backgroundColor: isDarkMode ? colors.darkModeBottomSheet : colors.whiteBackground,
+      };
+    
+      if (sub_service) {
+        return (
+          <TouchableOpacity
+            style={containerStyle}
+            onPress={() => navigation.navigate('View sub service', {
+              sub_service: sub_service,
+              type: 'subService'
+            })}
+          >
+            <Text style={[styles.category,{color:isDarkMode?colors.white:colors.black}]}>
+              {sub_service?.provider_sub_list?.name || (selectedLanguage === 'en' ? sub_service.name.en : sub_service.name.sw)}
+            </Text>
+            <View style={styles.descBtnsContainer}>
+              <Text style={[styles.description,{color:isDarkMode?colors.white:colors.black}]}
+               numberOfLines={2}
+               ellipsizeMode="tail" 
+              >
+                {sub_service?.provider_sub_list?.description || (selectedLanguage === 'en' ? sub_service?.description?.en : sub_service?.description?.sw)}
+              </Text>
+              <View style={styles.btnContainer}>
+                {user?.provider && user.status !== 'In Active' ? (
+                  <>
+                    <TouchableOpacity
+                      style={[styles.status, { backgroundColor: colors.dullYellow, marginRight: 10 }]}
+                      onPress={() => navigation.navigate('Edit sub service', {
+                        sub_service: sub_service,
+                        type: 'subService'
+                      })}
+                    >
+                      <Text style={styles.statusText}>{t('screens:edit')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.status, { backgroundColor: colors.dangerRed,marginRight:8 }]}
+                      onPress={() => removeSubService('subService', sub_service?.provider_sub_list?.id, sub_service.id)}
+                    >
+                      <Text style={styles.statusText}>{t('screens:delete')}</Text>
+                    </TouchableOpacity>
+                  </>
+                ) : null}
+              </View>
             </View>
-            <View style={styles.btnContainer}>
-            {user?.provider && user.status!=='In Active'?(
-              <>
-              <TouchableOpacity style={[styles.status, { backgroundColor: colors.dullYellow, marginRight: 10 }]} onPress={() => navigation.navigate('Edit sub service', {
-                sub_service: sub_service,
-                type: 'subService'
-              })}>
-                <Text style={{ color: colors.white }}>{t('screens:edit')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.status, { backgroundColor: colors.dangerRed }]} onPress={() => removeSubService('subService', sub_service?.provider_sub_list?.id, sub_service.id)}>
-                <Text style={{ color: colors.white }}>{t('screens:delete')}</Text>
-              </TouchableOpacity>
-              </>
-            ):(<View />)}
-            
-            </View>
-          </View>
-        </TouchableOpacity>
-      );
-    } else if (provider_sub_service) {
-
-      return (
-        <TouchableOpacity style={[styles.sub_div, { borderColor: isDarkMode ? colors.white : colors.alsoLightGrey }]} key={provider_sub_service.id}
-
-          onPress={() => navigation.navigate('View sub service', {
-            providerSubService: provider_sub_service,
-            type: 'providerSubService'
-          })}
-        >
-          <Text style={styles.category}>
-            {provider_sub_service.name} {' '}
-            <Text style={{ color: provider_sub_service?.status === 'Pending' ? 'orange' : provider_sub_service?.status === 'Rejected' ? 'red' : 'green' }}>
-              {
-                provider_sub_service?.status.toLowerCase() === 'pending' ? t('screens:listInactive') :
+          </TouchableOpacity>
+        );
+      } else if (provider_sub_service) {
+        return (
+          <TouchableOpacity
+            style={containerStyle}
+            onPress={() => navigation.navigate('View sub service', {
+              providerSubService: provider_sub_service,
+              type: 'providerSubService'
+            })}
+          >
+            <Text style={styles.category}>
+              {provider_sub_service.name} {' '}
+              <Text style={{ color: provider_sub_service?.status === 'Pending' ? 'orange' : provider_sub_service?.status === 'Rejected' ? 'red' : 'green' }}>
+                {provider_sub_service?.status.toLowerCase() === 'pending' ? t('screens:listInactive') :
                   provider_sub_service?.status.toLowerCase() === 'rejected' ? t('screens:listRejected') :
                     provider_sub_service?.status.toLowerCase() === 'accepted' ? t('screens:listAccepted') :
                       ''}
+              </Text>
             </Text>
-          </Text>
-          <View style={styles.descBtnsContainer}>
-            <View>
-              <Text style={{ color: colors.alsoGrey }}>{provider_sub_service.description}</Text>
-            </View>
-            <View style={styles.btnContainer}>
-              {provider_sub_service?.status == 'Pending' || provider_sub_service?.status == 'Accepted' ? (
-                <TouchableOpacity style={[styles.status, { backgroundColor: colors.dullYellow, marginRight: 10 }]} onPress={() => navigation.navigate('Edit sub service', {
-                  providerSubService: provider_sub_service,
-                  type: 'providerSubService'
-                })}>
-                  <Text style={{ color: colors.white }}>{t('screens:edit')}</Text>
-                </TouchableOpacity>) : (<View />)
-              }
-              <TouchableOpacity style={[styles.status, { backgroundColor: colors.dangerRed }]} onPress={() => removeSubService('providerSubService', provider_sub_service?.provider_sub_list?.id, provider_sub_service.id)}>
-                <Text style={{ color: colors.white }}>{t('screens:delete')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableOpacity>
-      );
-    } else {
-      // Return an empty view if neither sub_service nor provider_sub_service is provided
-      return <View />;
-    }
-  };
-
-
-  return (
-    <View style={[stylesGlobal.scrollBg, { flex: 1, height: '100%' }]}>
-      <View>
-        <GestureHandlerRootView>
-          <BasicView style={stylesGlobal.centerView}>
-            <Text style={stylesGlobal.errorMessage}>{message}</Text>
-          </BasicView>
-          <ScrollView>
-            <View style={styles.mainContentContainer}>
-              <View>
-                <Image
-                  source={{ uri: service.img_url || (service?.service?.images[0]?.img_url) }}
-                  style={{
-                    resizeMode: 'cover',
-                    width: '100%',
-                    height: 250,
-                    borderRadius: 10,
-                  }}
-                />
-                <Text style={styles.category}>{selectedLanguage=='en'?service?.service?.name?.en:service?.service?.name?.sw}</Text>
-                <Text style={styles.service}>{selectedLanguage=='en'?service?.service?.category?.name?.en:service?.service?.category?.name?.sw}</Text>
-                <Text style={{ color: colors.alsoGrey }}>
-                  {service.description == null ? selectedLanguage=='en'? service?.service?.description?.en:service.service.description?.sw : service.description}
-                </Text>
-                <View>
-                  {service?.video_url ?
-                    <TouchableOpacity style={styles.viewVideo} onPress={toggleVideoModal}>
-                      <Text style={styles.videoText}>{t('screens:video')}</Text>
-                    </TouchableOpacity>
-                    : <></>}
-                </View>
-                <TouchableOpacity style={styles.status} onPress={handlePresentModalPress}>
-                  <Text style={{ color: colors.white }}>{t('screens:subServices')}</Text>
+            <View style={styles.descBtnsContainer}>
+              <Text style={styles.description}>
+                {provider_sub_service.description}
+              </Text>
+              <View style={styles.btnContainer}>
+                {provider_sub_service?.status === 'Pending' || provider_sub_service?.status === 'Accepted' ? (
+                  <TouchableOpacity
+                    style={[styles.status, { backgroundColor: colors.dullYellow, marginRight: 10 }]}
+                    onPress={() => navigation.navigate('Edit sub service', {
+                      providerSubService: provider_sub_service,
+                      type: 'providerSubService'
+                    })}
+                  >
+                    <Text style={styles.statusText}>{t('screens:edit')}</Text>
+                  </TouchableOpacity>
+                ) : null}
+                <TouchableOpacity
+                  style={[styles.status, { backgroundColor: colors.dangerRed }]}
+                  onPress={() => removeSubService('providerSubService', provider_sub_service?.provider_sub_list?.id, provider_sub_service.id)}
+                >
+                  <Text style={styles.statusText}>{t('screens:delete')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
-          </ScrollView>
-
-          <BottomSheetModalProvider>
-            <View style={styles.bottomSheetContainer}>
-              <BottomSheetModal
-                ref={bottomSheetModalRef}
-                index={1}
-                snapPoints={snapPoints}
-                onChange={handleSheetChanges}
-              >
-                <BottomSheetScrollView style={styles.bottomSheetContentContainer}>
-                  {
-                    subservices.map(sub_service => (
-                      <ServicesOffered key={sub_service.id} sub_service={sub_service} />
-                    ))
-                  }
-
-                  {
-                    providerSubServices?.map(provider_sub_service => (
-                      <ServicesOffered key={provider_sub_service.id} provider_sub_service={provider_sub_service} />
-                    ))
-                  }
-
-                </BottomSheetScrollView>
+          </TouchableOpacity>
+        );
+      } else {
+        return <View />;
+      }
+    };
+    
 
 
-                {user.provider && user.status!=='In Active'?(
+  return (
+    <View style={[stylesGlobal.scrollBg, { flex: 1 }]}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        {message?(  <BasicView style={[stylesGlobal.centerView, { flex: 1 }]}>
+          <Text style={stylesGlobal.errorMessage}>{message}</Text>
+        </BasicView>):(<></>)}
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={styles.mainContentContainer}>
+  <Image
+    source={{ uri: service.img_url || (service?.service?.images[0]?.img_url) }}
+    style={styles.image}
+  />
+  <Text style={[styles.category,{color:isDarkMode ? colors.white : colors.darkGrey}]}>
+  {' '} <Icon name="business" size={20} color={isDarkMode ? colors.white : colors.darkGrey} />
+    {selectedLanguage === 'en' ? service?.service?.name?.en : service?.service?.name?.sw}
+  </Text>
+  {/* <Text style={[styles.service,{color:isDarkMode ? colors.white : colors.darkGrey}]}>
+    {selectedLanguage === 'en' ? service?.service?.category?.name?.en : service?.service?.category?.name?.sw}
+  </Text> */}
+  <Text style={[styles.description,{color:isDarkMode ? colors.white : colors.darkGrey}]}>
+    {service.description == null ? selectedLanguage === 'en' ? service?.service?.description?.en : service.service.description?.sw : service.description}
+  </Text>
+  {service?.video_url ? (
+    <TouchableOpacity style={styles.viewVideo} onPress={toggleVideoModal}>
+      <Text style={styles.videoText}>{t('screens:video')}</Text>
+    </TouchableOpacity>
+  ) : null}
+  <TouchableOpacity style={styles.status} onPress={handlePresentModalPress}>
+    <Text style={styles.statusText}>{t('screens:subServices')}</Text>
+  </TouchableOpacity>
+</View>
+
+        </ScrollView>
+
+        <BottomSheetModalProvider>
+          <View style={styles.bottomSheetContainer}>
+            <BottomSheetModal
+             backgroundComponent={CustomBackground}
+              ref={bottomSheetModalRef}
+              index={1}
+              snapPoints={snapPoints}
+              onChange={handleSheetChanges}
+            >
+              <BottomSheetScrollView style={styles.bottomSheetContentContainer}>
+                {subservices.map(sub_service => (
+                  <ServicesOffered key={sub_service.id} sub_service={sub_service} />
+                ))}
+                {providerSubServices?.map(provider_sub_service => (
+                  <ServicesOffered key={provider_sub_service.id} provider_sub_service={provider_sub_service} />
+                ))}
+              </BottomSheetScrollView>
+
+              {user.provider && user.status !== 'In Active' ? (
                 <FloatBtn
                   onPress={() => {
                     navigation.navigate('Add Sub Service', {
                       business: service,
                       sub_services: subservices
-                      //there is a confusin here the business(Service) variable get  list of
-                      // one business and  it subservice sub_services 
-                      //While Logical for the system a Business is a service
-
-                    })
-                  }
-                  }
+                    });
+                  }}
                   iconType='add'
                 />
+              ) : null}
+            </BottomSheetModal>
+          </View>
+        </BottomSheetModalProvider>
 
-                ):(<View />)}
-              </BottomSheetModal>
-            </View>
-          </BottomSheetModalProvider>
-
-
-        </GestureHandlerRootView>
         <View style={{
-          backgroundColor: isDarkMode ? colors.black : colors.white, height: 100,
+          backgroundColor: isDarkMode ? colors.black : colors.white,
+          height: 100,
           bottom: 0,
           left: 0,
           right: 0,
           flexDirection: 'row',
           justifyContent: 'space-between',
           padding: 20,
+          position: 'absolute',
         }}>
-           {user.provider && user.status!=='In Active'?(
-          <>
-         
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Add Business', {
-                business: service,
-                sub_services: subservices
-              })}
-              style={{
-                backgroundColor: colors.warningYellow, borderRadius: 20,
-                justifyContent: 'center',
-                padding: 20
-              }}>
-              <Text style={{ color: colors.white }}>{t('screens:edit')}</Text>
-            </TouchableOpacity>
+          {user.provider && user.status !== 'In Active' ? (
+            <>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Add Business', {
+                  business: service,
+                  sub_services: subservices
+                })}
+                style={{
+                  backgroundColor: colors.warningYellow,
+                  borderRadius: 20,
+                  justifyContent: 'center',
+                  padding: 20
+                }}
+              >
+                <Text style={{ color: colors.white }}>{t('screens:edit')}</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => removeBusiness(service.id)}
-              style={{
-                backgroundColor: colors.dangerRed, borderRadius: 20,
-                justifyContent: 'center',
-                padding: 20
-              }}>
-              <Text style={{ color: colors.white }}>{t('screens:delete')}</Text>
-            </TouchableOpacity>
-         
-          </>
-          ):(<View />)}
+              <TouchableOpacity
+                onPress={() => removeBusiness(service.id)}
+                style={{
+                  backgroundColor: colors.dangerRed,
+                  borderRadius: 20,
+                  justifyContent: 'center',
+                  padding: 20
+                }}
+              >
+                <Text style={{ color: colors.white }}>{t('screens:delete')}</Text>
+              </TouchableOpacity>
+            </>
+          ) : null}
         </View>
-      </View>
 
-      <Modal visible={isVideoModalVisible}>
-        <View style={styles.videoModalContainer}>
-          <TouchableOpacity onPress={toggleVideoModal}>
-            <Text style={styles.closeButton}>{t('screens:close')}</Text>
-          </TouchableOpacity>
-
-          <VideoPlayer
-            video_url={`${service?.video_url}`}
-          />
-
-        </View>
-      </Modal>
-
-
+        <Modal visible={isVideoModalVisible}>
+          <View style={[styles.videoModalContainer,{backgroundColor:isDarkMode?colors.darkModeBackground:colors.white}]}>
+            <TouchableOpacity onPress={toggleVideoModal}>
+              <Text style={[styles.closeButton,{color:isDarkMode?colors.white:colors.secondary}]}>{t('screens:close')}</Text>
+            </TouchableOpacity>
+            <VideoPlayer video_url={`${service?.video_url}`} />
+          </View>
+        </Modal>
+      </GestureHandlerRootView>
     </View>
+
 
   );
 };
 
 const styles = StyleSheet.create({
   mainContentContainer: {
-
-  //  margin: 15,
-    backgroundColor: 'white',
-    // height: '75%',
-    padding: 10,
-    borderRadius: 10,
+    padding: 15,
+    borderRadius: 15,
+    marginBottom: 15,
+  },
+  image: {
+    resizeMode: 'cover',
+    width: '100%',
+    height: 250,
+    borderRadius: 15,
+    marginBottom: 10,
   },
   bottomSheetContainer: {
-    // flex: 1,
-   
     zIndex: 1000
   },
+  description: {
+    fontFamily: 'Prompt-Regular',
+    color: colors.alsoGrey,
+    fontSize: 14,
+  },
   bottomSheetContentContainer: {
-    // flex:1,
     padding: 10,
-    backgroundColor: 'white',
     borderRadius: 10,
   },
   category: {
-    textTransform: 'uppercase',
+    fontFamily: 'Prompt-SemiBold',
     color: colors.secondary,
-    marginTop: 15,
+    fontSize: 15,
+  },
+  statusText: {
+    fontFamily: 'Prompt-Regular',
+    color: colors.white,
+    fontSize: 13,
   },
   service: {
+    fontFamily: 'Prompt-Regular',
     paddingTop: 5,
-    fontWeight: 'bold',
     color: colors.black,
+    fontSize: 14,
   },
   status: {
     alignSelf: 'flex-end',
     backgroundColor: colors.secondary,
-    margin: 10,
-    padding: 10,
-    borderRadius: 10,
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    elevation: 3,
   },
   descBtnsContainer: {
+    marginTop: 10,
   },
   btnContainer: {
     flexDirection: 'row',
@@ -447,35 +458,39 @@ const styles = StyleSheet.create({
     right: 0,
   },
   sub_div: {
-    paddingVertical: 5,
-    marginBottom: 5,
-    borderBottomWidth: 1
+    paddingVertical: 15,
+    marginBottom: 10,
+    borderRadius: 10,
+    backgroundColor: 'white',
+    elevation: 2,
   },
   viewVideo: {
-    margin: 15,
-    backgroundColor: colors.primary,
+    marginVertical: 15,
+    backgroundColor: colors.secondary,
     alignItems: 'center',
-    elevation: 2,
-    borderRadius: 25
+    elevation: 3,
+    borderRadius: 25,
+    paddingVertical: 10,
   },
   videoText: {
-    padding: 15,
+    fontFamily: 'Prompt-Regular',
     fontSize: 18,
-    color: colors.white
+    color: colors.white,
   },
   videoModalContainer: {
-    backgroundColor: colors.white,
+    flex:1,
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 15,
     justifyContent: 'center',
 
   },
   closeButton: {
+    fontFamily: 'Prompt-Regular',
     fontSize: 18,
-    marginBottom: 100,
-    color: colors.primary,
-    fontWeight: 'bold'
+    alignSelf:'center',
+    marginBottom: 30,
   },
 });
+
 
 export default BusinessDetails;

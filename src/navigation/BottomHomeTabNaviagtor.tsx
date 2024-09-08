@@ -1,13 +1,11 @@
 import * as React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import FontAwesome5 from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon from 'react-native-vector-icons/Feather';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import Home from '../features/home/Home';
 import { colors } from '../utils/colors';
 import { useTranslation } from 'react-i18next';
-import CategoryScreen from '../features/category/CategoryScreen';
 import Requests from '../features/requests/Requests';
 import Account from '../features/account/Account';
 import { useSelector,RootStateOrAny } from 'react-redux';
@@ -20,11 +18,6 @@ const Tab = createBottomTabNavigator();
 const screenOptions = {
   headerShown: false,
 };
-
-
-
-
-
 
 
 const Stack = createNativeStackNavigator();
@@ -56,7 +49,7 @@ export default function BottomHomeTabNavigator() {
   
   const { t } = useTranslation();
 
-  const notifications = useSelector((state: RootStateOrAny) => state.notifications.notifications);
+  const notifications = useSelector((state: RootStateOrAny) => state.notificationsProvider.notifications);
 
   const requestsBadgeCount = notifications.filter(notification => notification.type === 'Request' && !notification.viewed).length;
   const accountBadgeCount = notifications.filter(notification => notification.type === 'Account' && !notification.viewed).length;
@@ -82,8 +75,7 @@ const tabNavScreenOptions = ({ route }: any) => ({
       iconName = 'account-circle';
       badgeCount = accountBadgeCount;
     } 
-    // You can return any component that you like here!
-    return <BadgeIcon name={iconName as string} size={size} color={color} badgeCount={badgeCount} />;;
+    return <BadgeIcon name={iconName as string} size={size} color={color} badgeCount={badgeCount} />;
   },
   tabBarActiveTintColor: colors.secondary,
   tabBarInactiveTintColor:isDarkMode?colors.white:colors.blackBg,

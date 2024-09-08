@@ -13,6 +13,7 @@ import { useAppDispatch } from '../../app/store'
 import { useSelector, RootStateOrAny } from 'react-redux'
 import { createEmployee, updateEmployee } from './EmployeeSlice'
 import { validateTanzanianPhoneNumber } from '../../utils/utilts'
+import ToastNotification from '../../components/ToastNotification/ToastNotification'
 
 const AddEmployees = ({ route, navigation }: any) => {
 
@@ -93,7 +94,8 @@ const AddEmployees = ({ route, navigation }: any) => {
         .then(result => {
           if (result.status) {
 
-            ToastAndroid.show(`${t('screens:updatedSuccessfully')}`, ToastAndroid.SHORT);
+       
+            ToastNotification(`${t('screens:updatedSuccessfully')}`,'success','long')
             navigation.navigate('Employees', {
               screen: 'Employees',
             });
@@ -121,7 +123,8 @@ const AddEmployees = ({ route, navigation }: any) => {
           .unwrap()
           .then(result => {
             if (result.status) {
-              ToastAndroid.show(`${t('screens:addedSuccessfully')}`, ToastAndroid.SHORT);
+            
+              ToastNotification(`${t('screens:addedSuccessfully')}`,'success','long')
               navigation.navigate('Employees', {
                 screen: 'Employees',
               });

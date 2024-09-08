@@ -16,8 +16,8 @@ const initialState: NotificationsState = {
   notifications: [],
 };
 
-const notificationSlice = createSlice({
-  name: 'notifications',
+const NotificationProviderSlice = createSlice({
+  name: 'notificationsProvider',
   initialState,
   reducers: {
     addNotification: (state, action: PayloadAction<Notification>) => {
@@ -39,5 +39,5 @@ const notificationSlice = createSlice({
   },
 });
 
-export const {clearNotifications, addNotification, markAsViewed, removeNotification } = notificationSlice.actions;
-export default notificationSlice.reducer;
+export const {clearNotifications, addNotification, markAsViewed, removeNotification } = NotificationProviderSlice.actions;
+export default NotificationProviderSlice.reducer;

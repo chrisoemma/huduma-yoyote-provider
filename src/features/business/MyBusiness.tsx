@@ -25,6 +25,10 @@ const MyBusiness = ({navigation }: any) => {
     const { loading, businesses } = useSelector(
       (state: RootStateOrAny) => state.businesses,
     );
+
+    const { isDarkMode } = useSelector(
+        (state: RootStateOrAny) => state.theme,
+      );
     
     useEffect(() => {
        dispatch(getBusinesses({providerId:user?.provider?.id}));
@@ -32,9 +36,9 @@ const MyBusiness = ({navigation }: any) => {
     
     const renderItem = ({ item }: any) => (
 
-        <View style={styles.businessContainer}>
+        <View style={[styles.businessContainer,]}>
             <TouchableOpacity
-                style={styles.business}
+                style={[styles.business,{backgroundColor:isDarkMode ? colors.darkModeBackground : colors.white}]}
                 onPress={() => navigation.navigate('Business Details',{
                     service:item
                 })}
@@ -49,9 +53,12 @@ const MyBusiness = ({navigation }: any) => {
                     }}
                 />
                 <View style={styles.textContainer}>
-                    <Text style={styles.categoryService}>{selectedLanguage=='en'?item?.service?.name?.en:item?.service?.name?.sw}</Text>
-                    <Text style={styles.subservice}>{selectedLanguage=='en'? item?.service?.category?.name?.en:item?.service?.category?.name?.sw}</Text>
-                    <Text style={styles.desc}>{item?.description==null?selectedLanguage=='en'? item?.service.description?.en:item?.service.description?.sw:item?.description}</Text>
+                    <Text style={[styles.categoryService,{color:isDarkMode?colors.white:colors.secondary}]}>{selectedLanguage=='en'?item?.service?.name?.en:item?.service?.name?.sw}</Text>
+                    <Text style={[styles.subservice,{color:isDarkMode?colors.white:colors.alsoGrey}]}>{selectedLanguage=='en'? item?.service?.category?.name?.en:item?.service?.category?.name?.sw}</Text>
+                    <Text style={[styles.desc,{color:isDarkMode?colors.white:colors.alsoGrey}]}
+                      numberOfLines={2}
+                      ellipsizeMode="tail" 
+                    >{item?.description==null?selectedLanguage=='en'? item?.service.description?.en:item?.service.description?.sw:item?.description}</Text>
                 </View>
 
             </TouchableOpacity>
@@ -101,6 +108,7 @@ const styles = StyleSheet.create({
         margin: 5
     },
     categoryService: {
+        fontFamily: 'Prompt-Bold',
         textTransform: 'uppercase',
         color: colors.secondary
     },
@@ -108,12 +116,13 @@ const styles = StyleSheet.create({
         paddingTop: 5
     },
     subservice: {
+        fontFamily: 'Prompt-Regular',
         paddingTop: 5,
-        fontWeight: 'bold',
         color: colors.black
     },
     desc: {
         paddingRight: '15%',
+        fontFamily: 'Prompt-Regular',
         color:colors.alsoGrey
     }
 

@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import { colors } from '../utils/colors'; // Assume you have light and dark mode colors defined here
+import { colors } from '../utils/colors';
 import { useDispatch, useSelector } from 'react-redux';
-import { markAsViewed, removeNotification } from '../features/Notifications/NotificationSlice';
+import { markAsViewed, removeNotification } from '../features/Notifications/NotificationProviderSlice';
 
 const NotificationItem = ({ notification, openContentModal }: any) => {
   const dispatch = useDispatch();
@@ -52,7 +52,13 @@ const NotificationItem = ({ notification, openContentModal }: any) => {
           />
         </View>
         <Text style={[styles.notificationTitle, {color: isDarkMode ? colors.white : colors.black}]}>{title}</Text>
-        <Text style={[styles.notificationMessage, {color: isDarkMode ? colors.white : colors.black}]}>{message}</Text>
+        <Text
+  style={[styles.notificationMessage, {color: isDarkMode ? colors.white : colors.black}]}
+  numberOfLines={2}
+  ellipsizeMode="tail" 
+>
+  {message}
+</Text>
       </TouchableOpacity>
     </Swipeable>
   );

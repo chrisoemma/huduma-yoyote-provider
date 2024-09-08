@@ -3,10 +3,10 @@ import messaging from '@react-native-firebase/messaging';
 import { useSelector, RootStateOrAny } from 'react-redux';
 import { logoutOtherDevice, changeNidaStatus, setUserChanges, setUserSubcriptionStatus, updateProviderChanges, userLogoutThunk } from '../features/auth/userSlice';
 import { useAppDispatch } from '../app/store';
-import { setRequestStatus } from '../features/requests/RequestSlice';
+import { getActiveRequests, setRequestStatus } from '../features/requests/RequestSlice';
 import { setServiceApproval } from '../features/subservices/SubservicesSlice';
 import { changeDocStatus } from '../features/business/BusinessSlice';
-import { addNotification } from '../features/Notifications/NotificationSlice';
+import { addNotification } from '../features/Notifications/NotificationProviderSlice';
 import { useNavigation } from '@react-navigation/native';
 
 const FCMMessageHandler = () => {
@@ -69,12 +69,18 @@ const FCMMessageHandler = () => {
         case 'logout_device':
           dispatch(userLogoutThunk());
           break;
+        case 'new_request':
+           if(user?.provider){
+            dispatch(getActiveRequests(user?.provider?.id));
+           }
+        
         case 'request_status_changed':
           dispatch(setRequestStatus(data.request));
           break;
         case 'doc_status':
           dispatch(changeDocStatus({ docId: data.docId, docStatus: data.docStatus }));
           break;
+        
         case 'nida_status_chaged':
           dispatch(changeNidaStatus(data.nidaStatus));
           break;

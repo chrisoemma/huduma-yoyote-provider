@@ -56,7 +56,9 @@ export default {
     changePassword:'Badili Nywila',
     nidaEmptyError:'Namba ya NIDA inahitajika',
     errorValidatingNIDA:'Tumeshidwa kupata NIDA angalia intaneti yako',
-    resendOTP:'Tuma tena kodi'
+    resendOTP:'Tuma tena kodi',
+    confirmAccount:'Thibitisha Akaunti',
+    accountVerification:'Hakiki Akaunti'
     
 
 }

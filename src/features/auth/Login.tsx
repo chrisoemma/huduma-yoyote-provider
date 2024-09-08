@@ -46,24 +46,24 @@ const LoginScreen = ({ route, navigation }: any) => {
   const [message, setMessage] = useState('');
   const [deviceToken, setDeviceToken] = useState('');
 
-  useEffect(() => {
-    const retrieveDeviceToken = async () => {
-      try {
+  // useEffect(() => {
+  //   const retrieveDeviceToken = async () => {
+  //     try {
    
-        const token = await messaging().getToken();
-        console.log('new token',token);
-        setDeviceToken(token);
-      } catch (error) {
-        console.log('Error retrieving device token:', error);
-      }
-    };
+  //       const token = await messaging().getToken();
+  //     //  console.log('new token',token);
+  //       setDeviceToken(token);
+  //     } catch (error) {
+  //       console.log('Error retrieving device token:', error);
+  //     }
+  //   };
 
-    retrieveDeviceToken();
-  }, []);
+  //   retrieveDeviceToken();
+  // }, []);
 
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
+  // useEffect(() => {
+  //   console.log(user);
+  // }, [user]);
 
 
   const setDisappearMessage = (message: any) => {
@@ -88,7 +88,7 @@ const LoginScreen = ({ route, navigation }: any) => {
 
     try {
      data.app_type='provider';
-     data.deviceToken = deviceToken;
+   //  data.deviceToken = deviceToken;
     const result = await dispatch(userLogin(data)).unwrap(); 
 
     if (result.status) {

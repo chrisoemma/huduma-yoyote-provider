@@ -42,7 +42,6 @@ export const getActiveRequests = createAsyncThunk(
     },
   );
 
-
   export const getEmployeePastRequests = createAsyncThunk(
     'requests/getEmployeePastRequests',
     async (employeeId) => {
@@ -78,8 +77,8 @@ export const getActiveRequests = createAsyncThunk(
     'requests/updateRequestStatus',
     async ({ data, requestId }: any) => {
 
-            console.log('dataaa',data)
-            console.log('request_id',requestId);
+            // console.log('dataaa',data)
+            // console.log('request_id',requestId);
          
         const response = await fetch(`${API_URL}/requests/update_status/${requestId}`, {
             method: 'PUT',
@@ -115,38 +114,45 @@ export const getActiveRequests = createAsyncThunk(
       employeeActiveRequests:[],
       employeePastRequests:[],
       pastRequests:[],
+      changeStatusLoading:false,
       loading: false,
     },
     reducers: {
       clearMessage(state: any) {
         state.status = null;
       },
-      setRequestStatus:(state,action)=>{
-    
-        const updatedRequest = action.payload;
+      setRequestStatus: (state, action) => {      
+        const updatedRequest = typeof action.payload === 'string'
+        ? JSON.parse(action.payload)
+        : action.payload;
         const requestIndex = state.activeRequests.findIndex(
           (request) => request.id === updatedRequest.id
         );
-    
+      
         if (requestIndex !== -1) {
-          if (['Requested', 'Accepted', 'Confirmed'].includes(status)) {
-            // Update the request in activeRequests
-            state.activeRequests = [
-              ...state.activeRequests.slice(0, requestIndex),
-              updatedRequest,
-              ...state.activeRequests.slice(requestIndex + 1),
-            ];
-          } else if (['Cancelled', 'Rejected', 'Completed'].includes(status)) {
-            // Remove the request from activeRequests
-            state.activeRequests = [
-              ...state.activeRequests.slice(0, requestIndex),
-              ...state.activeRequests.slice(requestIndex + 1),
-            ];
-            state.pastRequests = [...state.pastRequests, updatedRequest];
+          const currentRequest = state.activeRequests[requestIndex];
+          const newStatus = updatedRequest.statuses[updatedRequest.statuses.length - 1].status;
+          const isPastStatus = ['Cancelled', 'Rejected', 'Completed'].includes(newStatus);
+      
+          if (isPastStatus) {
+            const [movedRequest] = state.activeRequests.splice(requestIndex, 1);
+            movedRequest.statuses = updatedRequest.statuses;
+            state.pastRequests.push(movedRequest);
+          } else {
+            state.activeRequests[requestIndex] = {
+              ...currentRequest,
+              statuses: updatedRequest.statuses,
+            };
           }
+        } else {
+          console.log('Request not found in activeRequests:', updatedRequest.id);
         }
-    
-        },
+      },
+      
+      
+      
+      
+      
     },
     extraReducers: builder => {
        
@@ -209,7 +215,6 @@ export const getActiveRequests = createAsyncThunk(
        });
 
 
-
        builder.addCase(getEmployeePastRequests.pending, state => {
         // console.log('Pending');
          state.loading = true;
@@ -230,47 +235,54 @@ export const getActiveRequests = createAsyncThunk(
 
 
        builder.addCase(updateRequestStatus.pending, state => {
-        // console.log('Pending');
-         state.loading = true;
+        state.changeStatusLoading = true;
        });
-       builder.addCase(updateRequestStatus.fulfilled, (state, action) => {
-  
-      
-        const updatedRequest = action.payload.data.request;
-        const status = updatedRequest.statuses[updatedRequest.statuses.length - 1].status;
-      
-        // Find the index of the updated request in activeRequests
-        const requestIndex = state.activeRequests.findIndex(
-          (request) => request.id === updatedRequest.id
-        );
-      
-        if (requestIndex !== -1) {
-          if (['Requested', 'Accepted', 'Confirmed'].includes(status)) {
-            // Update the request in activeRequests
-            state.activeRequests = [
-              ...state.activeRequests.slice(0, requestIndex),
-              updatedRequest,
-              ...state.activeRequests.slice(requestIndex + 1),
-            ];
-          } else if (['Cancelled', 'Rejected', 'Completed'].includes(status)) {
-            // Remove the request from activeRequests
-            state.activeRequests = [
-              ...state.activeRequests.slice(0, requestIndex),
-              ...state.activeRequests.slice(requestIndex + 1),
-            ];
-      
-            // Add the request to pastRequests
-            state.pastRequests = [...state.pastRequests, updatedRequest];
-          }
-        }
-      
-        state.loading = false;
-        updateStatus(state, '');
-      });
+
+
+       builder.addCase(updateRequestStatus.fulfilled, (state, action) => {    
+      //  console.log('request dataa',action.payload) ;
+
+         if (action.payload && action.payload.status) {
+           const updatedRequest = action.payload.data.request;
+           const newStatus = updatedRequest.statuses[updatedRequest.statuses.length - 1].status;
+           const requestIndex = state.activeRequests.findIndex(
+             (request) => request.id === updatedRequest.id
+           );
+       
+           if (requestIndex !== -1) {
+             const isPastStatus = ['Cancelled', 'Rejected', 'Completed'].includes(newStatus);
+       
+             if (isPastStatus) {
+               const requestToMove = {
+                 ...state.activeRequests[requestIndex], 
+                 statuses: updatedRequest.statuses,     
+               };
+       
+               state.activeRequests = [
+                 ...state.activeRequests.slice(0, requestIndex),
+                 ...state.activeRequests.slice(requestIndex + 1),
+               ];
+       
+               state.pastRequests = [
+                 ...state.pastRequests,
+                 requestToMove,
+               ];
+             } else {
+               state.activeRequests[requestIndex] = {
+                 ...state.activeRequests[requestIndex],
+                 statuses: updatedRequest.statuses,
+               };
+             }
+           }
+         }
+       
+         state.changeStatusLoading = false;
+         updateStatus(state, '');
+       });
     
       builder.addCase(updateRequestStatus.rejected, (state, action) => {
         console.log('Rejected');
-        state.loading = false;
+        state.changeStatusLoading = false;
         updateStatus(state, '');
     });
 

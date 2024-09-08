@@ -12,14 +12,16 @@ import {
 import { globalStyles } from '../../styles/global'
 import { useAppDispatch } from '../../app/store'
 import { useTranslation } from 'react-i18next';
-import { getActiveRequests} from '../requests/RequestSlice'
+import { getActiveRequests } from '../requests/RequestSlice'
 import { useSelector, RootStateOrAny } from 'react-redux'
 import { getBusinesses } from '../business/BusinessSlice'
 import FloatBtn from '../../components/FloatBtn'
 import { PieChart } from 'react-native-chart-kit';
 import { getProviderRequestVsSubservice } from './ChartSlice'
 import { selectLanguage } from '../../costants/languangeSlice'
-
+import CustomBackground from '../../components/CustomBgBottomSheet'
+import Icon from 'react-native-vector-icons/Ionicons';
+import { getStatusBackgroundColor } from '../../utils/utilts'
 
 const Home = ({ navigation }: any) => {
 
@@ -53,11 +55,16 @@ const Home = ({ navigation }: any) => {
         (state: RootStateOrAny) => state.charts,
     );
 
+    const getStatusTranslation = (status: string) => {
+        return t(`screens:${status}`);
+      };
+    
+
 
     const statusBarColor = colors.primary
 
 
-   // console.log('providerServiceRequests',providerServiceRequests);
+    // console.log('providerServiceRequests',providerServiceRequests);
 
 
     useEffect(() => {
@@ -98,7 +105,7 @@ const Home = ({ navigation }: any) => {
     const labels = providerServiceRequests?.map(entry => {
         const serviceName = JSON.parse(entry.sub_service_name); // Parse the JSON string
         return selectedLanguage === 'en' ? serviceName?.en : serviceName?.sw;
-      });
+    });
     const dataset = providerServiceRequests?.map(entry => entry.request_count);
 
 
@@ -106,48 +113,57 @@ const Home = ({ navigation }: any) => {
     const getRandomColor = () => {
         const baseColors = ['#82D0D4'];
         const randomBaseColor = baseColors[Math.floor(Math.random() * baseColors.length)];
-      
+
         // Calculate variations around the base color
         const variationAmount = 50; // Adjust this value for the range of variation
         const variation = () => Math.floor(Math.random() * variationAmount * 2) - variationAmount;
-      
+
         // Convert the base color to RGB
         const hexToRgb = (hex) => hex.match(/[A-Za-z0-9]{2}/g).map((v) => parseInt(v, 16));
         const [baseRed, baseGreen, baseBlue] = hexToRgb(randomBaseColor);
-      
+
         // Generate a new color with variations
         const randomColor = `rgb(${baseRed + variation()}, ${baseGreen + variation()}, ${baseBlue + variation()})`;
-      
+
         return randomColor;
-      };
+    };
 
     const truncateLabel = (label, maxLength) => {
-        return label.length > maxLength ? label.substring(0, maxLength - 3) + '...' : label;
-      };
-  
+        return label?.length > maxLength ? label?.substring(0, maxLength - 3) + '...' : label;
+    };
+
     // Calculate total requests
     const totalRequests = dataset?.reduce((total, count) => total + count, 0);
-  
+
     // Create data with percentages
     const dataWithPercentage = dataset?.map((value, index) => {
-      const percentage = ((value / totalRequests) * 100).toFixed(2); // Calculate percentage
-      return {
-        name: `${truncateLabel(labels[index], 15)} (${percentage}%)`,
-        value,
-        color: getRandomColor(),
-      };
+        const percentage = ((value / totalRequests) * 100).toFixed(2); // Calculate percentage
+        return {
+            name: `${truncateLabel(labels[index], 15)} (${percentage}%)`,
+            value,
+            color: getRandomColor(),
+        };
     });
 
 
-    
-  
-  
+
+
+
     // Chart configuration
     const chartConfig = {
-        backgroundGradientFrom: '#fff',
-        backgroundGradientTo: '#fff',
-        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-      };
+        backgroundGradientFrom: isDarkMode ? colors.black : colors.white,  // Background color for gradient start
+        backgroundGradientTo: isDarkMode ? colors.black : colors.white,    // Background color for gradient end
+        color: (opacity = 1) => isDarkMode ? `rgba(255, 255, 255, ${opacity})` : `rgba(0, 0, 0, ${opacity})`, // Line color
+        labelColor: (opacity = 1) => isDarkMode ? `rgba(255, 255, 255, ${opacity})` : `rgba(0, 0, 0, ${opacity})`, // Axis labels color
+        propsForLabels: {
+            fontFamily: 'Prompt-Regular', // Using a common bold font family for both modes for better visibility
+            fill: isDarkMode ? '#fff' : '#000', // Direct color setting for labels
+        },
+        propsForBackgroundLines: {
+            stroke: isDarkMode ? '#fff' : '#000', // Background lines color based on mode
+            strokeWidth: 0.5,
+        },
+    };
 
     return (
         <>
@@ -164,7 +180,7 @@ const Home = ({ navigation }: any) => {
                 >
 
                     <BasicView>
-                      
+
                         <View style={{
                             flexDirection: 'row',
                             flexWrap: 'wrap',
@@ -189,31 +205,33 @@ const Home = ({ navigation }: any) => {
                     </BasicView>
 
                     <ScrollView horizontal={true}>
-                        
-                    <View style={styles.chart}>
-                    <Text style={{fontSize:18,color:colors.alsoGrey}}>{t('screens:requestsVsSubserices')}</Text>
-                       {providerServiceRequests?
-                        (   <PieChart
-                            data={dataWithPercentage}
-                            width={screenWidth}
-                            height={screenHeight*0.3}
-                            chartConfig={chartConfig}
-                            accessor="value"
-                            backgroundColor="transparent"
-                            paddingLeft="10"
-                           
-                            absolute
-                            style={{ marginVertical: 8, borderRadius:30}}
-                        />):
-                       <Text>{t('screens:noDataAvailable')}</Text>}
-                     
-                    </View>
+
+                        <View style={styles.chart}>
+                            <Text style={{ fontSize: 16, color: colors.alsoGrey,fontFamily: 'Prompt-Regular', }}>{t('screens:requestsVsSubserices')}</Text>
+                            {providerServiceRequests ? (
+    <PieChart
+        data={dataWithPercentage}
+        width={screenWidth}
+        height={screenHeight * 0.3}
+        chartConfig={chartConfig}
+        accessor="value"
+        backgroundColor="transparent"
+        paddingLeft="10"
+        absolute
+        style={{ marginVertical: 8, borderRadius: 30 }}
+    />
+) : (
+    <Text style={{color:isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Regular',}}>{t('screens:noDataAvailable')}</Text>
+)}
+
+                        </View>
                     </ScrollView>
                 </ScrollView>
             </SafeAreaView>
             <BottomSheetModalProvider>
                 <View style={styles.container}>
                     <BottomSheetModal
+                        backgroundComponent={CustomBackground}
                         ref={bottomSheetModalRef}
                         index={1}
                         snapPoints={snapPoints}
@@ -222,11 +240,11 @@ const Home = ({ navigation }: any) => {
                         <BottomSheetScrollView
                             contentContainerStyle={styles.contentContainer}
                         >
-                            <Text style={styles.title}>{sheetTitle}</Text>
+                            <Text style={[styles.title, { color: isDarkMode ? colors.white : colors.black }]}>{sheetTitle}</Text>
 
                             {sheetTitle === 'Total requests' || sheetTitle === 'Maombi yote' ? (
                                 activeRequests?.map(item => (
-                                    <TouchableOpacity style={styles.bottomView}
+                                    <TouchableOpacity style={[styles.bottomView, { backgroundColor: isDarkMode ? colors.darkModeBottomSheet : colors.whiteBackground }]}
                                         onPress={() => {
                                             navigation.navigate('Requested services', {
                                                 request: item
@@ -234,22 +252,41 @@ const Home = ({ navigation }: any) => {
                                         }}
                                         key={item.id}
                                     >
-                                        <Text style={{ color: colors.primary }}>{selectedLanguage=='en' ?item?.service?.name?.en:item?.service?.name?.sw}</Text>
-                                        <Text style={{ paddingVertical: 10, color: colors.black }}>{item?.client?.name}</Text>
-                                        <View style={{ marginRight: '35%', color: colors.alsoGrey }}><Text >{item?.request_time}</Text></View>
+                                        <Text style={{ color: isDarkMode ? colors.white : colors.secondary, fontFamily: 'Prompt-Bold', fontSize: 15 }}>
+                                        <Icon name="business" size={20} color={isDarkMode ? colors.white : colors.darkGrey} />
+                                          {' '}  {selectedLanguage == 'en' ? item?.service?.name?.en : item?.service?.name?.sw}</Text>
+                                        {item?.request_number && (
+                                            <View style={styles.header}>
+                                                <Text style={[styles.requestNumber, { color: isDarkMode ? colors.white : colors.secondary }]}>
+                                                    {`#${item.request_number}`}
+                                                </Text>
+                                            </View>
+                                        )}
+                                        <Text style={{ paddingVertical: 10, color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Regular' }}>
+                                        <Icon name="person" size={15} color={isDarkMode ? colors.white : colors.darkGrey} />
+                                           {' '} {item?.client?.name}</Text>
+                                           <View style={{flexDirection:'row',justifyContent:'space-between',marginBottom:5}}>
+                                           <View><Text style={{ color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Regular', fontSize: 13 }}>{item?.request_time}</Text></View>
+                                        <View style={[styles.status, { backgroundColor: getStatusBackgroundColor(item?.statuses[item?.statuses.length - 1].status) }]}>
+                                        <Text style={styles.statusText}>
+                                  {getStatusTranslation(item?.statuses[item?.statuses.length - 1].status)}</Text>
+                                        </View>
+                                           </View>
                                     </TouchableOpacity>
                                 ))
 
                             ) : (
                                 businesses?.map(item => (
-                                    <TouchableOpacity style={styles.textContainer}
+                                    <TouchableOpacity style={[styles.bottomViewBusiness, { backgroundColor: isDarkMode ? colors.darkModeBottomSheet : colors.whiteBackground }]}
                                         onPress={() => navigation.navigate('Business Details', {
                                             service: item
                                         })}
                                         key={item.id}
                                     >
-                                        <Text style={styles.categoryService}>{selectedLanguage=='en' ?item?.service?.name?.en:item?.service?.name?.sw}</Text>
-                                        <Text style={styles.subservice}>{selectedLanguage=='en' ?item?.service?.category?.name?.en:item?.service?.category?.name?.sw}</Text>
+                                        <Text style={[styles.categoryService, { color: isDarkMode ? colors.white : colors.secondary }]}>
+                                            <Icon name="business" size={20} color={isDarkMode ? colors.white : colors.darkGrey} />
+                                            {' '}  {selectedLanguage == 'en' ? item?.service?.name?.en : item?.service?.name?.sw}</Text>
+                                        <Text style={[styles.subservice, { color: isDarkMode ? colors.white : colors.black }]}>{selectedLanguage == 'en' ? item?.service?.category?.name?.en : item?.service?.category?.name?.sw}</Text>
                                     </TouchableOpacity>
                                 ))
                             )}
@@ -286,17 +323,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginVertical: 8,
         borderRadius: 20,
-        backgroundColor:colors.white,
-       
+        backgroundColor:colors.white
     },
     contentContainer: {
         marginHorizontal: 10
     },
     title: {
         alignSelf: 'center',
-        fontSize: 15,
-        fontWeight: 'bold',
-        color: colors.black
+        fontSize: 16,
+        fontFamily: 'Prompt-Bold',
+        marginVertical: 10,
     },
     listView: {
         marginHorizontal: 5,
@@ -324,31 +360,57 @@ const styles = StyleSheet.create({
     badgeText: {
         color: colors.white
     },
-    textContainer: {
-        paddingVertical: 5,
-        margin: 5,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.alsoGrey
-    },
+
     categoryService: {
-        textTransform: 'uppercase',
-        color: colors.secondary
+        fontFamily: 'Prompt-Bold',
     },
     service: {
         paddingTop: 5
     },
     subservice: {
         paddingTop: 5,
-        fontWeight: 'bold',
-        color: colors.black
+        fontFamily: 'Prompt-Regular',
     },
 
     bottomView: {
-        paddingVertical: 5,
-        margin: 5,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.alsoGrey
+        paddingVertical: 10,
+        margin: 8,
+        borderRadius: 8,
+        elevation: 2,
+        paddingRight: 10
     },
+
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    requestNumber: {
+        fontFamily: 'Prompt-Regular',
+        fontSize: 13,
+        marginLeft: 5,
+    },
+
+    status: {
+        paddingVertical: 3,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight:10
+      },
+      statusText: {
+        color: colors.white,
+        paddingHorizontal: 10,
+        fontFamily: 'Prompt-Bold',
+        fontSize: 14,
+      },
+
+    bottomViewBusiness: {
+        paddingVertical: 10,
+        margin: 8,
+        borderRadius: 8,
+        elevation: 2,
+        paddingRight: 10
+    }
 })
 
 export default Home

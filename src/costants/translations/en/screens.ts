@@ -91,7 +91,6 @@ export default {
   cancel: 'Cancel',
   ok: 'Ok',
   removeVideo: 'Remove Video',
-  requestFail: 'Request failed, please try again later',
   chooseCategoryServiceSubService: 'Please make sure you have selected category, Service or Sub service',
   chooseSubserviceOrEnterName: 'Please, choose subservice or enter new',
   createdSuccessfully: 'Created Successfully',
@@ -102,11 +101,17 @@ export default {
   deleteEmployee: 'Delete Employee',
   requestTransferToEmployee: 'This request is tranfered to ',
   Requested: 'Requested',
+  Accept:'Accept',
   Accepted: 'Accepted',
+  Cancel:'Cancel',
   Cancelled: 'Cancelled',
+  Reject:'Reject',
   Rejected: 'Cancelled',
+  comfirm:'Confirm',
   Comfirmed: 'Confirmed',
+  Complete:'Complete',
   Completed: 'Completed',
+  Approve:'Approve',
   Approved: 'Approved',
   Uploaded: 'Uploaded(Waiting Approval)',
   Pending: 'Pending(Waiting Approval)',
@@ -185,5 +190,15 @@ export default {
   noNotificationFound:'No notifications found',
    professionChange:'Profession Change', 
    changeProfessionBody:'You are about to change your profession. Do you want to continue?',
-mediaPermissionNotGranted: 'Uploading will failed: necessary permissions are not granted.'
+mediaPermissionNotGranted: 'Uploading will failed: necessary permissions are not granted.',
+YouHavePendingProffessionRequest:'You have pending profession request',
+pictureUpdatedSuccessfully:'Picture updated successfully',
+requestFail: 'Request failed, please try again later',
+accountNumber:'Account Number',
+confirmAction:'Confirm Action',
+areYouSureYouwantTo:'Are you sure you want to',
+accountExists:'Account Exist',
+fileTooLarge:'File too large maximum is 10MB'
+
+
 };

@@ -33,6 +33,7 @@ import GooglePlacesInput from '../../components/GooglePlacesInput';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { getProfessions } from '../professionsSlice';
 import ToastMessage from '../../components/ToastMessage';
+import ToastNotification from '../../components/ToastNotification/ToastNotification';
 
 const EditAccount = ({
   route,
@@ -256,7 +257,8 @@ const EditAccount = ({
       .unwrap()
       .then(result => {
         if (result.status) {
-          ToastAndroid.show(`${t('screens:updatedSuccessfully')}`, ToastAndroid.LONG);
+    
+          ToastNotification(`${t('screens:updatedSuccessfully')}`,'success','long')
           navigation.navigate('Account', {
             screen: 'Account',
             message: message
@@ -322,7 +324,10 @@ const EditAccount = ({
               }
   
               try {
-                updateProvider(data);
+              const respose=  updateProvider(data);
+
+              console.log('respose344',respose);
+
               } catch (error) {
                 console.error('Error validating NIDA:', error);
                 setShowToast(true);
@@ -707,7 +712,7 @@ const EditAccount = ({
                   t('screens:noBirthdateChoosen')
               }
               editable={false}
-              style={{ color: isDarkMode ? 'white' : 'black', fontSize: 20 }}
+              style={{ color: isDarkMode ? 'white' : 'black', fontSize: 16, fontFamily: 'Prompt-Regular', }}
             />
 
             <Modal isVisible={isDatePickerVisible}>
@@ -785,6 +790,8 @@ const EditAccount = ({
               {profesionsLoading ? <View style={styles.loading}>
                 <ActivityIndicator size='large' color={colors.primary} />
               </View> : <></>}
+
+              
               <DropDownPicker
                 containerStyle={{
                   width: WIDTH / 1.1,
@@ -801,6 +808,21 @@ const EditAccount = ({
                 setValue={setDropDownValue}
 
               />
+                         {
+  user?.provider?.pending_profession ? (
+    <Text style={{ color: 'orange', marginBottom: 10 }}>
+      {t('screens:YouHavePendingProffessionRequest')}.
+      {' '}
+      <Text style={{fontWeight:'bold'}}>
+        "{selectedLanguage === 'en' 
+          ? user?.provider?.pending_profession?.name?.en 
+          : user?.provider?.pending_profession?.name?.sw}"
+      </Text>
+    </Text>
+  ) : (
+    <></>
+  )
+}
 
             </View>
           </BasicView>

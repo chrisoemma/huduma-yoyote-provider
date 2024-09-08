@@ -1,146 +1,105 @@
 import React from 'react';
-import { FlatList, View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { FlatList, View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { colors } from '../utils/colors';
 import { useTranslation } from 'react-i18next';
-import { combineSubServices } from '../utils/utilts';
 import { selectLanguage } from '../costants/languangeSlice';
 import { useSelector } from 'react-redux';
 
-const ContentServiceList = ({ selectedProviderSubServices, subServices,providerSubServices, toggleSubService, selectedSubServices,navigation,screen }: any) => {
+const ContentServiceList = ({ requestSubService,navigation }: any) => {
 
   const { t } = useTranslation();
-
   const selectedLanguage = useSelector(selectLanguage);
-  
-  const RenderItem = ({type, item }: any) => (
-      
 
+  const { isDarkMode } = useSelector(
+    (state: RootStateOrAny) => state.theme,
+);
+
+  const RenderItem = ({ type, item, }: any) => (
     <TouchableOpacity 
-    style={styles.contentItem}
-    onPress={()=>{}}
+      style={styles.contentItem}
+      onPress={() => {
+        navigation.navigate('providerSubServiceDetails', {
+          item: item,
+        });
+      }}
     >
-     
-      <View style={{flexDirection:'row'}}>
-       
-      <Image
-        source={
-          type=="subService"? 
-          { uri:item?.assets[0]?.img_url || item?.default_images[0]?.img_url }
-           :
-           {uri: item?.assets[0]?.img_url}
-        }
-      
-        style={{
-          resizeMode: 'cover',
-          width: 90,
-          height:90,
-          borderRadius: 10,
-        }}
-        
-      />
-     {type=="subService"?(
-      <View style={styles.textContainer}>
-      <Text style={styles.categoryService}>{ item?.provider_sub_list?.name || selectedLanguage=='en'? item?.name?.en:item?.name?.sw}</Text>
-      <Text style={styles.subservice}>{selectedLanguage=='en'? item?.service?.category?.name?.en:item?.service?.category?.name?.sw}</Text>
-      <Text style={{color:colors.black}}>{item?.provider_sub_list?.description || selectedLanguage=='en'? item.description?.en:item.description?.sw}</Text>
+      <View style={[styles.itemContent,{ backgroundColor: isDarkMode ? colors.darkModeBottomSheet : colors.whiteBackground }]}>
+        <Image
+          source={
+            type === "subService"
+              ? { uri: item?.sub_service?.assets?.[0]?.img_url || item?.sub_service?.default_images?.[0]?.img_url }
+              : { uri: item?.provider_sub_service?.assets?.[0]?.img_url }
+          }
+          style={styles.image}
+        />
+        <View style={styles.textContainer}>
+          <Text style={[styles.categoryService,{ color: isDarkMode ? colors.white : colors.secondary}]}>
+            {item?.provider_sub_list?.name || (selectedLanguage === 'en' ? item?.sub_service?.name?.en : item?.sub_service?.name?.sw) || item?.provider_sub_service?.name}
+          </Text>
+          <Text style={[styles.description,{ color: isDarkMode ? colors.white : colors.black 
+          }]}
+            numberOfLines={2}
+             ellipsizeMode="tail"
+          >
+            {item?.provider_sub_list?.description || (selectedLanguage === 'en' ? item?.sub_service?.description?.en : item?.sub_service?.description?.sw)}
+          </Text>
+        </View>
       </View>
-      ):( <View style={styles.textContainer}>
-        <Text style={styles.categoryService}>{item?.name}</Text>
-        <Text style={styles.subservice}>{selectedLanguage=='en'? item?.service?.category?.name?.en:item?.service?.category?.name?.sw}</Text>
-        <Text style={{color:colors.black}}>{item?.description}</Text>
-        </View>)}
-      </View>
-      {screen=="new"?
-      <TouchableOpacity   style={[
-          styles.addBtn,
-          {
-            backgroundColor: selectedSubServices.includes(item?.id) || selectedProviderSubServices.includes(item?.id)
-              ? colors.dangerRed
-              : colors.secondary,
-          },
-        ]} 
-      onPress={() => toggleSubService(type,item.id)}>
-  <Text style={{ color: colors.white }}>
-    {selectedSubServices.includes(item?.id) || selectedProviderSubServices.includes(item?.id) ? `${t('screens:remove')}` : `${t('screens:add')}`}
-  </Text>
-</TouchableOpacity>
-:<View />}
     </TouchableOpacity>
-  )
+  );
 
   return (
     <View style={styles.container}>
-     {subServices?.map((item)=>(
-       
-      <RenderItem  
-      item={item} 
-      type="subService" 
-      key={item?.id.toString()}
-      />
-     ))
-     }
-
-{providerSubServices?.map((item)=>(
-    
-       <RenderItem  
-       item={item}
-       type="providerSubService" 
-       key={item?.id.toString()}
-       />
-      ))
-      }
-   
+      {requestSubService?.map((item) => (
+        <RenderItem  
+          item={item}
+          type="subService" 
+          key={item?.id.toString()}
+        />
+      ))}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-    container: {
-       flex: 1,
-        paddingTop: 20,
-        paddingVertical: 20,
-      },
-      contentContainer: {
-       marginHorizontal:5
-      },
-      contentItem: {
-        flex:1,
-       padding: 10,
-       margin:2,
-       borderTopWidth:0.5,
-      },
-      textContainer:{
-        margin:5
-      },
-      categoryService:{
-        textTransform: 'uppercase',
-        color:colors.secondary
-      },
-      service:{
-        paddingTop:5
-      },
-      subservice:{
-        paddingTop:5,
-        fontWeight:'bold',
-        color:colors.black
-      },
-      desc:{
-       
-      },
-      addBtn:{
-      alignSelf:'flex-end',
-      padding:8,
-      borderRadius:8,
-      backgroundColor:colors.secondary
-      },
-      removeBtn: {
-        alignSelf: 'flex-end',
-        padding: 8,
-        borderRadius: 8,
-        backgroundColor: colors.dangerRed,
-        marginTop: 5,
-      },
-      
+  container: {
+    flex: 1,
+    padding:5,
+  },
+  contentItem: {
+    marginBottom: 15, // Space between items
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    elevation: 4, // Elevation for shadow effect
+    overflow: 'hidden', // Ensure the border radius is applied to the image
+  },
+  itemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+  },
+  image: {
+    width: 90,
+    height: 90,
+    borderRadius: 10,
+    marginRight: 15,
+    resizeMode: 'cover',
+  },
+  textContainer: {
+    flex: 1,
+  },
+  categoryService: {
+    fontFamily: 'Prompt-SemiBold',
+    fontSize: 14,
+    color: colors.secondary,
+    marginBottom: 15,
+    textTransform: 'uppercase', 
+  },
+  description: {
+    fontFamily: 'Prompt-Regular',
+    fontSize: 13,
+    color: colors.black,
+  },
 });
 
 export default ContentServiceList;

@@ -83,7 +83,7 @@ const CustomDrawerContent = (props: any) => {
       },
       {
         name: 'Employees',
-        icon: 'users-cog',
+        icon: 'users',
         language: 'employees',
         screen: 'Employees',
       },
@@ -205,7 +205,7 @@ const CustomDrawerContent = (props: any) => {
                   size={25}
                 />
               </DrawerIconContainer>
-              <Text style={{ color: isDarkMode ? colors.white : colors.black }}>
+              <Text style={{ color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Regular', }}>
                 {t(`navigate:${item.language}`)}
               </Text>
             </DrawerRow>
@@ -230,6 +230,7 @@ const CustomDrawerContent = (props: any) => {
             <Text
               style={{
                 color: isDarkMode ? colors.white : colors.black,
+                fontFamily: 'Prompt-Regular',
               }}>
               {t('navigate:subscriptions')}
             </Text>
@@ -245,7 +246,7 @@ const CustomDrawerContent = (props: any) => {
         >
           <DrawerIconContainer>
             <FontAwesome5
-              name="Notifications"
+              name="bell"
               color={isDarkMode ? colors.white : colors.alsoGrey}
               size={25}
             />
@@ -253,6 +254,7 @@ const CustomDrawerContent = (props: any) => {
           <Text
             style={{
               color: isDarkMode ? colors.white : colors.black,
+              fontFamily: 'Prompt-Regular',
             }}>
             {t('screens:notifications')}
           </Text>
@@ -274,6 +276,7 @@ const CustomDrawerContent = (props: any) => {
           <Text
             style={{
               color: isDarkMode ? colors.white : colors.black,
+              fontFamily: 'Prompt-Regular',
             }}>
             {t('navigate:whatsapp')}
           </Text>
@@ -295,6 +298,7 @@ const CustomDrawerContent = (props: any) => {
           <Text
             style={{
               color: isDarkMode ? colors.white : colors.black,
+              fontFamily: 'Prompt-Regular',
             }}>
             {t('navigate:support')}
           </Text>
@@ -316,6 +320,7 @@ const CustomDrawerContent = (props: any) => {
           <Text
             style={{
               color: isDarkMode ? colors.white : colors.black,
+              fontFamily: 'Prompt-Regular',
             }}>
             {t('navigate:logout')}
           </Text>

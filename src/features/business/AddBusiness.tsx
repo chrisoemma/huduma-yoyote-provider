@@ -66,7 +66,6 @@ const AddBusiness = ({ route, navigation }: any) => {
 
   useEffect(() => {
     const existingBusiness = route?.params?.business;
-    // console.log('existingBusiness', existingBusiness.service.category_id);
     if (existingBusiness) {
       setIsEditMode(true);
       setCategoryValue(String(existingBusiness?.service?.category_id))
@@ -156,7 +155,7 @@ const AddBusiness = ({ route, navigation }: any) => {
     (state: RootStateOrAny) => state.theme,
   );
 
-
+  const stylesGlobal = globalStyles();
 
   const removeImage = () => {
     setImage(null)
@@ -268,131 +267,185 @@ const AddBusiness = ({ route, navigation }: any) => {
 
 
 
+  // const onSubmit = useCallback(async (data) => {
+  //   data.provider_id = user.provider.id;
+  //   data.category_id = value;
+  //   data.service_id = ServiceValue;
+  //   data.sub_services = checkedSubServices;
+  
+  //   // Function to handle the completion of file uploads
+  //   const handleUploadFinish = () => {
+  //     // Proceed with creating or updating business once all uploads are finished
+  //     if (value == null || ServiceValue == null || checkedSubServices.length < 1) {
+  //       setDisappearMessage(`${t('screens:chooseCategoryServiceSubService')}`);
+  //       if (!showToast) {
+  //         setShowToast(true);
+  //         showToastMessage(t('screens:errorOccured'));
+  //       }
+  //     } else {
+  //       if (isEditMode && data?.img_url == null) {
+  //         data.img_url = existingBusiness?.img_url ? existingBusiness?.img_url : existingBusiness?.service?.images[0]?.img_url;
+  //         console.log('Edit mode', data.img_url);
+  //       }
+  
+  //       if (isEditMode && data?.video_url == null) {
+  //         data.video_url = existingBusiness?.video_url ? existingBusiness?.video_url : null;
+  //       }
+  
+  //       console.log('Business creation', data);
+  
+  //       // Call the create or update function after handling files
+  //       dispatch(isEditMode ? updateBusiness({ data, businessId: existingBusiness.id }) : createBusiness(data))
+  //         .unwrap()
+         // .then(result => {
+  //           if (result.status) {
+  //             ToastNotification(`${t('screens:updatedSuccessfully')}`, 'success', 'long');
+  //             navigation.navigate('My Businesses', {
+  //               screen: 'My Businesses',
+  //             });
+  //           } else {
+  //             if (result.error) {
+  //               setDisappearMessage(result.error);
+  //               if (!showToast) {
+  //                 setShowToast(true);
+  //                 showToastMessage(t('screens:errorOccured'));
+  //               }
+  //             } else {
+  //               setDisappearMessage(`${t('screens:requestFail')}`);
+  //               if (!showToast) {
+  //                 setShowToast(true);
+  //                 showToastMessage(t('screens:errorOccured'));
+  //               }
+  //             }
+  //           }
+  //         }).catch(rejectedValueOrSerializedError => {
+  //           console.log('error');
+  //           console.log(rejectedValueOrSerializedError);
+  //         });
+  //     }
+  //   };
+  
+  //   // Function to upload a file
+  //   const uploadFileAndHandleFinish = async (file, storagePath, isImage) => {
+  //     const fileExtension = file[0].type.split("/").pop();
+  //     const uuid = makeid(10);
+  //     const fileName = `${uuid}.${fileExtension}`;
+  //     const storageRef = firebase.storage().ref(`${storagePath}/${fileName}`);
+  //     const fileUri = await getPathForFirebaseStorage(file[0].uri);
+  
+  //     try {
+  //       setUploadingDoc(true);
+  //       const task = storageRef.putFile(fileUri);
+  
+  //       task.on(
+  //         firebase.storage.TaskEvent.STATE_CHANGED,
+  //         (snapshot) => {
+  //           console.log("snapshot state: " + snapshot.state);
+  //           if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
+  //             storageRef.getDownloadURL().then((downloadUrl) => {
+  //               if (isImage) {
+  //                 data.img_url = downloadUrl;  // Set image URL
+  //               } else {
+  //                 data.video_url = downloadUrl;  // Set video URL
+  //               }
+  //               setUploadingDoc(false);
+  //               handleUploadFinish();
+  //             });
+  //           }
+  //         },
+  //         (error) => {
+  //           console.warn(error);
+  //           setUploadingDoc(false);
+  //           handleUploadFinish();
+  //         }
+  //       );
+  //     } catch (error) {
+  //       console.warn(error);
+  //       setUploadingDoc(false);
+  //       handleUploadFinish();
+  //     }
+  //   };
+  
+  //   // Upload image if available
+  //   if (image !== null) {
+  //     console.log('Uploading image', image);
+  //     await uploadFileAndHandleFinish(image, 'businesses/images/', true);
+  //   }
+  
+  //   // Upload video if available
+  //   if (video !== null) {
+  //     console.log('Uploading video', video);
+  //     await uploadFileAndHandleFinish(video, 'businesses/videos/', false);
+  //   }
+  
+  //   // If no image or video, just finish
+  //   if (image === null && video === null) {
+  //     handleUploadFinish();
+  //   }
+  // }, [value, ServiceValue, checkedSubServices, image, video, isEditMode, existingBusiness, dispatch, t, navigation]);
+  
   const onSubmit = useCallback(async (data) => {
-    data.provider_id = user.provider.id;
-    data.category_id = value;
-    data.service_id = ServiceValue;
-    data.sub_services = checkedSubServices;
+    const formData = new FormData();
+    formData.append('provider_id',user.provider.id);
+    formData.append('category_id', value)
+    formData.append('service_id',ServiceValue)
+    formData.append('sub_services' , checkedSubServices);
+    if(video){
+    formData.append('video_file',video[0])
+    }
+   if(image){
+    formData.append('image_file',image[0]);
+   }
+    
+    
 
-
-    let mediaUploadHandled = false;
-    const handleUploadFinish = () => {
-
-      if (!mediaUploadHandled) {
-        mediaUploadHandled = true;
-
-        if (value == null || ServiceValue == null || checkedSubServices.length < 1) {
-
-          setDisappearMessage(`${t('screens:chooseCategoryServiceSubService')}`);
-          if (!showToast) {
-            setShowToast(true)
-            showToastMessage(t('screens:errorOccured'));
-          }
-
-        } else {
-          if (isEditMode && data?.img_url == null) {
-
-            data.img_url = existingBusiness?.img_url ? existingBusiness?.img_url : existingBusiness?.service?.images[0]?.img_url
-            console.log('Edit mode', data.img_url);
-          }
-
-          if (isEditMode && data?.video_url == null) {
-            data.video_url = existingBusiness?.video_url ? existingBusiness?.video_url : null
-          }
-
-          dispatch(isEditMode ? updateBusiness({ data, businessId: existingBusiness.id }) : createBusiness(data))
-            .unwrap()
-            .then(result => {
-              if (result.status) {
-                ToastAndroid.show(`${isEditMode ? t('screens:updatedSuccessfully') : t('screens:businessAddedSuccessfully')}`, ToastAndroid.SHORT);
-                navigation.navigate('My Businesses', {
-                  screen: 'My Businesses',
-                });
-              } else {
-
-                if (result.error) {
-
-                  setDisappearMessage(result.error
-                  );
-
-                  if (!showToast) {
-                    setShowToast(true)
-                    showToastMessage(t('screens:errorOccured'));
-                  }
-
-                } else {
-                  setDisappearMessage(`${t('screens:requestFail')}`);
-                  if (!showToast) {
-                    setShowToast(true)
-                    showToastMessage(t('screens:errorOccured'));
-                  }
+         if (value == null || ServiceValue == null || checkedSubServices.length < 1) {
+          ToastNotification(`${t('screens:chooseCategoryServiceSubService')}`,'danger','long');
+        
+        }else{
+          if (isEditMode && image==null) {
+            //no new image uploaded
+            formData.append('image_url', existingBusiness?.img_url ? existingBusiness?.img_url : existingBusiness?.service?.images[0]?.img_url)
+        }
+  
+        if (isEditMode && video==null) {
+          //no new vide uploaded
+          formData.append('video_url',existingBusiness?.video_url ? existingBusiness?.video_url : null)
+        }
+        console.log('formDataaa',formData)
+          dispatch(isEditMode ? updateBusiness({ data:formData, businessId: existingBusiness.id }) : createBusiness(formData))
+          .unwrap()
+         .then(result => {
+            if (result.status) {
+              ToastNotification(`${t('screens:updatedSuccessfully')}`, 'success', 'long');
+              navigation.navigate('My Businesses', {
+                screen: 'My Businesses',
+              });
+            } else {
+              if (result.error) {
+                setDisappearMessage(result.error);
+                if (!showToast) {
+                  setShowToast(true);
+                  showToastMessage(t('screens:errorOccured'));
                 }
-
+              } else {
+                setDisappearMessage(`${t('screens:requestFail')}`);
+                if (!showToast) {
+                  setShowToast(true);
+                  showToastMessage(t('screens:errorOccured'));
+                }
               }
-            }).catch(rejectedValueOrSerializedError => {
-              console.log('error');
-              console.log(rejectedValueOrSerializedError);
-            });
+            }
+          }).catch(rejectedValueOrSerializedError => {
+            console.log('error');
+            console.log(rejectedValueOrSerializedError);
+          });
+
 
         }
-      }
-    };
 
-    const uploadFileAndHandleFinish = async (file, storagePath) => {
-      const fileExtension = file[0].type.split("/").pop();
-      const uuid = makeid(10);
-      const fileName = `${uuid}.${fileExtension}`;
-      const storageRef = firebase.storage().ref(`${storagePath}/${fileName}`);
-
-      const fileUri = await getPathForFirebaseStorage(file[0].uri);
-
-      try {
-
-        setUploadingDoc(true);
-        storageRef.putFile(fileUri).on(
-          firebase.storage.TaskEvent.STATE_CHANGED,
-          (snapshot: any) => {
-            console.log("snapshot state: " + snapshot.state);
-            if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
-              storageRef.getDownloadURL().then((downloadUrl: any) => {
-                if (file === image) {
-
-                  data.img_url = downloadUrl;
-                } else if (file === video) {
-                  data.video_url = downloadUrl;
-                }
-                setUploadingDoc(false);
-
-                // Check if both image and video uploads are complete
-                handleUploadFinish();
-              });
-            }
-          },
-          (error) => {
-            unsubscribe();
-          }
-        );
-
-      } catch (error) {
-        console.warn(error);
-      }
-    };
-
-
-
-    if (image !== null) {
-      await uploadFileAndHandleFinish(image, 'businesses/images/');
-    }
-    if (video !== null) {
-      await uploadFileAndHandleFinish(video, 'businesses/videos/');
-    }
-    if (image === null && video === null) {
-      handleUploadFinish();
-    }
-  }, [value, ServiceValue, checkedSubServices, image, video, isEditMode, existingBusiness, dispatch, t, navigation]);
-
-
-  const stylesGlobal = globalStyles();
+  },[value, ServiceValue, checkedSubServices, image, video, isEditMode, existingBusiness, dispatch, t, navigation])
+  
 
   return (
     <SafeAreaView style={stylesGlobal.scrollBg}>
@@ -410,7 +463,7 @@ const AddBusiness = ({ route, navigation }: any) => {
             searchable={true}
             zIndex={6000}
             placeholder={t('screens:selectCategory')}
-            listMode="SCROLLVIEW"
+            listMode="MODAL"
             open={open}
             value={value}
             items={items}
@@ -426,7 +479,7 @@ const AddBusiness = ({ route, navigation }: any) => {
           <DropDownPicker
             searchable={true}
             placeholder={t('screens:selectService')}
-            listMode="SCROLLVIEW"
+            listMode="MODAL"
             open={ServiceOpen}
             value={ServiceValue}
             items={ServiceItemsMemoized}
@@ -447,7 +500,11 @@ const AddBusiness = ({ route, navigation }: any) => {
                 fillColor={colors.secondary}
                 style={{ marginTop: 5 }}
                 unfillColor="#FFFFFF"
-                text={selectedLanguage == 'en' ? subservice?.name?.en : subservice?.name?.sw}
+                text={
+                  selectedLanguage === 'sw' && subservice?.name?.sw 
+                  ? subservice.name.sw 
+                  : subservice?.name?.en
+                }
                 iconStyle={{ borderColor: "red" }}
                 innerIconStyle={{ borderWidth: 2 }}
                 textStyle={{ fontFamily: "JosefinSans-Regular" }}
@@ -457,12 +514,12 @@ const AddBusiness = ({ route, navigation }: any) => {
                   if (isChecked) {
                     setCheckedSubServices(prevChecked => [...prevChecked, subservice.id]);
                   } else {
-                    console.log('executing this block')
+                    //console.log('executing this block')
                     setCheckedSubServices(prevChecked =>
                       prevChecked.filter(id => id !== subservice.id)
                     );
 
-                    console.log('checked sub servicesss', checkedSubServices)
+                   // console.log('checked sub servicesss', checkedSubServices)
                   }
                 }}
               />

@@ -13,6 +13,7 @@ import { useAppDispatch } from '../../app/store';
 import { BasicView } from '../../components/BasicView';
 import { useSelector } from 'react-redux';
 import { selectLanguage } from '../../costants/languangeSlice';
+import ToastNotification from '../../components/ToastNotification/ToastNotification';
 
 
 const EmployeeAccount = ({ route, navigation }: any) => {
@@ -109,7 +110,8 @@ const EmployeeAccount = ({ route, navigation }: any) => {
             .unwrap()
             .then(result => {
               if (result.status) {
-                ToastAndroid.show(`${t('screens:deletedSuccessfully')}`, ToastAndroid.SHORT);
+                ToastNotification(`${t('screens:deletedSuccessfully')}`,'success','long')
+                
                 navigation.navigate('Employees', {
                   screen: 'Employees',
                 });
@@ -184,9 +186,12 @@ const EmployeeAccount = ({ route, navigation }: any) => {
             }}
           />
         </View>
-        <Text style={{ color: isDarkMode ? colors.white : colors.black, fontWeight: 'bold', alignSelf: 'center' }}>{employee.name}</Text>
+        <Text style={{ color: isDarkMode ? colors.white : colors.black,  fontFamily: 'Prompt-Bold', alignSelf: 'center' }}>{employee.name}</Text>
         <View style={{marginLeft:10}}>
-        <Text style={{color: isDarkMode ? colors.white : colors.black,fontWeight:'bold'}}>{t('auth:phone')}</Text>
+        <Text style={{color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Bold'}}>{t('screens:accountNumber')}</Text>
+        <Text style={{color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Regular'}}>#{employee?.user?.reg_number}</Text>
+
+        <Text style={{color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Bold',}}>{t('auth:phone')}</Text>
           <TouchableOpacity style={{ flexDirection: 'row', marginBottom: 10 }}
             onPress={() => makePhoneCall(phoneNumber)}
           >
@@ -195,10 +200,10 @@ const EmployeeAccount = ({ route, navigation }: any) => {
               color={isDarkMode ? colors.white : colors.black}
               size={25}
             />
-            <Text style={{ paddingHorizontal: 10, color: isDarkMode ? colors.white : colors.black }}>{employee.phone}</Text>
+            <Text style={{ paddingHorizontal: 10, color: isDarkMode ? colors.white : colors.black,fontFamily: 'Prompt-Regular' }}>{employee.phone}</Text>
           </TouchableOpacity>
           
-               <Text style={{color: isDarkMode ? colors.white : colors.black,fontWeight:'bold'}}>{t('auth:nida')}</Text>
+               <Text style={{color: isDarkMode ? colors.white : colors.black,fontFamily: 'Prompt-Bold'}}>{t('auth:nida')}</Text>
 
                <TouchableOpacity style={{ flexDirection: 'row' }}
                >
@@ -207,7 +212,7 @@ const EmployeeAccount = ({ route, navigation }: any) => {
                    color={isDarkMode ? colors.white : colors.black}
                    size={25}
                  />
-                  <Text style={{color: isDarkMode ? colors.white : colors.black }}>{employee?.nida}</Text>
+                  <Text style={{color: isDarkMode ? colors.white : colors.black,fontFamily: 'Prompt-Regular' }}>{employee?.nida}</Text>
                </TouchableOpacity>
            
         </View>
@@ -215,7 +220,7 @@ const EmployeeAccount = ({ route, navigation }: any) => {
           <Divider />
         </View>
         <TouchableOpacity style={styles.status} onPress={handlePresentModalPress}>
-          <Text style={{ color: colors.white }}>{t('screens:requests')}</Text>
+          <Text style={{ color: colors.white,fontFamily: 'Prompt-Regular' }}>{t('screens:requests')}</Text>
         </TouchableOpacity>
       </View>
 

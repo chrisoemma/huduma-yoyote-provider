@@ -61,7 +61,7 @@ const PusherOnlineListener = ({remoteUserId}:any) => {
         const channel = pusher.subscribe({
           channelName: `private-user-online-status-${remoteUserId}`,
           onSubscriptionSucceeded: (data) => {
-            console.log('Subscription succeeded:', data);
+          //  console.log('Subscription succeeded:', data);
           },
           onSubscriptionError: (channelName, message, e) => {
             console.log(`onSubscriptionError: ${message} channelName: ${channelName} Exception: ${e}`);

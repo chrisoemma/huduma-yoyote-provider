@@ -2,7 +2,6 @@ import { View, Text, SafeAreaView, TouchableOpacity, StyleSheet, ToastAndroid, I
 import React, { useState, useEffect } from 'react'
 import { globalStyles } from '../../styles/global';
 import { colors } from '../../utils/colors';
-import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { BasicView } from '../../components/BasicView';
 import Button from '../../components/Button';
 import { ButtonText } from '../../components/ButtonText';
@@ -20,6 +19,7 @@ import RNFS from 'react-native-fs';
 import { TextAreaInputField } from '../../components/TextAreaInputField';
 import { selectLanguage } from '../../costants/languangeSlice';
 import ToastMessage from '../../components/ToastMessage';
+import ToastNotification from '../../components/ToastNotification/ToastNotification';
 
 const EditSubService = ({ route, navigation }: any) => {
 
@@ -216,12 +216,13 @@ const EditSubService = ({ route, navigation }: any) => {
           .unwrap()
           .then(result => {
             if (result.status) {
-              ToastAndroid.show(`${t('screens:updatedSuccessfully')}`, ToastAndroid.SHORT);
+            
+              ToastNotification(`${t('screens:updatedSuccessfully')}`,'success','long')
               navigation.navigate('My Businesses', {
                 screen: 'My Businesses',
               });
             } else {
-              setDisappearMessage(`${t('screens:requestFail')}`);
+              ToastNotification(`${t('screens:requestFail')}`,'danger','long')
               if(!showToast){
                 setShowToast(true)
                 showToastMessage(t('screens:errorOccured'));
@@ -246,19 +247,7 @@ const EditSubService = ({ route, navigation }: any) => {
       const fileUri = await getPathForFirebaseStorage(file[0].uri);
 
       try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          {
-            title: "Read Permission",
-            message: "Your app needs permission.",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
-            buttonPositive: "OK",
-          }
-        );
 
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           setUploadingDoc(true);
 
           storageRef.putFile(fileUri).on(
@@ -284,7 +273,7 @@ const EditSubService = ({ route, navigation }: any) => {
               unsubscribe();
             }
           );
-        }
+     
       } catch (error) {
         console.warn(error);
       }

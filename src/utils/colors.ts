@@ -24,5 +24,6 @@ export const colors = {
     darkYellow:'#747537',
     blackBg:'#1a1a1a',
     blackBackground:'#1b1e1f',
+    darkModeBottomSheet:'#949494'
   };
   

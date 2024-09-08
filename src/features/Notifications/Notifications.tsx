@@ -5,14 +5,14 @@ import NotificationItem from '../../components/NotificationItem';
 import CustomModal from '../../components/CustomModal';
 import { colors } from '../../utils/colors';
 import { globalStyles } from '../../styles/global';
-import { markAsViewed, removeNotification } from './NotificationSlice';
+import { markAsViewed, removeNotification } from './NotificationProviderSlice';
 import { useTranslation } from 'react-i18next';
 
 const Notifications = () => {
   const stylesGlobal = globalStyles();
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const notifications = useSelector((state: RootStateOrAny) => state.notifications.notifications);
+  const notifications = useSelector((state: RootStateOrAny) => state.notificationsProvider.notifications);
   const { isDarkMode } = useSelector((state: RootStateOrAny) => state.theme);
   const [isContentModalVisible, setContentModalVisible] = useState(false);
   const [content, setContent] = useState<any>({});
@@ -56,10 +56,10 @@ const Notifications = () => {
       <CustomModal isVisible={isContentModalVisible} onClose={closeContentModal}>
         {content && (
           <View style={styles.modalContent}>
-            <Text style={[styles.modalTitle, { color: content.type === 'Account' ? colors.primary : colors.secondary }]}>
+            <Text style={[styles.modalTitle, { color: content.type === 'Account' ? colors.secondary : colors.secondary }]}>
               {content.title}
             </Text>
-            <Text style={[styles.modalMessage, { color: isDarkMode ? colors.white : colors.black }]}>
+            <Text style={[styles.modalMessage, { color:colors.black }]}>
               {content.message}
             </Text>
           </View>

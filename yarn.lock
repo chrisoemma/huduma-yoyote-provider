@@ -6356,6 +6356,11 @@ react-native-date-picker@^4.3.3:
   resolved "https://registry.yarnpkg.com/react-native-date-picker/-/react-native-date-picker-4.3.3.tgz#5ca4ca10283538ab9307b7f2dc6b83233ded122b"
   integrity sha512-Lq2hGZkwoyCMsxi/uw4KVGu4/xdPZ8AHEx2SU5KY2mipHFpX+r4n5/gXa+rpCRkARJaTFYPZ7S59bT9KMh7fGw==
 
+react-native-device-info@^11.1.0:
+  version "11.1.0"
+  resolved "https://registry.yarnpkg.com/react-native-device-info/-/react-native-device-info-11.1.0.tgz#7db5c4e5a179dce761efac155a493aa0956a40ab"
+  integrity sha512-hzXJSObJdezEz0hF7MAJ3tGeoesuQWenXXt9mrQR9Mjb8kXpZ09rqSsZ/quNpJdZpQ3rYiFa3/0GFG5KNn9PBg==
+
 react-native-document-picker@^9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/react-native-document-picker/-/react-native-document-picker-9.0.1.tgz#a5ceec157f84dbadb85fe717c657569755f4c6ca"
@@ -6446,10 +6451,10 @@ react-native-notifications@^5.1.0:
   resolved "https://registry.yarnpkg.com/react-native-notifications/-/react-native-notifications-5.1.0.tgz#8cba105fd57ab9d5df9d27284acf1e2b4f3d7ea3"
   integrity sha512-laqDSDlCvEASmJR6cXpqaryK855ejQd07vrfYERzhv68YDOoSkKy/URExRP4vAfAOVqHhix80tLbNUcfvZk2VQ==
 
-react-native-orientation-locker@^1.6.0:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/react-native-orientation-locker/-/react-native-orientation-locker-1.6.0.tgz#4ea60e7cb5f2864d595a85f3b9af634c8f7c5121"
-  integrity sha512-D3IOtAcaAi6S2w0Y1EUnr16I47isosQbE7F67fAu9A+gE67NkyKaJ9HL5EsZ+Uc7+7m+NsuBjx3dxuANNy8rVA==
+react-native-orientation-locker@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/react-native-orientation-locker/-/react-native-orientation-locker-1.7.0.tgz#47ef2b9c24618e40f0a521f184b51270e576b028"
+  integrity sha512-2PhG4UyRJktb3KCTISStuu8/q+Q3q3oPesGg9DhdY0b6Cu/ZzxkCvkbJte2TPWRYkS0JpClimvqVaonulGvDrA==
 
 react-native-pdf@^6.7.1:
   version "6.7.1"

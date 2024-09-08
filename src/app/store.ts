@@ -29,7 +29,7 @@ import ChartSlice from '../features/home/ChartSlice';
 import professionsSlice from '../features/professionsSlice';
 import SubscriptionSlice from '../features/subscriptions/SubscriptionSlice';
 import FeebackTemplateSlice from '../features/feedbackTemplate/FeebackTemplateSlice';
-import NotificationSlice from '../features/Notifications/NotificationSlice';
+import NotificationProviderSlice from '../features/Notifications/NotificationProviderSlice';
 
 
 const reducers = combineReducers({
@@ -50,7 +50,7 @@ const reducers = combineReducers({
   professions:professionsSlice,
   subscriptions:SubscriptionSlice,
   feebackTemplate:FeebackTemplateSlice,
-  notifications:NotificationSlice
+  notificationsProvider:NotificationProviderSlice
 });
 
 const persistConfig = {

@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { API_URL } from '../../utils/config';
-import { clearNotifications } from '../Notifications/NotificationSlice';
+import { clearNotifications } from '../Notifications/NotificationProviderSlice';
 
 interface User {
   id: number;
@@ -107,14 +107,15 @@ export const updateProfile = createAsyncThunk(
 
 export const postUserDeviceToken = createAsyncThunk(
   'users/postUserDeviceToken',
-  async ({ userId, deviceToken }: { userId: string, deviceToken: string }) => {
+  async ({ userId, data }:any) => {
+    // console.log('user device token sent',deviceToken);
     const response = await fetch(`${API_URL}/users/device_token/${userId}`, {
       method: 'PUT',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ deviceToken }),
+      body: JSON.stringify(data),
     });
     return response.json();
   },
@@ -243,6 +244,22 @@ export const resetPassword = createAsyncThunk(
       body: JSON.stringify(data),
     });
     return (await response.json()) as UserData;
+  },
+);
+
+
+export const multiAccountByRegister = createAsyncThunk(
+  'users/multiAccountByRegister',
+  async (data) => {
+    const response = await fetch(`${API_URL}/auth/multiaccount_register_password`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    return (await response.json());
   },
 );
 
@@ -421,7 +438,7 @@ const userSlice = createSlice({
           state.loading = true;
         });
         builder.addCase(postUserDeviceToken.fulfilled, (state, action) => {
-          if (action.payload.status) {
+          if (action.payload && action.payload.status) {
             state.deviceToken = action.payload.data.token;
           }
           state.loading = false;
@@ -459,6 +476,35 @@ const userSlice = createSlice({
       state.loading = false;
       updateStatus(state, '');
     });
+
+
+
+
+       //Multi account  by register
+
+       builder.addCase(multiAccountByRegister.pending, state => {
+        console.log('Pending');
+        state.loading = true;
+        updateStatus(state, '');
+      });
+      builder.addCase(multiAccountByRegister.fulfilled, (state, action) => {
+  
+        state.loading = false;
+        updateStatus(state, '');
+  
+        if (action.payload.status) {
+          state.user = action.payload.user as any;
+          updateStatus(state, '');
+        } else {
+          updateStatus(state, action.payload);
+        }
+      });
+      builder.addCase(multiAccountByRegister.rejected, (state, action) => {
+        console.log('Rejected');
+        console.log(action.error);
+        state.loading = false;
+        updateStatus(state, '');
+      });
 
 
 
