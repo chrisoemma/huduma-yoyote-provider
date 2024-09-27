@@ -3,6 +3,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { API_URL } from '../../utils/config';
 import * as RootNavigation from './../../navigation/RootNavigation';
 import { authHeader } from '../../utils/auth-header';
+import ToastNotification from '../../components/ToastNotification/ToastNotification';
 
 export const getActiveRequests = createAsyncThunk(
     'requests/getActiveRequests',
@@ -76,9 +77,6 @@ export const getActiveRequests = createAsyncThunk(
   export const updateRequestStatus = createAsyncThunk(
     'requests/updateRequestStatus',
     async ({ data, requestId }: any) => {
-
-            // console.log('dataaa',data)
-            // console.log('request_id',requestId);
          
         const response = await fetch(`${API_URL}/requests/update_status/${requestId}`, {
             method: 'PUT',
@@ -122,37 +120,44 @@ export const getActiveRequests = createAsyncThunk(
         state.status = null;
       },
       setRequestStatus: (state, action) => {      
-        const updatedRequest = typeof action.payload === 'string'
-        ? JSON.parse(action.payload)
-        : action.payload;
+        const { request: updatedRequest, title } = action.payload;
         const requestIndex = state.activeRequests.findIndex(
           (request) => request.id === updatedRequest.id
         );
       
         if (requestIndex !== -1) {
           const currentRequest = state.activeRequests[requestIndex];
-          const newStatus = updatedRequest.statuses[updatedRequest.statuses.length - 1].status;
-          const isPastStatus = ['Cancelled', 'Rejected', 'Completed'].includes(newStatus);
+    
+          state.activeRequests[requestIndex] = {
+            ...currentRequest,
+            statuses: updatedRequest.statuses,
+          };
       
-          if (isPastStatus) {
-            const [movedRequest] = state.activeRequests.splice(requestIndex, 1);
-            movedRequest.statuses = updatedRequest.statuses;
-            state.pastRequests.push(movedRequest);
-          } else {
-            state.activeRequests[requestIndex] = {
-              ...currentRequest,
-              statuses: updatedRequest.statuses,
-            };
-          }
+          ToastNotification(`${title}`, 'default', 'long');
+        } else {
+          console.log('Request not found in activeRequests:', updatedRequest.id);
+        }
+      },
+
+      setRequestRating: (state, action) => {      
+        const { requestRating: updatedRequest, title } = action.payload;
+        const requestIndex = state.activeRequests.findIndex((request) => request.id === updatedRequest.id);
+       // console.log('requestId',requestIndex);
+        if (requestIndex !== -1) {
+
+          const currentRequest = state.activeRequests[requestIndex];
+          state.activeRequests[requestIndex] = {
+            ...currentRequest,
+            statuses: updatedRequest.statuses,
+            rating: updatedRequest.rating ? updatedRequest.rating : currentRequest?.rating || null, 
+          };
+          ToastNotification(`${title}`, 'default', 'long');
         } else {
           console.log('Request not found in activeRequests:', updatedRequest.id);
         }
       },
       
-      
-      
-      
-      
+        
     },
     extraReducers: builder => {
        
@@ -240,45 +245,27 @@ export const getActiveRequests = createAsyncThunk(
 
 
        builder.addCase(updateRequestStatus.fulfilled, (state, action) => {    
-      //  console.log('request dataa',action.payload) ;
-
-         if (action.payload && action.payload.status) {
-           const updatedRequest = action.payload.data.request;
-           const newStatus = updatedRequest.statuses[updatedRequest.statuses.length - 1].status;
-           const requestIndex = state.activeRequests.findIndex(
-             (request) => request.id === updatedRequest.id
-           );
-       
-           if (requestIndex !== -1) {
-             const isPastStatus = ['Cancelled', 'Rejected', 'Completed'].includes(newStatus);
-       
-             if (isPastStatus) {
-               const requestToMove = {
-                 ...state.activeRequests[requestIndex], 
-                 statuses: updatedRequest.statuses,     
-               };
-       
-               state.activeRequests = [
-                 ...state.activeRequests.slice(0, requestIndex),
-                 ...state.activeRequests.slice(requestIndex + 1),
-               ];
-       
-               state.pastRequests = [
-                 ...state.pastRequests,
-                 requestToMove,
-               ];
-             } else {
-               state.activeRequests[requestIndex] = {
-                 ...state.activeRequests[requestIndex],
-                 statuses: updatedRequest.statuses,
-               };
-             }
-           }
-         }
-       
-         state.changeStatusLoading = false;
-         updateStatus(state, '');
-       });
+        // Check if the response has a valid status and payload
+        if (action.payload && action.payload.status) {
+          const updatedRequest = action.payload.data.request;
+          const newStatus = updatedRequest.statuses[updatedRequest.statuses.length - 1].status;
+          const requestIndex = state.activeRequests.findIndex(
+            (request) => request.id === updatedRequest.id
+          );
+      
+          if (requestIndex !== -1) {
+            // Simply update the statuses without moving the request
+            state.activeRequests[requestIndex] = {
+              ...state.activeRequests[requestIndex],
+              statuses: updatedRequest.statuses,
+            };
+          }
+        }
+      
+        state.changeStatusLoading = false;
+        updateStatus(state, '');
+      });
+      
     
       builder.addCase(updateRequestStatus.rejected, (state, action) => {
         console.log('Rejected');
@@ -301,27 +288,25 @@ export const getActiveRequests = createAsyncThunk(
   
       //console.log('statttses',status);
     
-      // Find the index of the updated request in activeRequests
+ 
       const requestIndex = state.activeRequests.findIndex(
         (request) => request.id === updatedRequest.id
       );
     
       if (requestIndex !== -1) {
-        if (['Requested', 'Accepted', 'Confirmed'].includes(status)) {
-          // Update the request in activeRequests
+        if (['Requested', 'Accepted', 'Confirmed','Comfirmed'].includes(status)) {
           state.activeRequests = [
             ...state.activeRequests.slice(0, requestIndex),
             updatedRequest,
             ...state.activeRequests.slice(requestIndex + 1),
           ];
         } else if (['Cancelled', 'Rejected', 'Completed'].includes(status)) {
-          // Remove the request from activeRequests
+     
           state.activeRequests = [
             ...state.activeRequests.slice(0, requestIndex),
             ...state.activeRequests.slice(requestIndex + 1),
           ];
-    
-          // Add the request to pastRequests
+  
           state.pastRequests = [...state.pastRequests, updatedRequest];
         }
       }
@@ -339,6 +324,6 @@ export const getActiveRequests = createAsyncThunk(
     },
   });
   
-  export const { clearMessage,setRequestStatus } = RequestSlice.actions;
+  export const { clearMessage,setRequestStatus,setRequestRating } = RequestSlice.actions;
   
   export default RequestSlice.reducer;

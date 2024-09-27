@@ -175,9 +175,11 @@ export default {
   pleaseEnterMobileNetworkPhoneNumber: 'Please enter phone number',
   invalidNumberFormat: 'Invalid number format',
 
-  termsText: 'By signing up,you agree to our',
-  termsLink: 'Terms & Conditions,',
-  termsContinueText: 'acknowledge our',
+  termsText: 'By signing up,you have read and agrees to our',
+  termsLink: 'Terms of Service',
+  checkTermsOfService:'Please check terms of use',
+  termsContinueText: 'using Espe service',
+  
   privacyPolicyLink: 'Privacy Policy',
   continuePrivacyPolicy: 'And confirm that you are over 18. We many send promotions related to our services-you can unsubscribe anytime in settings',
   rejectRequest:'Reject request',
@@ -198,7 +200,10 @@ accountNumber:'Account Number',
 confirmAction:'Confirm Action',
 areYouSureYouwantTo:'Are you sure you want to',
 accountExists:'Account Exist',
-fileTooLarge:'File too large maximum is 10MB'
+fileTooLarge:'File too large maximum is 10MB',
+   noRequestFound:'No requests found',
+   searchRequests:'Search by service, request number,request time, client'
+
 
 
 };

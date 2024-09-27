@@ -6,6 +6,7 @@ interface Notification {
   title: string;
   message: string;
   viewed: boolean;
+  createdAt: string; 
 }
 
 interface NotificationsState {
@@ -21,7 +22,7 @@ const NotificationProviderSlice = createSlice({
   initialState,
   reducers: {
     addNotification: (state, action: PayloadAction<Notification>) => {
-      state.notifications.push(action.payload);
+      state.notifications.unshift(action.payload);
     },
     markAsViewed: (state, action: PayloadAction<string>) => {
       const notificationId = action.payload;

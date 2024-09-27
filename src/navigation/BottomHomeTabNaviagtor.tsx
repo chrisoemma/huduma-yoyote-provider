@@ -61,6 +61,7 @@ export default function BottomHomeTabNavigator() {
 
 const tabNavScreenOptions = ({ route }: any) => ({
   headerShown: false,
+  tabBarHideOnKeyboard: true,
   tabBarIcon: ({ focused, color, size }: any) => {
     let iconName;
     let badgeCount = 0;

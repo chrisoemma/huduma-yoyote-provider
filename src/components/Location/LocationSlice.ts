@@ -18,7 +18,7 @@ export const getRegions = createAsyncThunk(
 export const getDistrictByRegion = createAsyncThunk(
   'locations/getDistrictByRegion',
   async (id) => {
-    console.log('region id',id)
+   // console.log('region id',id)
     let header: any = await authHeader();
     const response = await fetch(`${API_URL}/locations/districts_by_region/${id}`, {
       method: 'GET',

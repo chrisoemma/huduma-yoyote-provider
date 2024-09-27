@@ -30,7 +30,7 @@ const EmployeeListModal = ({ isVisible, onClose, employees,transferFunc }:any) =
                             searchable={true}
                             zIndex={6000}
                             placeholder={t('screens:selectEmployee')}
-                            listMode="SCROLLVIEW"
+                            listMode="MODAL"
                             open={open}
                             value={value}
                             items={items}

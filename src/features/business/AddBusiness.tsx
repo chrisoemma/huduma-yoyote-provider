@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppDispatch } from '../../app/store';
 import { useSelector, RootStateOrAny } from 'react-redux';
 import { getCategories } from '../category/CategorySlice';
-import { transformDataToDropdownOptions, transformDataToDropdownOptionsLanguage } from '../../utils/utilts';
+import { sortByLanguage, transformDataToDropdownOptions, transformDataToDropdownOptionsLanguage } from '../../utils/utilts';
 import { getServicesByCategory } from '../Service/ServiceSlice';
 import { getSubserviceByService, clearSubServiceByService } from '../subservices/SubservicesSlice';
 import { createBusiness, updateBusiness } from './BusinessSlice';
@@ -92,6 +92,8 @@ const AddBusiness = ({ route, navigation }: any) => {
   }, [value]);
 
 
+ // console.log('exustingBusiness',existingBusiness)
+
 
   useEffect(() => {
 
@@ -108,7 +110,7 @@ const AddBusiness = ({ route, navigation }: any) => {
   }, [subServiceByService]);
 
 
-  const commonSubServices = subServiceByService.filter(itemB => sub_services?.some(itemA => itemA?.id === itemB?.id));
+  const commonSubServices = sortByLanguage(subServiceByService.filter(itemB => sub_services?.some(itemA => itemA?.id === itemB?.id)),selectLanguage);
 
   const {
     control,
@@ -147,8 +149,8 @@ const AddBusiness = ({ route, navigation }: any) => {
 
 
   const [uploadingDoc, setUploadingDoc] = useState(false)
-  const [items, setItems] = useState(transformDataToDropdownOptionsLanguage(categories, selectedLanguage));
-  const [ServiceItems, setServiceItems] = useState(transformDataToDropdownOptionsLanguage(servicesByCategory, selectedLanguage));
+  const [items, setItems] = useState(transformDataToDropdownOptionsLanguage(sortByLanguage(categories, selectedLanguage),selectedLanguage));
+  const [ServiceItems, setServiceItems] = useState(transformDataToDropdownOptionsLanguage(sortByLanguage(servicesByCategory, selectedLanguage),selectedLanguage));
   const [subs, setSubs] = useState(subServiceByService)
 
   const { isDarkMode } = useSelector(
@@ -389,7 +391,9 @@ const AddBusiness = ({ route, navigation }: any) => {
     formData.append('provider_id',user.provider.id);
     formData.append('category_id', value)
     formData.append('service_id',ServiceValue)
-    formData.append('sub_services' , checkedSubServices);
+    formData.append('description',data.description);
+    // console.log('subeservicesss',checkedSubServices);
+    formData.append('sub_services' , JSON.stringify(checkedSubServices));
     if(video){
     formData.append('video_file',video[0])
     }
@@ -397,8 +401,7 @@ const AddBusiness = ({ route, navigation }: any) => {
     formData.append('image_file',image[0]);
    }
     
-    
-
+  
          if (value == null || ServiceValue == null || checkedSubServices.length < 1) {
           ToastNotification(`${t('screens:chooseCategoryServiceSubService')}`,'danger','long');
         
@@ -412,7 +415,7 @@ const AddBusiness = ({ route, navigation }: any) => {
           //no new vide uploaded
           formData.append('video_url',existingBusiness?.video_url ? existingBusiness?.video_url : null)
         }
-        console.log('formDataaa',formData)
+     ///   console.log('formDataaa',formData)
           dispatch(isEditMode ? updateBusiness({ data:formData, businessId: existingBusiness.id }) : createBusiness(formData))
           .unwrap()
          .then(result => {
@@ -573,9 +576,9 @@ const AddBusiness = ({ route, navigation }: any) => {
             {!isEditMode ? (image == null ? (<TouchableOpacity onPress={selectImage}><Ionicons name="image" color={isDarkMode ? colors.white : colors.blue}
               size={100} style={{ alignSelf: 'center' }} /></TouchableOpacity>) : (<>
                 <Image source={{ uri: image[0].uri }} style={styles.docView} />
-                {/* <TouchableOpacity onPress={removeImage}>
+                <TouchableOpacity onPress={removeImage}>
                   <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeImage')}</Text>
-                </TouchableOpacity> */}
+                </TouchableOpacity>
               </>)
 
             ) : (
@@ -585,9 +588,9 @@ const AddBusiness = ({ route, navigation }: any) => {
                 ) : (
                   <Image source={{ uri: (isEditMode && existingBusiness?.img_url) || image?.[0]?.uri || (existingBusiness?.service?.images?.[0]?.img_url) || 'default-image-uri' }} style={styles.docView} />
                 )}
-                {/* <TouchableOpacity onPress={removeImage}>
+                <TouchableOpacity onPress={removeImage}>
                   <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeImage')}</Text>
-                </TouchableOpacity> */}
+                </TouchableOpacity>
               </>
             )}
 
@@ -601,9 +604,9 @@ const AddBusiness = ({ route, navigation }: any) => {
               size={100} style={{ alignSelf: 'center' }} /></TouchableOpacity>) : (<>
                 <VideoPlayer
                   video_url={`${video[0]?.uri}`} />
-                {/* <TouchableOpacity onPress={removeVideo}>
+                <TouchableOpacity onPress={removeVideo}>
                   <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeVideo')}</Text>
-                </TouchableOpacity> */}
+                </TouchableOpacity>
               </>)
 
             ) : (
@@ -617,9 +620,9 @@ const AddBusiness = ({ route, navigation }: any) => {
                     <VideoPlayer
                       video_url={`${existingBusiness?.video_url || video[0]?.uri}`} />
                   ))}
-                {/* <TouchableOpacity onPress={removeVideo}>
+                <TouchableOpacity onPress={removeVideo}>
                   <Text style={{ color: colors.dangerRed, marginVertical: 10, fontWeight: 'bold' }}>{t('screens:removeVideo')}</Text>
-                </TouchableOpacity> */}
+                </TouchableOpacity>
               </>
             )}
 

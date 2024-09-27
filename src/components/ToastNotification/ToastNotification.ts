@@ -5,7 +5,6 @@ const ToastNotification = (message, type = 'info', duration = 'short') => {
     let backgroundColor;
     let toastDuration;
 
-    // Set background color based on type
     switch (type) {
         case 'success':
             backgroundColor = '#4CAF50';

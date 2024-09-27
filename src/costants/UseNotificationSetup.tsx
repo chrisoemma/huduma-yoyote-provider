@@ -13,10 +13,9 @@ const useNotificationSetup = () => {
         Notifications.setNotificationChannel({
           channelId: 'high-priority-channel',
           name: 'High Priority Channel',
-          importance: Notifications.Android.Importance.High, // Sets the importance to high
+          importance: 4,
           description: 'A high priority channel for important notifications',
-          sound: 'default',
-          vibration: true,
+        
         });
       }
 

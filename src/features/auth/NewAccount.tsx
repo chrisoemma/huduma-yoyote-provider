@@ -45,6 +45,7 @@ const NewAccount = ({ route, navigation }: any) => {
   const { professions, profesionsLoading } = useSelector(
     (state: RootStateOrAny) => state.professions,
   );
+  const [charCount, setCharCount] = useState(0);
 
 
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -104,21 +105,40 @@ const NewAccount = ({ route, navigation }: any) => {
     const cleanedPhone = user?.phone?.replace(/\+/g, '');
     setValue('phone', cleanedPhone);
     setValue('email', user?.email);
-    setValue('nida',user?.nida);
-    if(user?.agent){
-    setValue('name', user?.agent?.name); 
-    setValue('first_name', user?.agent.first_name);
-    setValue('last_name', user?.agent.last_name);
-   
-    }else if(user?.client){
-        setValue('name', user?.client?.name); 
-        setValue('first_name', user?.client?.first_name);
-        setValue('last_name', user?.client?.last_name);
-    }else{
-        setValue('name', user?.employee?.name);
+    setValue('nida', user?.nida);
+  
+    let firstName = '';
+    let lastName = '';
+  
+    if (user?.agent) {
+      setValue('name', user?.agent?.name);
+      firstName = user?.agent?.first_name;
+      lastName = user?.agent?.last_name;
+    } else if (user?.client) {
+      setValue('name', user?.client?.name);
+      firstName = user?.client?.first_name;
+      lastName = user?.client?.last_name;
+    } else {
+      setValue('name', user?.employee?.name);
     }
-   
-}, [route.params]);
+  
+    const name = user?.client?.name || user?.employee?.name;
+    if (name) {
+      const nameParts = name.split(' ');
+  
+      if (nameParts.length === 1) {
+        firstName = nameParts[0]; 
+        lastName = ''; 
+      } else if (nameParts.length >= 2) {
+        firstName = nameParts[0]; 
+        lastName = nameParts.slice(1).join(' '); 
+      }
+    }
+  
+    setValue('first_name', firstName);
+    setValue('last_name', lastName);
+  }, [route.params]);
+  
 
 
   const setDisappearMessage = (message: any) => {
@@ -143,21 +163,16 @@ const NewAccount = ({ route, navigation }: any) => {
   // Function to show the toast message
   const showToastMessage = (message) => {
     setToastMessage(message);
-    toggleToast(); // Show the toast message
+    toggleToast();
     setTimeout(() => {
-      toggleToast(); // Hide the toast message after a delay
-    }, 5000); // Adjust duration as per your requirement
+      toggleToast(); 
+    }, 5000); 
   };
 
 
 
   const onSubmit = async (data: any) => {
 
-    // if (errors.phone){
-    //   setShowToast(true)
-    //   showToastMessage(t('screens:errorOccured'));
-    //   return 
-    // }
 
     if (value.length < 1) {
       setDesignationError(`${t('auth:designationError')}`)
@@ -198,7 +213,6 @@ const NewAccount = ({ route, navigation }: any) => {
             ToastNotification(`${t('screens:userMultiAccountCreated')}`,'success','long')
           } else {
             if (result.error) {
-         
               setDisappearMessage(result.error
               );
               setShowToast(true)
@@ -326,9 +340,9 @@ const NewAccount = ({ route, navigation }: any) => {
                   }}
                   value={value}
                   keyboardType="phone-pad"
-                  editable={user?.agent?false:true}
+                  editable={user?.agent || user?.client?false:true}
                 
-                  style={user?.agent? styles.disabledTextInput : null}
+                  style={user?.agent || user?.client? styles.disabledTextInput : null}
 
                 />
               )}
@@ -362,8 +376,8 @@ const NewAccount = ({ route, navigation }: any) => {
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
-                  editable={user?.agent?false:true}
-                  style={user?.agent? styles.disabledTextInput : null}
+                  editable={user?.agent || user?.client?false:true}
+                  style={user?.agent || user?.client? styles.disabledTextInput : null}
                 />
               )}
               name="first_name"
@@ -387,18 +401,16 @@ const NewAccount = ({ route, navigation }: any) => {
 
             <Controller
               control={control}
-              rules={{
-                required: true,
-              }}
+          
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInputField
                 placeholderTextColor={colors.alsoGrey}
-                  placeholder={t('auth:enterLastName')}
+                  placeholder={user?.agent ?t('auth:enterLastName'):''}
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
-                  editable={user?.agent?false:true}
-                  style={user?.agent? styles.disabledTextInput : null}
+                  editable={user?.agent || user?.client?false:true}
+                  style={user?.agent || user?.client? styles.disabledTextInput : null}
                 />
               )}
               name="last_name"
@@ -488,53 +500,74 @@ const NewAccount = ({ route, navigation }: any) => {
             </View>
           </BasicView>
 
+  
           <BasicView>
-            <Text
-              style={[
-                stylesGlobal.inputFieldTitle,
-                stylesGlobal.marginTop20,
-              ]}>
-              {t('auth:nida')}
-            </Text>
+      <Text
+        style={[
+          stylesGlobal.inputFieldTitle,
+          stylesGlobal.marginTop20,
+        ]}>
+        {t('auth:nida')}
+      </Text>
 
-
-            <Controller
-              control={control}
-              rules={{
-                required: true,
-                validate: (value) => {
-                  if (value.length !== 20) {
-                    setNidaError(t('auth:nida20numbers'));
-                    return false;
-                  }
-                  setNidaError('');
-                  return true;
-                },
+      <Controller
+        control={control}
+        rules={{
+          required: true,
+          validate: (value) => {
+            if (value.length !== 20) {
+              setNidaError(t('auth:nida20numbers'));
+              return false;
+            }
+            setNidaError('');
+            return true;
+          },
+        }}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <>
+            <TextInputField
+              placeholder={t('auth:enterNida')}
+              onBlur={onBlur}
+              onChangeText={(text) => {
+                if (text.length <= 20) {  
+                  onChange(text);
+                  setCharCount(text.length);  
+                }
               }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInputField
-                  placeholder={t('auth:enterNida')}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  value={value}
-                  keyboardType='numeric'
-                  editable={user?.agent?false:true}
-                  style={user?.agent? styles.disabledTextInput : null}
-                />
-              )}
-              name="nida"
+              value={value}
+              maxLength={20}
+              keyboardType="numeric"
+              editable={user?.agent?false:true}
+              style={user?.agent? styles.disabledTextInput : null}
+              
             />
-             {errors.nida && (
-              <Text style={stylesGlobal.errorMessage}>
-                {t('auth:nidaEmptyError')}
-              </Text>
-            )}
-            {nidaError && (
-              <Text style={stylesGlobal.errorMessage}>
-                {nidaError}
-              </Text>
-            )}
-          </BasicView>
+         
+         {user?.client ?(
+         <Text
+              style={[
+                styles.charCount,
+                { color: charCount === 20 ? 'green' : 'red' },
+              ]}
+            >
+              {charCount}/20
+            </Text>
+         ):(<></>)}
+          </>
+        )}
+        name="nida"
+      />
+
+      {errors.nida && (
+        <Text style={stylesGlobal.errorMessage}>
+          {t('auth:nidaEmptyError')}
+        </Text>
+      )}
+      {nidaError && (
+        <Text style={stylesGlobal.errorMessage}>
+          {nidaError}
+        </Text>
+      )}
+    </BasicView>
 
           <BasicView>
             <Button loading={loading} onPress={handleSubmit(onSubmit)}>
@@ -575,6 +608,11 @@ const styles = StyleSheet.create({
   disabledTextInput: {
     backgroundColor: 'lightgray', 
   },
+  charCount: {
+     fontSize: 13,       
+     marginTop: 5,       
+     textAlign: 'right', 
+   },
 });
 
 export default NewAccount;

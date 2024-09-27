@@ -21,6 +21,7 @@ const AddEmployees = ({ route, navigation }: any) => {
   const [nidaError, setNidaError] = useState('');
   const [confirmError, setConfirmError] = useState('');
   const [nidaLoading, setNidaLoading] = useState(false)
+  const [charCount, setCharCount] = useState(0);
 
   const { t } = useTranslation();
   const phoneInput = useRef<PhoneInput>(null);
@@ -94,7 +95,6 @@ const AddEmployees = ({ route, navigation }: any) => {
         .then(result => {
           if (result.status) {
 
-       
             ToastNotification(`${t('screens:updatedSuccessfully')}`,'success','long')
             navigation.navigate('Employees', {
               screen: 'Employees',
@@ -241,50 +241,68 @@ const AddEmployees = ({ route, navigation }: any) => {
         </BasicView>
 
         <BasicView>
-          <Text
-            style={[
-              stylesGlobal.inputFieldTitle,
-              stylesGlobal.marginTop20,
-            ]}>
-            {t('auth:nida')}
-          </Text>
+      <Text
+        style={[
+          stylesGlobal.inputFieldTitle,
+          stylesGlobal.marginTop20,
+        ]}>
+        {t('auth:nida')}
+      </Text>
 
-
-          <Controller
-            control={control}
-            rules={{
-              required: true,
-              validate: (value) => {
-                if (value.length !== 20) {
-                  setNidaError(t('auth:nida20numbers'));
-                  return false;
+      <Controller
+        control={control}
+        rules={{
+          required: true,
+          validate: (value) => {
+            if (value.length !== 20) {
+              setNidaError(t('auth:nida20numbers'));
+              return false;
+            }
+            setNidaError('');
+            return true;
+          },
+        }}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <>
+            <TextInputField
+              placeholder={t('auth:enterNida')}
+              onBlur={onBlur}
+              onChangeText={(text) => {
+                if (text.length <= 20) {  
+                  onChange(text);
+                  setCharCount(text.length);  
                 }
-                setNidaError('');
-                return true;
-              },
-            }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInputField
-                placeholder={t('auth:enterNida')}
-                onBlur={onBlur}
-                onChangeText={onChange}
-                value={value}
-                keyboardType='numeric'
-              />
-            )}
-            name="nida"
-          />
-          {errors.nida && (
-            <Text style={stylesGlobal.errorMessage}>
-              {t('auth:nidaEmptyError')}
+              }}
+              value={value}
+              maxLength={20}
+              keyboardType="numeric"
+              
+            />
+         
+         <Text
+              style={[
+                styles.charCount,
+                { color: charCount === 20 ? 'green' : 'red' },
+              ]}
+            >
+              {charCount}/20
             </Text>
-          )}
-          {nidaError && (
-            <Text style={stylesGlobal.errorMessage}>
-              {nidaError}
-            </Text>
-          )}
-        </BasicView>
+          </>
+        )}
+        name="nida"
+      />
+
+      {errors.nida && (
+        <Text style={stylesGlobal.errorMessage}>
+          {t('auth:nidaEmptyError')}
+        </Text>
+      )}
+      {nidaError && (
+        <Text style={stylesGlobal.errorMessage}>
+          {nidaError}
+        </Text>
+      )}
+    </BasicView>
 
         <BasicView>
           <Button loading={nidaLoading || loading} onPress={handleSubmit(onSubmit)}>
@@ -308,8 +326,12 @@ const styles = StyleSheet.create({
     color: colors.black,
     marginBottom: 10,
     fontSize: 17,
-
-  }
+  },
+  charCount: {
+     fontSize: 13,       
+     marginTop: 5,       
+     textAlign: 'right', 
+   },
 
 })
 

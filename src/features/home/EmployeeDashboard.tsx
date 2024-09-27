@@ -1,250 +1,302 @@
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Dimensions } from 'react-native'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { PageContainer } from '../../components/PageContainer'
-import { BasicView } from '../../components/BasicView'
-import Databoard from '../../components/Databoard'
-import { colors } from '../../utils/colors'
 import {
+    View,
+    Text,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    RefreshControl,
+    Dimensions,
+  } from "react-native";
+  import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+  } from "react";
+  import { SafeAreaView } from "react-native-safe-area-context";
+  import { BasicView } from "../../components/BasicView";
+  import Databoard from "../../components/Databoard";
+  import { colors } from "../../utils/colors";
+  import {
     BottomSheetModal,
     BottomSheetModalProvider,
     BottomSheetScrollView,
-} from '@gorhom/bottom-sheet';
-import { globalStyles } from '../../styles/global'
-import { useAppDispatch } from '../../app/store'
-import { useTranslation } from 'react-i18next';
-import { getEmployeeActiveRequests, getEmployeePastRequests } from '../requests/RequestSlice'
-import { useSelector, RootStateOrAny } from 'react-redux'
-import { getEmployeeTranferRequests } from './ChartSlice'
-import { PieChart } from 'react-native-chart-kit'
-import { selectLanguage } from '../../costants/languangeSlice'
-
-
-const EmployeeDashboard = ({ navigation }: any) => {
-
-    const screenWidth = Dimensions.get('window').width;
-    const screenHeight = Dimensions.get('window').height;
-
+  } from "@gorhom/bottom-sheet";
+  import { globalStyles } from "../../styles/global";
+  import { useAppDispatch } from "../../app/store";
+  import { useTranslation } from "react-i18next";
+  import {
+    getEmployeeActiveRequests,
+    getEmployeePastRequests,
+  } from "../requests/RequestSlice";
+  import { useSelector, RootStateOrAny } from "react-redux";
+  import { getEmployeeTranferRequests } from "./ChartSlice";
+  import { PieChart } from "react-native-chart-kit";
+  import { selectLanguage } from "../../costants/languangeSlice";
+import CustomBackground from '../../components/CustomBgBottomSheet'
+import Icon from 'react-native-vector-icons/Ionicons';
+import { getStatusBackgroundColor } from '../../utils/utilts'
+  
+  const EmployeeDashboard = ({ navigation }: any) => {
+    const screenWidth = Dimensions.get("window").width;
+    const screenHeight = Dimensions.get("window").height;
+  
     const { t } = useTranslation();
-
     const dispatch = useAppDispatch();
     const [refreshing, setRefreshing] = useState(false);
-
-    const { user } = useSelector(
-        (state: RootStateOrAny) => state.user,
+    const { user } = useSelector((state: RootStateOrAny) => state.user);
+    const { loading, activeRequests, pastRequests } = useSelector(
+      (state: RootStateOrAny) => state.requests
     );
-
-    const { loading, activeRequests,pastRequests } = useSelector(
-        (state: RootStateOrAny) => state.requests,
-    );
-
     const { employeeTranferedRequests } = useSelector(
-        (state: RootStateOrAny) => state.charts,
+      (state: RootStateOrAny) => state.charts
     );
-
     const selectedLanguage = useSelector(selectLanguage);
+    const { isDarkMode } = useSelector((state: RootStateOrAny) => state.theme);
 
-
+    const getStatusTranslation = (status: string) => {
+        return t(`screens:${status}`);
+      };
+  
     useEffect(() => {
+      if (user?.employee?.id) {
         dispatch(getEmployeeActiveRequests(user?.employee?.id));
         dispatch(getEmployeePastRequests(user?.employee?.id));
-        dispatch(getEmployeeTranferRequests(user?.employee?.id))
-    }, [dispatch])
-
-
-    const callGetDashboard = React.useCallback(() => {
-
-        setRefreshing(true);
-        dispatch(getEmployeeActiveRequests(user?.employee?.id));
-        dispatch(getEmployeeTranferRequests(user?.employee?.id))
-        dispatch(getEmployeePastRequests(user?.employee?.id)).unwrap()
-            .then(result => {
-                setRefreshing(false);
-            })
-    }, []);
-
-    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-    const [sheetTitle, setSheetTitle] = useState('');
-
-    // variables
-    const snapPoints = useMemo(() => ['25%', '70%'], []);
-
-    // callbacks
-    const handlePresentModalPress = (title: any) => useCallback(() => {
-        setSheetTitle(title)
-       
-        bottomSheetModalRef.current?.present();
-    }, []);
-    const handleSheetChanges = useCallback((index: number) => {
-        console.log('handleSheetChanges', index);
-    }, [])
-
-    const stylesGlobal = globalStyles();
-
-
-    const labels = employeeTranferedRequests?.map(entry => {
-        const serviceName = JSON.parse(entry.sub_service_name); // Parse the JSON string
-        return selectedLanguage === 'en' ? serviceName?.en : serviceName?.sw;
-      });
-    const dataset = employeeTranferedRequests?.map(entry => entry.request_count);
-
-    const getRandomColor = () => {
-        const letters = '0123456789ABCDEF';
-        let color = '#';
-        for (let i = 0; i < 6; i++) {
-          color += letters[Math.floor(Math.random() * 16)];
-        }
-        return color;
-      };
-
-    const truncateLabel = (label, maxLength) => {
-        return label.length > maxLength ? label.substring(0, maxLength - 3) + '...' : label;
-      };
+        dispatch(getEmployeeTranferRequests(user?.employee?.id));
+      }
+    }, [dispatch, user?.employee?.id]);
   
-    // Calculate total requests
+    const callGetDashboard = useCallback(() => {
+      setRefreshing(true);
+      if (user?.employee?.id) {
+        dispatch(getEmployeeActiveRequests(user?.employee?.id));
+        dispatch(getEmployeeTranferRequests(user?.employee?.id));
+        dispatch(getEmployeePastRequests(user?.employee?.id))
+          .unwrap()
+          .finally(() => setRefreshing(false));
+      }
+    }, [dispatch, user?.employee?.id]);
+  
+    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+    const [sheetTitle, setSheetTitle] = useState("");
+  
+    const snapPoints = useMemo(() => ["25%", "70%"], []);
+  
+    const handlePresentModalPress = (title: string) => {
+      setSheetTitle(title);
+      bottomSheetModalRef.current?.present();
+    };
+  
+    const handleSheetChanges = useCallback((index: number) => {
+      console.log("handleSheetChanges", index);
+    }, []);
+  
+    const stylesGlobal = globalStyles();
+  
+    const labels = employeeTranferedRequests?.map((entry) => {
+      const serviceName = JSON.parse(entry.sub_service_name);
+      return selectedLanguage === "en" ? serviceName?.en : serviceName?.sw;
+    });
+  
+    const dataset = employeeTranferedRequests?.map(
+      (entry) => entry.request_count
+    );
+  
+    const getRandomColor = () => {
+      const letters = "0123456789ABCDEF";
+      let color = "#";
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    };
+  
+    const truncateLabel = (label, maxLength) => {
+      return label.length > maxLength
+        ? label.substring(0, maxLength - 3) + "..."
+        : label;
+    };
+  
     const totalRequests = dataset?.reduce((total, count) => total + count, 0);
   
-    // Create data with percentages
     const dataWithPercentage = dataset?.map((value, index) => {
-      const percentage = ((value / totalRequests) * 100).toFixed(2); // Calculate percentage
+      const percentage = ((value / totalRequests) * 100).toFixed(2);
       return {
         name: `${truncateLabel(labels[index], 15)} (${percentage}%)`,
         value,
         color: getRandomColor(),
       };
     });
-
   
-    // Chart configuration
     const chartConfig = {
-        backgroundGradientFrom: '#fff',
-        backgroundGradientTo: '#fff',
-        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-      };
-
+      backgroundGradientFrom: "#fff",
+      backgroundGradientTo: "#fff",
+      color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+    };
+  
     return (
-        <>
-            <SafeAreaView>
+      <>
+          <SafeAreaView style={{ flex: 1 }}>
                 <ScrollView
-                    horizontal={false}
                     contentInsetAdjustmentBehavior="automatic"
-                    keyboardShouldPersistTaps={'handled'}
-                    style={stylesGlobal.scrollBg}
+                    keyboardShouldPersistTaps="handled"
                     refreshControl={
                         <RefreshControl refreshing={refreshing} onRefresh={callGetDashboard} />
                     }
-
+                    style={[stylesGlobal.scrollBg,{flex:1}]}
                 >
-                 
-                        <BasicView>
-                            <View style={{
-                                flexDirection: 'row',
-                                flexWrap: 'wrap',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginTop: 50
-                            }}>
-                                <Databoard
-                                    mainTitle={t('screens:activeRequests')}
-                                    number={activeRequests?.length || 0}
-                                    onPress={handlePresentModalPress(`${t('screens:activeRequests')}`)}
-                                    color={colors.primary}
-                                />
-                                <Databoard
-                                    mainTitle={t('screens:pastRequests')}
-                                    number={pastRequests?.length || 0}
-                                    onPress={handlePresentModalPress(`${t('screens:pastRequests')}`)}
-                                    color={colors.primary}
-                                />
-
-                            </View>
-                        </BasicView>
-                        <View style={styles.chart}>
-                    <Text style={{fontSize:18,color:colors.alsoGrey}}>{t('screens:requestsVsSubserices')}</Text>
-                       {employeeTranferedRequests?
-                        (   <PieChart
-                            data={dataWithPercentage}
-                            width={screenWidth}
-                            height={screenHeight*0.3}
-                            chartConfig={chartConfig}
-                            accessor="value"
-                            backgroundColor="transparent"
-                            paddingLeft="5"
-                            absolute
-                            style={{ marginVertical: 8, borderRadius: 16 }}
-                        />):
-                       <Text>{t('screens:noDataAvailable')}</Text>}
-                     
+            <BasicView>
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: 50,
+                }}
+              >
+                <Databoard
+                  mainTitle={t("screens:activeRequests")}
+                  number={activeRequests?.length || 0}
+                  onPress={() =>
+                    handlePresentModalPress(`${t("screens:activeRequests")}`)
+                  }
+                  color={colors.secondary}
+                />
+                <Databoard
+                  mainTitle={t("screens:pastRequests")}
+                  number={pastRequests?.length || 0}
+                  onPress={() =>
+                    handlePresentModalPress(`${t("screens:pastRequests")}`)
+                  }
+                  color={colors.secondary}
+                />
+              </View>
+            </BasicView>
+            <ScrollView horizontal={true} 
+                      showsHorizontalScrollIndicator={false}
+                    style={styles.chartContainer}>
+            <View style={styles.chart}>
+              <Text style={{ fontSize: 18, color: colors.alsoGrey, fontFamily: 'Prompt-Regular' }}>
+                {t("screens:requestsVsSubserices")}
+              </Text>
+              {employeeTranferedRequests?.length ? (
+                <PieChart
+                  data={dataWithPercentage}
+                  width={screenWidth}
+                  height={screenHeight * 0.46}
+                  chartConfig={chartConfig}
+                  accessor="value"
+                  backgroundColor="transparent"
+                  paddingLeft="5"
+                  absolute
+                  style={{ marginVertical: 8, borderRadius: 16 }}
+                />
+              ) : (
+                <Text style={styles.noDataText}>{t("screens:noDataAvailable")}</Text>
+              )}
+            </View>
+            </ScrollView>
+          </ScrollView>
+        </SafeAreaView>
+        <BottomSheetModalProvider>
+          <View style={styles.container}>
+            <BottomSheetModal
+              ref={bottomSheetModalRef}
+              index={1}
+              snapPoints={snapPoints}
+              onChange={handleSheetChanges}
+            >
+              <BottomSheetScrollView contentContainerStyle={styles.contentContainer}>
+                <Text style={styles.title}>{sheetTitle}</Text>
+                {(sheetTitle === "Active Requests" || sheetTitle === "Maombi yaliyopo"
+                  ? activeRequests
+                  : pastRequests
+                )?.map((item) => (
+                    <TouchableOpacity style={[styles.bottomView, { backgroundColor: isDarkMode ? colors.darkModeBottomSheet : colors.whiteBackground }]}
+                    onPress={() => {
+                        navigation.navigate('Requested services', {
+                            request: item
+                        })
+                    }}
+                    key={item.id}
+                >
+                    <Text style={{ color: isDarkMode ? colors.white : colors.secondary, fontFamily: 'Prompt-Bold', fontSize: 15 }}>
+                    <Icon name="business" size={20} color={isDarkMode ? colors.white : colors.darkGrey} />
+                      {' '}  {selectedLanguage == 'en' ? item?.service?.name?.en : item?.service?.name?.sw}</Text>
+                    {item?.request_number && (
+                        <View style={styles.header}>
+                            <Text style={[styles.requestNumber, { color: isDarkMode ? colors.white : colors.secondary }]}>
+                                {`#${item.request_number}`}
+                            </Text>
+                        </View>
+                    )}
+                    <Text style={{ paddingVertical: 10, color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Regular' }}>
+                    <Icon name="person" size={15} color={isDarkMode ? colors.white : colors.darkGrey} />
+                       {' '} {item?.client?.name}</Text>
+                       <View style={{flexDirection:'row',justifyContent:'space-between',marginBottom:5}}>
+                       <View><Text style={{ color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Regular', fontSize: 13 }}>{item?.request_time}</Text></View>
+                    <View style={[styles.status, { backgroundColor: getStatusBackgroundColor(item?.statuses[item?.statuses.length - 1].status) }]}>
+                    <Text style={styles.statusText}>
+              {getStatusTranslation(item?.statuses[item?.statuses.length - 1].status)}</Text>
                     </View>
-                   
-                </ScrollView>
-            </SafeAreaView>
-            <BottomSheetModalProvider>
-                <View style={styles.container}>
-                    <BottomSheetModal
-                        ref={bottomSheetModalRef}
-                        index={1}
-                        snapPoints={snapPoints}
-                        onChange={handleSheetChanges}
-                    >
-                        <BottomSheetScrollView
-                            contentContainerStyle={styles.contentContainer}
-                        >
-                            <Text style={styles.title}>{sheetTitle}</Text>
-
-                            {sheetTitle === 'Active Requests' || sheetTitle === 'Maombi yaliyopo' ? (
-                                activeRequests.map(item => (
-                                    <TouchableOpacity style={styles.bottomView}
-                                        onPress={() => {
-                                            navigation.navigate('Requested services', {
-                                                request: item
-                                            })
-                                        }}
-                                    >
-                                          <Text style={{ color: colors.primary }}>{selectedLanguage=='en' ?item?.service?.name?.en:item?.service?.name?.sw}</Text>
-                                        <Text style={{ paddingVertical: 10, color: colors.black }}>{item.client.name}</Text>
-                                        <View style={{ marginRight: '35%', color: colors.alsoGrey }}><Text >{item.request_time}</Text></View>
-                                    </TouchableOpacity>
-                                ))
-
-                            ) : (
-                                pastRequests.map(item => (
-                                    <TouchableOpacity style={styles.bottomView}
-                                    onPress={() => {
-                                        navigation.navigate('Requested services', {
-                                            request: item
-                                        })
-                                    }}
-                                >
-                                     <Text style={{ color: colors.primary }}>{selectedLanguage=='en' ?item?.service?.name?.en:item?.service?.name?.sw}</Text>
-                                        <Text style={{ paddingVertical: 10, color: colors.black }}>{item.client.name}</Text>
-                                        <View style={{ marginRight: '35%', color: colors.alsoGrey }}><Text >{item.request_time}</Text></View>
-                                </TouchableOpacity>
-                                ))
-                            )}
-                        </BottomSheetScrollView>
-                    
-                    </BottomSheetModal>
-                </View>
-            </BottomSheetModalProvider>
-        </>
-    )
-
-
-}
-
-const styles = StyleSheet.create({
-
+                       </View>
+                </TouchableOpacity>
+                ))}
+              </BottomSheetScrollView>
+            </BottomSheetModal>
+          </View>
+        </BottomSheetModalProvider>
+      </>
+    );
+  };
+  
+  const styles = StyleSheet.create({
     container: {
-        margin: 10
+       
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+    },
+    dataBoardContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        marginTop: 50,
+    },
+    chartContainer: {
+        flex:1,
+        marginTop: 10,
+    },
+    chart: {
+        alignItems: 'center',
+        padding: 16,
+        borderRadius: 20,
+        backgroundColor: colors.white,
+        marginHorizontal: 10,
+    },
+    chartTitle: {
+        fontSize: 16,
+        color: colors.alsoGrey,
+        fontFamily: 'Prompt-Regular',
+    },
+    pieChart: {
+        marginVertical: 8,
+        borderRadius: 30,
+    },
+    noDataText: {
+        color: colors.black,
+        fontFamily: 'Prompt-Regular',
     },
     contentContainer: {
-        marginHorizontal: 10
+    
+        paddingHorizontal: 10,
     },
     title: {
         alignSelf: 'center',
-        fontSize: 15,
-        fontWeight: 'bold'
+        fontSize: 16,
+        fontFamily: 'Prompt-Bold',
+        marginVertical: 10,
     },
     listView: {
         marginHorizontal: 5,
@@ -272,38 +324,58 @@ const styles = StyleSheet.create({
     badgeText: {
         color: colors.white
     },
-    textContainer: {
-        paddingVertical: 5,
-        margin: 5,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.alsoGrey
-    },
+
     categoryService: {
-        textTransform: 'uppercase',
-        color: colors.secondary
+        fontFamily: 'Prompt-Bold',
     },
     service: {
         paddingTop: 5
     },
-    chart: {
-        alignItems: 'center',
-        marginVertical: 8,
-        borderRadius: 20,
-        backgroundColor:colors.white,
-       
-    },
     subservice: {
         paddingTop: 5,
-        fontWeight: 'bold',
-        color: colors.black
+        fontFamily: 'Prompt-Regular',
     },
 
     bottomView: {
-        paddingVertical: 5,
-        margin: 5,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.alsoGrey
+        paddingVertical: 10,
+        margin: 8,
+        borderRadius: 8,
+        elevation: 2,
+        paddingRight: 10
     },
-})
 
-export default EmployeeDashboard
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    requestNumber: {
+        fontFamily: 'Prompt-Regular',
+        fontSize: 13,
+        marginLeft: 5,
+    },
+
+    status: {
+        paddingVertical: 3,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight:10
+      },
+      statusText: {
+        color: colors.white,
+        paddingHorizontal: 10,
+        fontFamily: 'Prompt-Bold',
+        fontSize: 14,
+      },
+
+    bottomViewBusiness: {
+        paddingVertical: 10,
+        margin: 8,
+        borderRadius: 8,
+        elevation: 2,
+        paddingRight: 10
+    }
+  });
+  
+  export default EmployeeDashboard;
+  

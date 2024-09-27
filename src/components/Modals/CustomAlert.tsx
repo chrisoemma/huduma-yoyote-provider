@@ -36,11 +36,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
+    color:colors.black,
     fontSize: 18,
-    fontFamily: 'Prompt-Bold',
+    fontFamily: 'Prompt-Regular',
     marginBottom: 10,
   },
   message: {
+    color:colors.black,
     fontSize: 16,
     fontFamily: 'Prompt-Regular',
     marginBottom: 20,

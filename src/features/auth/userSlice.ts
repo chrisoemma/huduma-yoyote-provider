@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { API_URL } from '../../utils/config';
 import { clearNotifications } from '../Notifications/NotificationProviderSlice';
+import { authHeader } from '../../utils/auth-header';
 
 interface User {
   id: number;
@@ -102,6 +103,21 @@ export const updateProfile = createAsyncThunk(
       throw error; // Rethrow the error to be caught by Redux Toolkit
     }
   }
+);
+
+
+
+
+export const getUserData = createAsyncThunk(
+  'users/getUserData',
+  async (userId,appType) => {
+    let header: any = await authHeader();
+    const response = await fetch(`${API_URL}/users/getUserData/${userId}/${appType}`, {
+      method: 'GET',
+      headers: header,
+    });
+    return (await response.json()) as any;
+  },
 );
 
 
@@ -322,6 +338,7 @@ export const userLogoutThunk = createAsyncThunk(
 function logout(state: any) {
   console.log('::: USER LOGOUT CALLED :::');
   state.user = {};
+  state.residence={};
 }
 
 function updateStatus(state: any, status: any) {
@@ -372,6 +389,25 @@ const userSlice = createSlice({
       state.user.provider.subscription_status=action.payload
     },
 
+    setChangeProfession: (state, action) => {
+      const { pendingProfession, profession, status } = action.payload;  // Adding status to payload
+    
+
+      console.log('action payload',action.payload);
+      if (state.user.provider) {
+        // Handle pending profession
+        state.user.provider.pending_profession = pendingProfession || null;  // Set to null if pending profession is missing
+    
+        // Handle approved profession
+        if (profession) {
+          state.user.provider.designation = profession;
+        }
+    
+        // Update profession_change_status based on status (approved or rejected)
+        state.user.provider.profession_change_status = status || 'pending';  // Default to 'pending' if no status is provided
+      }
+    },
+    
     logoutOtherDevice(state:any){
       logout(state);
     },
@@ -506,6 +542,45 @@ const userSlice = createSlice({
         updateStatus(state, '');
       });
 
+
+
+
+
+        //get user Data
+
+    builder.addCase(getUserData.pending, state => {
+      console.log('Pending');
+      updateStatus(state, '');
+      state.loading = true;
+    });
+    builder.addCase(getUserData.fulfilled, (state, action) => {
+      //console.log('Fulfilled sapnaaa');
+      console.log(action.payload?.data?.user);
+
+      if (action.payload.status){
+        state.user = {
+          ...state.user,
+          ...action.payload.data.user,
+        };
+  
+        state.residence={
+          ...state.residence,
+          ...action.payload.data.location
+         }
+  
+        if (action.payload.data.token) {
+          state.user.token = action.payload.data.token;
+        }
+      }
+
+      state.loading = false;
+    });
+    builder.addCase(getUserData.rejected, (state, action) => {
+      console.log('Rejected');
+      console.log(action.error);
+      updateStatus(state, 'Something went wrong, please try again later');
+      state.loading = false;
+    });
 
 
         //RESEND OTP
@@ -707,7 +782,7 @@ const userSlice = createSlice({
     });
     builder.addCase(updateProviderInfo.fulfilled, (state, action) => {
 
-      console.log('dataaaa errorr',action.payload)
+     // console.log('dataaaa errorr',action.payload)
 
       if (action.payload.status) {
       state.user = {
@@ -818,6 +893,6 @@ const userSlice = createSlice({
   },
 });
 
-export const { userLogout,changeNidaStatus,logoutOtherDevice,setUserChanges,updateProviderChanges, clearMessage,setFirstTime,setUserOnlineStatus,setUserAccountStatus,setUserSubcriptionStatus } = userSlice.actions;
+export const { setChangeProfession,userLogout,changeNidaStatus,logoutOtherDevice,setUserChanges,updateProviderChanges, clearMessage,setFirstTime,setUserOnlineStatus,setUserAccountStatus,setUserSubcriptionStatus } = userSlice.actions;
 
 export default userSlice.reducer;

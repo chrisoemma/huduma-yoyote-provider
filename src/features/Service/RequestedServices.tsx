@@ -32,9 +32,16 @@ import ToastNotification from '../../components/ToastNotification/ToastNotificat
 import CustomBackground from '../../components/CustomBgBottomSheet'
 
 const RequestedServices = ({ navigation, route }: any) => {
+    const { activeRequests, pastRequests } = useSelector((state: RootStateOrAny) => state.requests);
 
 
-    const { request } = route.params;
+
+    const { request: initialRequest } = route.params;
+
+    const request = useMemo(() => {
+        const allRequests = [...activeRequests, ...pastRequests];
+        return allRequests.find(r => r.id === initialRequest.id) || initialRequest;
+    }, [activeRequests, pastRequests, initialRequest]);
 
     const [userLocation, setUserLocation] = useState(null);
     const [providerLocation, setProviderLocation] = useState(null);

@@ -45,6 +45,8 @@ const Account = ({ navigation }: any) => {
   }
 
 
+  //console.log('user',user);
+
   const makeid = (length: any) => {
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -359,7 +361,9 @@ const Account = ({ navigation }: any) => {
               {user?.email == null ? (<Text style={{ color: isDarkMode ? colors.white : colors.alsoGrey }}> {t('screens:noEmail')}</Text>) : (<Text style={{ paddingLeft: 10, color: isDarkMode ? colors.white : colors.black }}>{user?.email}</Text>)
               }
             </TouchableOpacity>
-            <Text style={{ color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Bold', }}>{t('screens:officeLocation')}</Text>
+
+
+            <Text style={{ color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Bold', }}>{t('screens:residentialLocation')}</Text>
             <TouchableOpacity style={{ flexDirection: 'row', marginBottom: 10 }}>
               <Icon
                 name="enviroment"
@@ -367,33 +371,36 @@ const Account = ({ navigation }: any) => {
                 size={25}
               />
               {
-                workingLocation == null ? (<Text style={{ color: isDarkMode ? colors.white : colors.alsoGrey }}> {t('screens:noresidenceData')}</Text>) : (<Text style={{ paddingLeft: 10, color: isDarkMode ? colors.white : colors.black }}>{breakTextIntoLines(locationName, 20)}</Text>)
+                (residence === null || Object.keys(residence || {}).length === 0) ?
+
+                  (<Text style={{ color: colors.dangerRed, fontFamily: 'Prompt-Regular', }}>{t('screens:noresidenceData')}</Text>) :
+
+                  (
+                    <Text style={{ paddingLeft: 10, color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Regular', }}>
+                      {breakTextIntoLines(
+                        `${residence?.region?.region_name}, ${residence?.district?.district_name}, ${residence?.ward?.ward_name}, ${residence?.area?.place_name}`,
+                        20
+                      )}
+                    </Text>
+                  )
               }
 
             </TouchableOpacity>
 
+
             {user?.provider ? (
               <>
-                <Text style={{ color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Bold', }}>{t('screens:residentialLocation')}</Text>
+                <Text style={{ color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Bold', }}>{t('screens:officeLocation')}</Text>
+
                 <TouchableOpacity style={{ flexDirection: 'row', marginBottom: 10 }}>
                   <Icon
                     name="enviroment"
                     color={isDarkMode ? colors.white : colors.black}
                     size={25}
                   />
+
                   {
-                    (residence === null || Object.keys(residence || {}).length === 0) ?
-
-                      (<Text style={{ color: colors.dangerRed, fontFamily: 'Prompt-Regular', }}>{t('screens:noresidenceData')}</Text>) :
-
-                      (
-                        <Text style={{ paddingLeft: 10, color: isDarkMode ? colors.white : colors.black, fontFamily: 'Prompt-Regular', }}>
-                          {breakTextIntoLines(
-                            `${residence?.region?.region_name}, ${residence?.district?.district_name}, ${residence?.ward?.ward_name}, ${residence?.area?.place_name}`,
-                            20
-                          )}
-                        </Text>
-                      )
+                    workingLocation == null ? (<Text style={{ color: isDarkMode ? colors.white : colors.alsoGrey }}> {t('screens:noresidenceData')}</Text>) : (<Text style={{ paddingLeft: 10, color: isDarkMode ? colors.white : colors.black }}>{breakTextIntoLines(locationName, 20)}</Text>)
                   }
 
                 </TouchableOpacity>

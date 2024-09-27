@@ -7,7 +7,6 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
-  ToastAndroid,
   ActivityIndicator,
   Dimensions,
   StyleSheet,
@@ -37,6 +36,7 @@ import ToastMessage from '../../components/ToastMessage';
 import messaging from '@react-native-firebase/messaging';
 import ToastNotification from '../../components/ToastNotification/ToastNotification';
 import CustomAlert from '../../components/Modals/CustomAlert';
+import BouncyCheckbox from 'react-native-bouncy-checkbox';
 
 const RegisterScreen = ({ route, navigation }: any) => {
 
@@ -45,6 +45,8 @@ const RegisterScreen = ({ route, navigation }: any) => {
     (state: RootStateOrAny) => state.user,
   );
 
+  const [isTermsChecked, setIsTermsChecked] = useState(false);
+
   const { professions, profesionsLoading } = useSelector(
     (state: RootStateOrAny) => state.professions,
   );
@@ -52,6 +54,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
 
 
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [charCount, setCharCount] = useState(0);
 
   const { selectedLanguage } = useSelector(
     (state: RootStateOrAny) => state.language,
@@ -141,17 +144,13 @@ const RegisterScreen = ({ route, navigation }: any) => {
   };
 
 
-  
-
-
 
   const onSubmit = async (data: any) => {
 
-    // if (errors.phone){
-    //   setShowToast(true)
-    //   showToastMessage(t('screens:errorOccured'));
-    //   return 
-    // }
+    if (!isTermsChecked){
+      ToastNotification(`${t('screens:checkTermsOfService')}`,'danger','long')
+      return 
+    }
 
     if (value.length < 1) {
       setDesignationError(`${t('auth:designationError')}`)
@@ -455,49 +454,68 @@ const RegisterScreen = ({ route, navigation }: any) => {
           </BasicView>
 
           <BasicView>
-            <Text
-              style={[
-                stylesGlobal.inputFieldTitle,
-                stylesGlobal.marginTop20,
-              ]}>
-              {t('auth:nida')}
-            </Text>
+      <Text
+        style={[
+          stylesGlobal.inputFieldTitle,
+          stylesGlobal.marginTop20,
+        ]}>
+        {t('auth:nida')}
+      </Text>
 
-            <Controller
-              control={control}
-              rules={{
-                required: true,
-                validate: (value) => {
-                  if (value.length !== 20) {
-                    setNidaError(t('auth:nida20numbers'));
-                    return false;
-                  }
-                  setNidaError('');
-                  return true;
-                },
+      <Controller
+        control={control}
+        rules={{
+          required: true,
+          validate: (value) => {
+            if (value.length !== 20) {
+              setNidaError(t('auth:nida20numbers'));
+              return false;
+            }
+            setNidaError('');
+            return true;
+          },
+        }}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <>
+            <TextInputField
+              placeholder={t('auth:enterNida')}
+              onBlur={onBlur}
+              onChangeText={(text) => {
+                if (text.length <= 20) {  
+                  onChange(text);
+                  setCharCount(text.length);  
+                }
               }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInputField
-                  placeholder={t('auth:enterNida')}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  value={value}
-                  keyboardType='numeric'
-                />
-              )}
-              name="nida"
+              value={value}
+              maxLength={20}
+              keyboardType="numeric"
+              
             />
-             {errors.nida && (
-              <Text style={stylesGlobal.errorMessage}>
-                {t('auth:nidaEmptyError')}
-              </Text>
-            )}
-            {nidaError && (
-              <Text style={stylesGlobal.errorMessage}>
-                {nidaError}
-              </Text>
-            )}
-          </BasicView>
+         
+         <Text
+              style={[
+                styles.charCount,
+                { color: charCount === 20 ? 'green' : 'red' },
+              ]}
+            >
+              {charCount}/20
+            </Text>
+          </>
+        )}
+        name="nida"
+      />
+
+      {errors.nida && (
+        <Text style={stylesGlobal.errorMessage}>
+          {t('auth:nidaEmptyError')}
+        </Text>
+      )}
+      {nidaError && (
+        <Text style={stylesGlobal.errorMessage}>
+          {nidaError}
+        </Text>
+      )}
+    </BasicView>
 
           <BasicView>
             <Text
@@ -590,9 +608,35 @@ const RegisterScreen = ({ route, navigation }: any) => {
 
 
           <BasicView>
+            <View style={styles.TermsConditions}>
+              <BouncyCheckbox
+                size={20}
+                fillColor={colors.secondary}
+                unfillColor="#FFFFFF"
+              //  text={t('screens:termsText')}
+                iconStyle={{ borderColor: colors.secondary }}
+                innerIconStyle={{ borderWidth: 2 }}
+                onPress={(isChecked) => setIsTermsChecked(isChecked)}
+              />
+              <Text style={stylesGlobal.touchablePlainTextSecondary}>
+              {t('screens:termsText')}
+                <TouchableOpacity onPress={() => Linking.openURL('https://your-terms-url.com')}
+                   
+                  >
+                  <Text style={styles.linkText}>{t('screens:termsLink')}</Text>
+                </TouchableOpacity>
+                {` ${t('screens:termsContinueText')} `}
+              </Text>
+            </View>
+          </BasicView>
+
+
+          <BasicView>
+          <View style={[styles.buttonWrapper, { opacity: isTermsChecked ? 1 : 0.5 }]}>
             <Button loading={nidaLoading || loading} onPress={handleSubmit(onSubmit)}>
               <ButtonText>{t('auth:register')}</ButtonText>
             </Button>
+            </View>
           </BasicView>
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginHorizontal:5, marginBottom: 80 }}>
@@ -618,19 +662,7 @@ const RegisterScreen = ({ route, navigation }: any) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.TermsConditions}>
-            <Text style={stylesGlobal.touchablePlainTextSecondary}>
-              {t('screens:termsText')}{' '}
-              <TouchableOpacity onPress={() => Linking.openURL('https://your-terms-url.com')}>
-                <Text style={styles.linkText}>{t('screens:termsLink')}</Text>
-              </TouchableOpacity>
-              {` ${t('screens:termsContinueText')} `}
-              <TouchableOpacity onPress={() => Linking.openURL('https://your-privacy-policy-url.com')}>
-                <Text style={styles.linkText}>{t('screens:privacyPolicyLink')}</Text>
-              </TouchableOpacity>
-              {` ${t('screens:continuePrivacyPolicy')} `}
-            </Text>
-          </View>
+    
 
         </View>
         <CustomAlert
@@ -657,18 +689,38 @@ const styles = StyleSheet.create({
     marginLeft: 50,
     zIndex: 15000,
   },
-  TermsConditions: {
-    marginTop: '10%',
-    flexDirection: 'row',
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderColor: colors.primary,
+    borderWidth: 1,
+    borderRadius: 3,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 10,
-    marginBottom:'3%'
+    marginRight: 10,
+  },
+  TermsConditions: {
+    marginTop: '7%',
+    flexDirection: 'row',
+    //justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom:'4%'
+  },
+  buttonWrapper: {
+    marginVertical: 15,
   },
   linkText: {
     color: colors.secondary,
+    fontSize:13,
     textDecorationLine: 'underline',
-    fontWeight:'bold',
+    fontFamily:'Prompt-Regular',
+    fontWeight:'bold'
+  },
+  charCount: {
+   // color:colors.successGreen,
+    fontSize: 13,       
+    marginTop: 5,       
+    textAlign: 'right', 
   },
 });
 

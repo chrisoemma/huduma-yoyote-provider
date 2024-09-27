@@ -48,6 +48,12 @@ import { colors } from '../utils/colors';
     fontSize:17,
     marginBottom:8
    },
+
+   loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
    homepageHeader:{
     height:100,
     width:'100%',

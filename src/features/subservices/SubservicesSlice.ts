@@ -38,11 +38,8 @@ export const createSubService = createAsyncThunk(
   async ({ data, providerId, businessId }: any) => {
     const response = await fetch(`${API_URL}/businesses/add_subservice/${providerId}/${businessId}`, {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
+   
+      body: data,
     });
     return (await response.json())
   },
@@ -79,12 +76,8 @@ export const updateSubService = createAsyncThunk(
 
 
     const response = await fetch(`${API_URL}/sub_services/update_mobile_sub_service/${id}`, {
-      method: 'PUT',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
+      method: 'POST',
+      body: data,
     });
     return (await response.json());
   }
@@ -121,9 +114,7 @@ const ServiceSlice = createSlice({
       state.subServiceByService = [];
     },
     setServiceApproval: (state, action) => {
-      const updatedSubservice = typeof action.payload === 'string'
-        ? JSON.parse(action.payload)
-        : action.payload;
+      const updatedSubservice =action.payload;
       const subserviceIndex = state.providerSubServices.findIndex(
         (subService) => subService.id === updatedSubservice.id
       );
@@ -187,12 +178,16 @@ const ServiceSlice = createSlice({
     });
 
     builder.addCase(deleteSubService.fulfilled, (state, action) => {
-      console.log('Delete Subservice Fulfilled', action.payload);
+      // console.log('Delete Subservice Fulfilled', action.payload);
 
-      if (action.payload.status) {
-        const deletedSubServiceId = action.meta.arg;
-        state.subService = state.subservices.filter((subservice) => subservice.id !== deletedSubServiceId);
-
+      if ( action.payload && action.payload.status) {
+        const deletedSubServiceId = action.payload.data.subService.id;
+             if(action.payload.data.type=='subService'){
+              state.subservices = state.subservices.filter((subservice) => subservice.id !== deletedSubServiceId);
+             }else{
+              state.providerSubServices= state.providerSubServices.filter((subservice) => subservice.id !== deletedSubServiceId);
+             }
+       
       }
       state.loading = false;
       updateStatus(state, '');

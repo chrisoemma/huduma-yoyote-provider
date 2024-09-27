@@ -3,7 +3,7 @@ import React from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Import the icon library
 import { colors } from '../utils/colors';
 import { useSelector, RootStateOrAny } from 'react-redux';
-import { combineSubServices, getStatusBackgroundColor } from '../utils/utilts';
+import { combineSubServices, formatRequestTime, getStatusBackgroundColor } from '../utils/utilts';
 import { useTranslation } from 'react-i18next';
 import { selectLanguage } from '../costants/languangeSlice';
 
@@ -21,6 +21,8 @@ const RequestList = ({ item, navigation }: any) => {
   };
 
   const { t } = useTranslation();
+
+
 
   const request_status = item?.statuses[item?.statuses.length - 1].status;
 
@@ -71,11 +73,12 @@ const RequestList = ({ item, navigation }: any) => {
             ...
           </Text>
         )}
+        
       </View>
       <View style={styles.bottomView}>
-        <View style={{ marginRight: '35%' }}>
+        <View>
           <Text style={[styles.requestTime, { color: isDarkMode ? colors.white : colors.darkGrey }]}>
-            {item?.request_time}
+          {formatRequestTime(item?.request_time)}
           </Text>
         </View>
         <View style={[styles.status, { backgroundColor: getStatusBackgroundColor(request_status) }]}>
@@ -93,7 +96,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginHorizontal: 10,
     backgroundColor: colors.white,
-    elevation: 5,
+    elevation:2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -102,35 +105,35 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 5,
   },
   requestNumber: {
-    fontFamily: 'Prompt-SemiBold',
-    fontSize: 15,
+    fontFamily: 'Prompt-Regular',
+    fontSize: 13,
     marginLeft: 5,
   },
   serviceName: {
     fontFamily: 'Prompt-SemiBold',
-    fontSize: 16,
+    fontSize: 15,
     marginBottom: 5,
   },
   providerName: {
     fontFamily: 'Prompt-Regular',
-    fontSize: 15,
+    fontSize: 13,
     paddingVertical: 10,
   },
   subServiceName: {
     fontFamily: 'Prompt-Regular',
-    fontSize: 14,
+    fontSize: 13,
   },
   bottomView: {
     flexDirection: 'row',
     paddingTop: 15,
+    justifyContent:'space-between',
     alignItems: 'center',
   },
   requestTime: {
     fontFamily: 'Prompt-Regular',
-    fontSize: 12,
+    fontSize: 11,
   },
   status: {
     paddingVertical: 3,

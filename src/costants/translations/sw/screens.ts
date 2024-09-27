@@ -161,9 +161,8 @@ loading:'Inatafuta',
 requestUpdatedSuccessfully:'Ombi limefanikiwa',
 noresidenceData: 'Hakikisha umejaza eneo la makazi ili kuhakikiwa',
 noworkingAreaData:'Eneo la kazi halijajazwa',
-current: 'Sasa',
+current: 'Za sasa',
 previous: 'Za nyuma',
-
 profession: 'Kazi',
 noEmail: 'Hakuna Barua pepe',
 pleaseSelectPaymentMethod:'Tafadhali changua njia ya kulipa',
@@ -181,9 +180,11 @@ end:'Mwisho',
 pleaseEnterMobileNetworkPhoneNumber:'Tafadhali jaza namba ya simu',
 invalidNumberFormat:'Namba sio sahihi',
 
-termsText: "Kwa kujisajili, unakubali",
-termsLink: "Sheria na Masharti yetu,",
-termsContinueText: "unakubali",
+termsText: "Kwa kujisajili, umesoma na umekubaliana na ",
+termsLink: "Masharti ya Huduma,",
+termsContinueText: "Ya kutumia Espe service",
+checkTermsOfService:"Tafadhali angalia masharti ya matumizi",
+
 privacyPolicyLink: "Sera ya Faragha",
 continuePrivacyPolicy: "Na unathibitisha kuwa una zaidi ya miaka 18. Tunaweza kutuma matangazo yanayohusiana na huduma zetu - unaweza kujiondoa wakati wowote kwenye mipangilio.",
  rejectRequest:'Kataa Ombi',
@@ -203,5 +204,8 @@ accountNumber:'Namba yako ya mfumo',
 confirmAction:'Thibitisha',
 areYouSureYouwantTo:'Unahuakika unataka ku',
 providerSubServiceDetails:'Taarifa za huduma',
-fileTooLarge:'Nyaraka kubwa, uwezo wa mwisho ni MB 10'
+fileTooLarge:'Nyaraka kubwa, uwezo wa mwisho ni MB 10',
+noRequestFound:'Hakuna maombi yaliyopatikana',
+searchRequests:'Tafuta huduma, namba ya huduma, muda wa kuomba, mteja'
+
 };

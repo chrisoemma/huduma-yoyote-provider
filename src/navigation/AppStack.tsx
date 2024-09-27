@@ -17,7 +17,7 @@ import EditSubService from "../features/business/EditSubService";
 import ViewSubService from "../features/business/ViewSubService";
 import Subscriptions from "../features/subscriptions/Subscriptions";
 import { useEffect, useRef, useState } from "react";
-import {postUserOnlineStatus } from "../features/auth/userSlice";
+import {getUserData, postUserOnlineStatus } from "../features/auth/userSlice";
 import { useAppDispatch } from "../app/store";
 import FCMMessageHandler from "../components/FCMMessageHandler";
 import { useSelector } from "react-redux";
@@ -27,7 +27,7 @@ import Notifications from "../features/Notifications/Notifications";
 import { getActiveRequests, getEmployeeActiveRequests } from "../features/requests/RequestSlice";
 import { handleDeviceToken } from "../utils/handeDeviceToken";
 import ProviderSubServiceDetails from "../features/subservices/ProviderSubServiceDetails";
-
+import messaging from '@react-native-firebase/messaging';
 
 
 const AppStack = () => {
@@ -57,6 +57,52 @@ const AppStack = () => {
         if (unsubscribe) unsubscribe();
       };
     }, [dispatch, user]);
+
+
+
+    // useEffect(() => {
+    
+    //   const retrieveDeviceToken = async () => {
+    //     try {
+    //       const token = await messaging().getToken();
+    //       console.log('Device Token:', token);
+    //       // if (user) {
+    //       //   dispatch(postUserDeviceToken({ userId: user?.id, deviceToken: token }));
+    //       // }
+    //     } catch (error) {
+    //       console.log('Error retrieving device token:', error);
+    //     }
+    //   };
+  
+    //   const handleTokenRefresh = async (token) => {
+    //     console.log('New token:', token);
+    //     // if (user) {
+    //     //   dispatch(postUserDeviceToken({ userId: user?.id, deviceToken: token }));
+    //     // }
+    //   };
+    //   if (Platform.OS === 'ios') {
+    //     const requestPermission = async () => {
+    //       try {
+    //         await messaging().requestPermission();
+    //         retrieveDeviceToken();
+    //       } catch (error) {
+    //         console.log('Permission denied:', error);
+    //       }
+    //     };
+  
+    //     requestPermission();
+    //   } else {
+    //     retrieveDeviceToken();
+    //   }
+  
+    //   // Listen for token refresh
+    //   const unsubscribeOnTokenRefresh = messaging().onTokenRefresh(handleTokenRefresh);
+  
+    //   return () => {
+    //     unsubscribeOnTokenRefresh();
+    //   };
+    // }, [dispatch, user]);
+
     
     useEffect(() => {
       let data={
@@ -72,9 +118,13 @@ const AppStack = () => {
           if (user) {
                data.isOnline=true
             dispatch(postUserOnlineStatus({ userId: user?.id, data }));
+            
+            handleDeviceToken(dispatch, user);
             if(user?.provider){
+              dispatch(getUserData(user?.id,'provider'))
               dispatch(getActiveRequests(user?.provider?.id));
              }else if(user?.employee){
+              dispatch(getUserData(user?.id,'employee'))
               dispatch(getEmployeeActiveRequests(user?.employee?.id));
              } 
           }

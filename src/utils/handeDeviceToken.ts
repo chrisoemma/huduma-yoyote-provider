@@ -5,6 +5,7 @@ import { postUserDeviceToken } from '../features/auth/userSlice';
 import DeviceInfo from 'react-native-device-info';
 
 export const handleDeviceToken = (dispatch, user) => {
+  
   const retrieveDeviceToken = async () => {
     try {
       const token = await messaging().getToken();
@@ -32,7 +33,22 @@ export const handleDeviceToken = (dispatch, user) => {
 
   const handleTokenRefresh = async (token) => {
     if (user) {
-      dispatch(postUserDeviceToken({ userId: user?.id, deviceToken: token }));
+
+      
+      const userType='provider';
+      const uniqueId = await DeviceInfo.getUniqueId();
+      const deviceName = await DeviceInfo.getModel();
+      const platform = Platform.OS; 
+
+      const data = {
+         deviceToken:token,
+         userId:user?.id,
+         deviceName:deviceName,
+         userType:userType,
+         uniqueId:uniqueId,
+         platform:platform
+      }
+      dispatch(postUserDeviceToken({ userId: user?.id, data: data }));
     }
   };
 

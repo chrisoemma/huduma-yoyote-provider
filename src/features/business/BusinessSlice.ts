@@ -67,8 +67,8 @@ export const getBusinesses = createAsyncThunk(
         // console.log('dtaaaa',data);
 
       
-        const response = await fetch(`${API_URL}/businesses/${businessId}`, {
-            method: 'PUT',
+        const response = await fetch(`${API_URL}/businesses/update_business/${businessId}`, {
+            method: 'POST',
             // headers: {
             //     Accept: 'application/json',
             //     'Content-Type': 'application/json',

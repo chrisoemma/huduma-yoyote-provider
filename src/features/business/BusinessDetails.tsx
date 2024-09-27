@@ -99,7 +99,7 @@ const BusinessDetails = ({ route, navigation }: any) => {
       {
         text: `${t('screens:ok')}`,
         onPress: () => {
-          console.log('idddd', id);
+          // console.log('idddd', id);
           dispatch(deleteBusiness({ businessId: id }))
             .unwrap()
             .then(result => {
@@ -115,7 +115,7 @@ const BusinessDetails = ({ route, navigation }: any) => {
                 console.log('dont navigate');
               }
 
-              console.log('resultsss', result)
+             // console.log('resultsss', result)
             })
             .catch(rejectedValueOrSerializedError => {
               // handle error here
@@ -145,15 +145,13 @@ const BusinessDetails = ({ route, navigation }: any) => {
               if (result.status) {
 
                 ToastNotification(`${t('screens:deletedSuccessfully')}`, 'success', 'long')
-                navigation.navigate('My Businesses', {
-                  screen: 'My Businesses',
-                });
+            
               } else {
                 ToastNotification(`${t('screens:requestFail')}`, 'danger', 'long')
                 console.log('dont navigate');
               }
 
-              console.log('resultsss', result)
+             // console.log('resultsss', result)
             })
             .catch(rejectedValueOrSerializedError => {
               // handle error here
@@ -316,19 +314,22 @@ const BusinessDetails = ({ route, navigation }: any) => {
                 {providerSubServices?.map(provider_sub_service => (
                   <ServicesOffered key={provider_sub_service.id} provider_sub_service={provider_sub_service} />
                 ))}
-              </BottomSheetScrollView>
 
-              {user.provider && user.status !== 'In Active' ? (
-                <FloatBtn
-                  onPress={() => {
-                    navigation.navigate('Add Sub Service', {
-                      business: service,
-                      sub_services: subservices
-                    });
-                  }}
-                  iconType='add'
-                />
-              ) : null}
+                
+              </BottomSheetScrollView>
+              <View style={{ position: 'absolute', bottom: '15%', right: 20 }}>
+  {user.provider && user.status !== 'In Active' ? (
+    <FloatBtn
+      onPress={() => {
+        navigation.navigate('Add Sub Service', {
+          business: service,
+          sub_services: subservices
+        });
+      }}
+      iconType='add'
+    />
+  ) : null}
+</View>
             </BottomSheetModal>
           </View>
         </BottomSheetModalProvider>

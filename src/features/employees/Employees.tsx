@@ -75,6 +75,9 @@ const Employees = ({ navigation }: any) => {
                     keyExtractor={(item) => item?.id}
                     renderItem={renderItem}
                     showsVerticalScrollIndicator={false}
+                    ListFooterComponent={<View
+                    style={{marginBottom:'20%'}}
+                    ></View>}
                 />
                 </View>
                 <FloatBtn

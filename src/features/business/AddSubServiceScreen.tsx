@@ -184,29 +184,22 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
 
   const onSubmit = async (data) => {
 
-    data.provider_id = user.provider.id;
-    data.service_id = business?.service_id;
-    data.business_id = business?.id;
-    data.sub_services = checkedSubServices;
+    const formData = new FormData();
 
-    // if (data.name == null || data.name.trim() == '') {
-    //   if (image == null) {
-    //     setDisappearMessage(`${t('screens:UploadImagesVideosOfService')}`);
-    //     if (!showToast) {
-    //       setShowToast(true)
-    //       showToastMessage(t('screens:errorOccured'));
-    //     }
-    //     return
-    //   }
-    // }
+    // Append data to formData
+    formData.append('provider_id', user.provider.id);
+    formData.append('service_id', business?.service_id);
+    formData.append('business_id', business?.id);
+    formData.append('name', data?.name);
+    formData.append('description', data?.description);
+    formData.append('sub_services' , JSON.stringify(checkedSubServices));
+    if(video){
+      formData.append('video_file',video[0])
+      }
+     if(image){
+      formData.append('image_file',image[0]);
+     }
   
-
-    let mediaUploadHandled = false;
-
-    const handleUploadFinish = () => {
-
-      if (!mediaUploadHandled) {
-        mediaUploadHandled = true;
         if (checkedSubServices.length < 1 || data.name == null) {
           setDisappearMessage(`${t('screens:chooseSubserviceOrEnterName')}`);
           if (!showToast) {
@@ -215,11 +208,10 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
           }
 
         } else {
-          dispatch(createSubService({ data: data, providerId: user.provider.id, businessId: business.id }))
+          dispatch(createSubService({ data: formData, providerId: user.provider.id, businessId: business.id }))
             .unwrap()
             .then(result => {
               if (result.status) {
-              
                 ToastNotification(`${t('screens:createdSuccessfully')}`,'success','long')
                 navigation.navigate('My Businesses', {
                   screen: 'My Businesses',
@@ -248,64 +240,6 @@ const AddSubServiceScreen = ({ route, navigation }: any) => {
               console.log(rejectedValueOrSerializedError);
             });
         }
-
-      }
-    };
-
-    const uploadFileAndHandleFinish = async (file, storagePath) => {
-      const fileExtension = file[0].type.split("/").pop();
-      const uuid = makeid(10);
-      const fileName = `${uuid}.${fileExtension}`;
-      const storageRef = firebase.storage().ref(`${storagePath}/${fileName}`);
-
-      const fileUri = await getPathForFirebaseStorage(file[0].uri);
-
-      try {
-  
-
-          setUploadingDoc(true);
-          storageRef.putFile(fileUri).on(
-            firebase.storage.TaskEvent.STATE_CHANGED,
-            (snapshot: any) => {
-              console.log("snapshot state: " + snapshot.state);
-              if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
-                storageRef.getDownloadURL().then((downloadUrl: any) => {
-                  if (file === image) {
-
-                    data.img_url = downloadUrl;
-                  } else if (file === video) {
-                    data.video_url = downloadUrl;
-                  }
-                  setUploadingDoc(false);
-                  //  mediaUploaded = true;
-
-                  // Check if both image and video uploads are complete
-                  handleUploadFinish();
-                });
-              }
-            },
-            (error) => {
-              unsubscribe();
-            }
-          );
-     
-      } catch (error) {
-        console.warn(error);
-      }
-    };
-
-
-
-    if (image !== null) {
-       await uploadFileAndHandleFinish(image, 'businesses/images/');
-       
-    }
-    if (video !== null) {
-      await uploadFileAndHandleFinish(video, 'businesses/videos/');
-    }
-    if (image === null && video === null) {
-      handleUploadFinish();
-    }
   };
 
   return (

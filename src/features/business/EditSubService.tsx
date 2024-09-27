@@ -164,130 +164,75 @@ const EditSubService = ({ route, navigation }: any) => {
   ///New upload 
 
   const onSubmit = async (data) => {
-    data.provider_id = user.provider.id;
-    data.type=type;
-    let idData:number;
-    let providerSubListId;
-
-    let mediaUploadHandled = false;
-
-    if(type=='subService')
-
-    {
-       idData=sub_service.id;
-       providerSubListId=sub_service.provider_sub_list.id
-
-       if(data.img_url==null){
-        data.img_url=sub_service?.assets[0]?.img_url || sub_service?.default_images[0]?.img_url
-      }
-
-      if(data.video_url==null){
-        data.video_url=sub_service?.assets[0]?.video_url || sub_service?.default_images[0]?.video_url
-      }
-    }else{
-      idData=providerSubService.id;
-      providerSubListId=providerSubService.provider_sub_list.id
-      if(data.img_url==null){
-        data.img_url=providerSubService?.assets[0]?.img_url ||null
-      }
-
-      if(data.video_url==null){
-        data.video_url=providerSubService?.assets[0]?.video_url || null
-      }
-    }
-
-    data.providerSubListId=providerSubListId;
-
+    const formData = new FormData();
   
+    // Append necessary data
+    formData.append('provider_id', user.provider.id);
+    formData.append('type', type);
+  
+    let idData;
+    let providerSubListId;
+  
+    // Conditionally set ID data based on the type
+    if (type === 'subService') {
+      idData = sub_service.id;
+      providerSubListId = sub_service.provider_sub_list.id;
+    } else {
+      idData = providerSubService.id;
+      providerSubListId = providerSubService.provider_sub_list.id;
+    }
 
-    const handleUploadFinish = () => {
 
-      if (!mediaUploadHandled) {
-        mediaUploadHandled = true; 
-
-      if (data.description==null || data.name == null) {
-        setDisappearMessage(`${t('screens:enterNameOrDescription')}`);
-        if(!showToast){
-          setShowToast(true)
-          showToastMessage(t('screens:errorOccured'));
+         // Append video file if available
+         if (video) {
+          formData.append('video_file', video[0]);  // Assuming video[0] holds the file
         }
-      } else {
-        dispatch(updateSubService({ data: data, providerId: user.provider.id, id:idData  }))
-          .unwrap()
-          .then(result => {
-            if (result.status) {
-            
-              ToastNotification(`${t('screens:updatedSuccessfully')}`,'success','long')
-              navigation.navigate('My Businesses', {
-                screen: 'My Businesses',
-              });
-            } else {
-              ToastNotification(`${t('screens:requestFail')}`,'danger','long')
-              if(!showToast){
-                setShowToast(true)
-                showToastMessage(t('screens:errorOccured'));
-              }
+    
+        // Append image file if available
+        if (image) {
+          formData.append('image_file', image[0]);  // Assuming image[0] holds the file
+        }
+  
+    // Append additional data
+    formData.append('providerSubListId', providerSubListId);
+  
+    // Check for required fields
+    if (data.description == null || data.name == null) {
+      setDisappearMessage(`${t('screens:enterNameOrDescription')}`);
+      if (!showToast) {
+        setShowToast(true);
+        showToastMessage(t('screens:errorOccured'));
+      }
+    } else {
+      // Append other data fields to formData
+      formData.append('name', data.name);
+      formData.append('description', data.description);
+
+
+      console.log('formData',formData)
+      console.log('idData',idData);
+  
+      // Dispatch the action with FormData
+      dispatch(updateSubService({ data: formData,  id: idData }))
+        .unwrap()
+        .then(result => {
+          if (result.status) {
+            ToastNotification(`${t('screens:updatedSuccessfully')}`, 'success', 'long');
+            navigation.navigate('My Businesses', {
+              screen: 'My Businesses',
+            });
+          } else {
+            ToastNotification(`${t('screens:requestFail')}`, 'danger', 'long');
+            if (!showToast) {
+              setShowToast(true);
+              showToastMessage(t('screens:errorOccured'));
             }
-          })
-          .catch(rejectedValueOrSerializedError => {
-            console.log('error');
-            console.log(rejectedValueOrSerializedError);
-          });
-      }
-      
-      }
-    };
-
-    const uploadFileAndHandleFinish = async (file, storagePath) => {
-      const fileExtension = file[0].type.split("/").pop();
-      const uuid = makeid(10);
-      const fileName = `${uuid}.${fileExtension}`;
-      const storageRef = firebase.storage().ref(`${storagePath}/${fileName}`);
-
-      const fileUri = await getPathForFirebaseStorage(file[0].uri);
-
-      try {
-
-          setUploadingDoc(true);
-
-          storageRef.putFile(fileUri).on(
-            firebase.storage.TaskEvent.STATE_CHANGED,
-            (snapshot: any) => {
-              console.log("snapshot state: " + snapshot.state);
-              if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
-                storageRef.getDownloadURL().then((downloadUrl: any) => {
-                  if (file === image) {
-
-                    data.img_url = downloadUrl;
-                  } else if (file === video) {
-                    data.video_url = downloadUrl;
-                  }
-                  setUploadingDoc(false);
-
-                  // Check if both image and video uploads are complete
-                  handleUploadFinish();
-                });
-              }
-            },
-            (error) => {
-              unsubscribe();
-            }
-          );
-     
-      } catch (error) {
-        console.warn(error);
-      }
-    };
-
-
-    if (image !== null) {
-      await uploadFileAndHandleFinish(image, 'businesses/images/');
-    }
-    if (video !== null) {
-      await uploadFileAndHandleFinish(video, 'businesses/videos/');
-    }
-    if (image === null && video === null) {
-      handleUploadFinish();
+          }
+        })
+        .catch(rejectedValueOrSerializedError => {
+          console.log('error');
+          console.log(rejectedValueOrSerializedError);
+        });
     }
   };
 
